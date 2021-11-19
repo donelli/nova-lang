@@ -29,11 +29,12 @@ func _() {
 	_ = x[TokenType_GreaterThanEqual-19]
 	_ = x[TokenType_LeftParenthesis-20]
 	_ = x[TokenType_RightParenthesis-21]
+	_ = x[TokenType_Comment-22]
 }
 
-const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandEqualNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesis"
+const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandEqualNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesisComment"
 
-var _LexerTokenType_index = [...]uint8{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 89, 97, 105, 116, 129, 145, 160, 176}
+var _LexerTokenType_index = [...]uint8{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 89, 97, 105, 116, 129, 145, 160, 176, 183}
 
 func (i LexerTokenType) String() string {
 	i -= 1

@@ -38,7 +38,7 @@ func main() {
 			return
 		}
 
-		fmt.Printf("%+v\n", res.String())
+		fmt.Printf("\n%+v\n", res.String())
 
 	}
 

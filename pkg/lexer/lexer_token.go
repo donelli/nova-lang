@@ -70,6 +70,9 @@ const (
 
 	// TokenType_RightParenthesis represents a )
 	TokenType_RightParenthesis
+
+	// TokenType_Comment represents a comment
+	TokenType_Comment
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_
@@ -84,10 +87,10 @@ func (this *LexerToken) String() string {
 
 	valueString := ""
 	if this.Value != "" {
-		valueString = fmt.Sprintf(", Value: %v", this.Value)
+		valueString = fmt.Sprintf(", Val: %v", this.Value)
 	}
 
-	return fmt.Sprintf("LexTok{Range: %v, Type: %v%s}", this.Range, this.Type, valueString)
+	return fmt.Sprintf("Tok{Range: %v, Type: %v%s}", this.Range, this.Type, valueString)
 }
 
 func NewLexerToken(startPos shared.Position, endPos shared.Position, tokenType LexerTokenType, value string) *LexerToken {

@@ -67,6 +67,47 @@ func (lexer *Lexer) makeMinusToken() {
 
 }
 
+func (lexer *Lexer) isFirstTokenOfTheLine() bool {
+
+	if lexer.currentResult.TokensCount == 0 {
+		return true
+	}
+
+	if lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1].Range.End.Row != lexer.CurrentPosition.Row {
+		return true
+	}
+
+	return false
+}
+
+func (lexer *Lexer) makeComment() {
+
+	startPos := *lexer.CurrentPosition
+	comment := ""
+
+	for lexer.hasCurrentChar && lexer.CurrentChar != '\n' {
+		comment += string(lexer.CurrentChar)
+		lexer.Advance()
+	}
+
+	// fmt.Printf("\n%v\n", comment)
+
+	lexer.addTokenWithPos(TokenType_Comment, comment, startPos, *lexer.CurrentPosition)
+
+}
+
+func (lexer *Lexer) makeMultiplierOrCommentToken() {
+
+	if lexer.isFirstTokenOfTheLine() {
+		lexer.makeComment()
+		return
+	}
+
+	lexer.addToken(TokenType_Star, "")
+	lexer.Advance()
+
+}
+
 func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 	result := NewLexerResult()
@@ -91,6 +132,9 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			continue
 		case '-':
 			lexer.makeMinusToken()
+			continue
+		case '*':
+			lexer.makeMultiplierOrCommentToken()
 			continue
 		}
 
