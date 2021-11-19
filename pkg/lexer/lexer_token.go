@@ -1,14 +1,18 @@
 package lexer
 
 import (
+	"fmt"
 	"recital_lsp/pkg/shared"
 )
 
-type LexerTokenType int
+type LexerTokenType uint8
 
 const (
 	// TokenType_EOF represents the end of file token.
-	TokenType_EOF = iota + 1
+	TokenType_EOF LexerTokenType = iota + 1
+
+	// TokenType_EOF represents the end of line token.
+	TokenType_NewLine
 
 	// TokenType_Identifier represents an identifier token (variable, function name, ...)
 	TokenType_Identifier
@@ -19,11 +23,17 @@ const (
 	// TokenType_String represents a string token
 	TokenType_String
 
-	// TokenType_Operator represents a plus operator token
+	// TokenType_Plus represents a plus operator token
 	TokenType_Plus
+
+	// TokenType_PlusPlus represents a double plus operator token
+	TokenType_PlusPlus
 
 	// TokenType_Minus represents a minus operator token
 	TokenType_Minus
+
+	// TokenType_MinusMinus represents a double minus operator token
+	TokenType_MinusMinus
 
 	// TokenType_Multiply represents a multiply operator token
 	TokenType_Star
@@ -62,28 +72,28 @@ const (
 	TokenType_RightParenthesis
 )
 
+//go:generate stringer -type=LexerTokenType -trimprefix=TokenType_
+
 type LexerToken struct {
-	Range shared.Range
+	Range *shared.Range
 	Type  LexerTokenType
 	Value string
 }
 
-// String token
+func (this *LexerToken) String() string {
 
-type StringLexerToken struct {
-	LexerToken
+	valueString := ""
+	if this.Value != "" {
+		valueString = fmt.Sprintf(", Value: %v", this.Value)
+	}
+
+	return fmt.Sprintf("LexTok{Range: %v, Type: %v%s}", this.Range, this.Type, valueString)
 }
 
-func (token *StringLexerToken) String() string {
-	return "str:" + token.Value + token.Range.String()
-}
-
-func NewStringToken(tokenRange shared.Range, value string) *StringLexerToken {
-	return &StringLexerToken{
-		LexerToken: LexerToken{
-			Range: tokenRange,
-			Type:  TokenType_String,
-			Value: value,
-		},
+func NewLexerToken(startPos shared.Position, endPos shared.Position, tokenType LexerTokenType, value string) *LexerToken {
+	return &LexerToken{
+		Range: shared.NewRange(startPos, endPos),
+		Type:  tokenType,
+		Value: value,
 	}
 }
