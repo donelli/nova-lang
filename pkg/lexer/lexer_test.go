@@ -1,7 +1,6 @@
 package lexer_test
 
 import (
-	"fmt"
 	"recital_lsp/pkg/lexer"
 	"testing"
 )
@@ -37,13 +36,13 @@ func TestNewLexer(t *testing.T) {
 func TestLexerSimpleStatement(t *testing.T) {
 
 	lexerInstance := lexer.NewLexer("test.go", "lnVal = val(lcPreco) * 0.9")
-	res, err := lexerInstance.Parse()
+	_, err := lexerInstance.Parse()
 
 	if err != nil {
 		t.Errorf("%s", err)
 	}
 
-	fmt.Printf("%s", res)
+	// fmt.Printf("%s", res)
 
 }
 

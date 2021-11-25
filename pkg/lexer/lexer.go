@@ -75,10 +75,9 @@ func (lexer *Lexer) isFirstTokenOfTheLine() bool {
 		return true
 	}
 
-	fmt.Printf("lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]: %v\n", lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1])
-	fmt.Printf("lexer.CurrentPosition: %v\n", lexer.CurrentPosition)
+	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
 
-	if lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1].Range.End.Row != lexer.CurrentPosition.Row {
+	if lastToken.Range.End.Row != lexer.CurrentPosition.Row {
 		return true
 	}
 
@@ -113,6 +112,10 @@ func (lexer *Lexer) makeMultiplierOrCommentToken() {
 
 }
 
+func (lexer *Lexer) reportError(error shared.Error) {
+	lexer.currentResult.AddError(error)
+}
+
 func (lexer *Lexer) makeNumber() {
 	startPos := *lexer.CurrentPosition
 	number := ""
@@ -122,20 +125,45 @@ func (lexer *Lexer) makeNumber() {
 
 		if lexer.CurrentChar == '.' {
 			dotCount++
-
-			if dotCount > 1 {
-				panic(shared.NewError(startPos, *lexer.CurrentPosition, "Invalid number"))
-			}
-
 		}
 
 		number += string(lexer.CurrentChar)
 		lexer.Advance()
 	}
 
+	if dotCount > 1 {
+		lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "Invalid number"))
+	}
+
+	lexer.addToken(TokenType_Number, number)
+
 }
 
-func (lexer *Lexer) RegisterError() {
+func (lexer *Lexer) matchLastTokenType(tokenType LexerTokenType) bool {
+
+	if lexer.currentResult.TokensCount == 0 {
+		return false
+	}
+
+	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
+
+	if lastToken.Type != tokenType {
+		return false
+	}
+
+	return true
+}
+
+func (lexer *Lexer) makeIdentifier() {
+	startPos := *lexer.CurrentPosition
+	identifier := ""
+
+	for strings.Contains(shared.LettersAndUnderline, string(lexer.CurrentChar)) {
+		identifier += string(lexer.CurrentChar)
+		lexer.Advance()
+	}
+
+	lexer.addTokenWithPos(TokenType_Identifier, identifier, startPos, *lexer.CurrentPosition)
 
 }
 
@@ -150,14 +178,18 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			break
 		}
 
-		if lexer.CurrentChar == ' ' || lexer.CurrentChar == '\t' {
+		if lexer.CurrentChar == ' ' || lexer.CurrentChar == '\t' || lexer.CurrentChar == '\r' {
 			lexer.Advance()
 			continue
 		}
 
 		switch lexer.CurrentChar {
 		case '\n':
+
+			// TODO ignore multiple new lines?
+
 			lexer.addToken(TokenType_NewLine, "")
+
 		case '+':
 			lexer.makePlusToken()
 			continue
@@ -171,16 +203,24 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 			if strings.Contains(shared.Digits, string(lexer.CurrentChar)) {
 				lexer.makeNumber()
-
+				continue
 			}
 
+			if strings.Contains(shared.LettersAndUnderline, string(lexer.CurrentChar)) {
+				lexer.makeIdentifier()
+				continue
+			}
+
+			fmt.Printf("Unknown char: %+q\n", lexer.CurrentChar)
+
+			lexer.reportError(shared.NewError(*lexer.CurrentPosition, *lexer.CurrentPosition, fmt.Sprintf("Invalid character: %s", string(lexer.CurrentChar))))
 		}
 
 		lexer.Advance()
 
 	}
 
-	return result, nil
+	return lexer.currentResult, nil
 }
 
 func NewLexer(fileName string, fileContent string) *Lexer {

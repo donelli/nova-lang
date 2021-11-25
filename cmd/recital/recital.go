@@ -38,6 +38,25 @@ func main() {
 			return
 		}
 
+		if len(res.Errors) == 0 {
+			fmt.Printf("\n-> No errors\n")
+		} else {
+			fmt.Printf("\n-> Found %d errors\n", len(res.Errors))
+
+			for error := range res.Errors {
+				fmt.Println(res.Errors[error])
+			}
+
+		}
+
+		if len(res.Warnings) == 0 {
+			fmt.Printf("\n-> No warnings\n")
+		} else {
+			fmt.Printf("\n-> Found %d warnings\n", len(res.Warnings))
+			// TODO show warnings
+		}
+
+		fmt.Printf("\n-> Lexer result:")
 		fmt.Printf("\n%+v\n", res.String())
 
 	}

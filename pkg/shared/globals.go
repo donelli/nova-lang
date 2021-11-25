@@ -1,8 +1,9 @@
 package shared
 
 const (
-	Digits           = "0123456789"
-	Letters          = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	LettersAndDigits = Letters + Digits
-	DigitsAndDot     = Digits + "."
+	Digits              = "0123456789"
+	Letters             = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	LettersAndUnderline = Letters + "_"
+	LettersAndDigits    = Letters + Digits
+	DigitsAndDot        = Digits + "."
 )

@@ -1,10 +1,20 @@
 package lexer
 
-import "fmt"
+import (
+	"fmt"
+	"recital_lsp/pkg/shared"
+)
 
 type LexerResult struct {
 	Tokens      []*LexerToken
 	TokensCount uint32
+
+	Errors   []shared.Error
+	Warnings []shared.Warning
+}
+
+func (this *LexerResult) AddError(error shared.Error) {
+	this.Errors = append(this.Errors, error)
 }
 
 func (this *LexerResult) AddToken(token *LexerToken) {
@@ -28,5 +38,7 @@ func NewLexerResult() *LexerResult {
 	return &LexerResult{
 		Tokens:      make([]*LexerToken, 0, startTokenCount),
 		TokensCount: 0,
+		Errors:      make([]shared.Error, 0),
+		Warnings:    make([]shared.Warning, 0),
 	}
 }

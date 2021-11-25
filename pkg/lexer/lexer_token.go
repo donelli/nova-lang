@@ -86,7 +86,6 @@ type LexerToken struct {
 func (this *LexerToken) String() string {
 
 	if this.Value != "" {
-		fmt.Print("|" + this.Value + "|")
 		return fmt.Sprintf("Tok{Range: %v, Type: %v, Val: %v}", this.Range, this.Type, this.Value)
 	} else {
 		return fmt.Sprintf("Tok{Range: %v, Type: %v}", this.Range, this.Type)
