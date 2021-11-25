@@ -1,7 +1,7 @@
 
 * This is a test
 
-nNumber = 1 + 1 - 1
+nNumber = 1.0.0 * 1 + 1 - 1
 
 ++nNumber
 --nNumber

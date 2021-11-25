@@ -85,12 +85,13 @@ type LexerToken struct {
 
 func (this *LexerToken) String() string {
 
-	valueString := ""
 	if this.Value != "" {
-		valueString = fmt.Sprintf(", Val: %v", this.Value)
+		fmt.Print("|" + this.Value + "|")
+		return fmt.Sprintf("Tok{Range: %v, Type: %v, Val: %v}", this.Range, this.Type, this.Value)
+	} else {
+		return fmt.Sprintf("Tok{Range: %v, Type: %v}", this.Range, this.Type)
 	}
 
-	return fmt.Sprintf("Tok{Range: %v, Type: %v%s}", this.Range, this.Type, valueString)
 }
 
 func NewLexerToken(startPos shared.Position, endPos shared.Position, tokenType LexerTokenType, value string) *LexerToken {

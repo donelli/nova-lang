@@ -1,7 +1,9 @@
 package lexer
 
 import (
+	"fmt"
 	"recital_lsp/pkg/shared"
+	"strings"
 )
 
 // Start Token count for the lexer
@@ -73,6 +75,9 @@ func (lexer *Lexer) isFirstTokenOfTheLine() bool {
 		return true
 	}
 
+	fmt.Printf("lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]: %v\n", lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1])
+	fmt.Printf("lexer.CurrentPosition: %v\n", lexer.CurrentPosition)
+
 	if lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1].Range.End.Row != lexer.CurrentPosition.Row {
 		return true
 	}
@@ -85,12 +90,12 @@ func (lexer *Lexer) makeComment() {
 	startPos := *lexer.CurrentPosition
 	comment := ""
 
+	// TODO some wierd caracter is in the comment
+
 	for lexer.hasCurrentChar && lexer.CurrentChar != '\n' {
 		comment += string(lexer.CurrentChar)
 		lexer.Advance()
 	}
-
-	// fmt.Printf("\n%v\n", comment)
 
 	lexer.addTokenWithPos(TokenType_Comment, comment, startPos, *lexer.CurrentPosition)
 
@@ -105,6 +110,32 @@ func (lexer *Lexer) makeMultiplierOrCommentToken() {
 
 	lexer.addToken(TokenType_Star, "")
 	lexer.Advance()
+
+}
+
+func (lexer *Lexer) makeNumber() {
+	startPos := *lexer.CurrentPosition
+	number := ""
+	var dotCount uint8 = 0
+
+	for strings.Contains(shared.DigitsAndDot, string(lexer.CurrentChar)) {
+
+		if lexer.CurrentChar == '.' {
+			dotCount++
+
+			if dotCount > 1 {
+				panic(shared.NewError(startPos, *lexer.CurrentPosition, "Invalid number"))
+			}
+
+		}
+
+		number += string(lexer.CurrentChar)
+		lexer.Advance()
+	}
+
+}
+
+func (lexer *Lexer) RegisterError() {
 
 }
 
@@ -136,6 +167,13 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '*':
 			lexer.makeMultiplierOrCommentToken()
 			continue
+		default:
+
+			if strings.Contains(shared.Digits, string(lexer.CurrentChar)) {
+				lexer.makeNumber()
+
+			}
+
 		}
 
 		lexer.Advance()
