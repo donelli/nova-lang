@@ -48,7 +48,10 @@ const (
 	TokenType_Ampersand
 
 	// TokenType_Equal represents an =
-	TokenType_Equal
+	TokenType_Equals
+
+	// TokenType_EqualsEquals represents an ==
+	TokenType_EqualsEquals
 
 	// TokenType_NotEqual represents an != or <>
 	TokenType_NotEqual
@@ -73,6 +76,18 @@ const (
 
 	// TokenType_Comment represents a comment
 	TokenType_Comment
+
+	// TokenType_Comma represents a ,
+	TokenType_Comma
+
+	// TokenType_LeftBracket represents a [
+	TokenType_LeftBracket
+
+	// TokenType_RightBracket represents a ]
+	TokenType_RightBracket
+
+	// TokenType_Keyword represents a keyword (reserved word)
+	TokenType_Keyword
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_

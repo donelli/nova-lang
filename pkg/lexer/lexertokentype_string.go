@@ -21,20 +21,25 @@ func _() {
 	_ = x[TokenType_Slash-11]
 	_ = x[TokenType_Percent-12]
 	_ = x[TokenType_Ampersand-13]
-	_ = x[TokenType_Equal-14]
-	_ = x[TokenType_NotEqual-15]
-	_ = x[TokenType_LessThan-16]
-	_ = x[TokenType_GreaterThan-17]
-	_ = x[TokenType_LessThanEqual-18]
-	_ = x[TokenType_GreaterThanEqual-19]
-	_ = x[TokenType_LeftParenthesis-20]
-	_ = x[TokenType_RightParenthesis-21]
-	_ = x[TokenType_Comment-22]
+	_ = x[TokenType_Equals-14]
+	_ = x[TokenType_EqualsEquals-15]
+	_ = x[TokenType_NotEqual-16]
+	_ = x[TokenType_LessThan-17]
+	_ = x[TokenType_GreaterThan-18]
+	_ = x[TokenType_LessThanEqual-19]
+	_ = x[TokenType_GreaterThanEqual-20]
+	_ = x[TokenType_LeftParenthesis-21]
+	_ = x[TokenType_RightParenthesis-22]
+	_ = x[TokenType_Comment-23]
+	_ = x[TokenType_Comma-24]
+	_ = x[TokenType_LeftBracket-25]
+	_ = x[TokenType_RightBracket-26]
+	_ = x[TokenType_Keyword-27]
 }
 
-const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandEqualNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesisComment"
+const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandEqualsEqualsEqualsNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesisCommentCommaLeftBracketRightBracketKeyword"
 
-var _LexerTokenType_index = [...]uint8{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 89, 97, 105, 116, 129, 145, 160, 176, 183}
+var _LexerTokenType_index = [...]uint8{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 90, 102, 110, 118, 129, 142, 158, 173, 189, 196, 201, 212, 224, 231}
 
 func (i LexerTokenType) String() string {
 	i -= 1
