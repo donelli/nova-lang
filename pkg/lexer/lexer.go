@@ -163,7 +163,73 @@ func (lexer *Lexer) makeIdentifier() {
 		lexer.Advance()
 	}
 
+	// TODO check if identifier is a keyword
+	// Store keywords in a json, then load and store in a map in the first time ou initialization
+
+	if identifier == "say" || identifier == "if" {
+		lexer.addTokenWithPos(TokenType_Keyword, identifier, startPos, *lexer.CurrentPosition)
+		return
+	}
+
 	lexer.addTokenWithPos(TokenType_Identifier, identifier, startPos, *lexer.CurrentPosition)
+
+}
+
+func (lexer *Lexer) makeEqualsToken() {
+
+	startPos := *lexer.CurrentPosition
+	lexer.Advance()
+
+	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+		lexer.addTokenWithPos(TokenType_EqualsEquals, "", startPos, *lexer.CurrentPosition)
+		lexer.Advance()
+	} else {
+		lexer.addTokenWithPos(TokenType_Equals, "", startPos, startPos)
+	}
+
+}
+
+func (lexer *Lexer) makeString() {
+
+	// TODO implement ; to allow multi line strings
+	// TODO check if recital ignores the string after ;
+
+	startPos := *lexer.CurrentPosition
+	stringValue := ""
+
+	startChar := lexer.CurrentChar
+	endChar := startChar
+	if startChar == '[' {
+		endChar = ']'
+	}
+
+	lexer.Advance()
+
+	for lexer.hasCurrentChar && lexer.CurrentChar != '\n' && lexer.CurrentChar != endChar {
+		stringValue += string(lexer.CurrentChar)
+		lexer.Advance()
+	}
+
+	if lexer.CurrentChar != endChar {
+		lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "String not terminated"))
+		return
+	}
+
+	lexer.addTokenWithPos(TokenType_String, stringValue, startPos, *lexer.CurrentPosition)
+	lexer.Advance()
+
+}
+
+func (lexer *Lexer) makeStringOrBracket() {
+
+	if lexer.matchLastTokenType(TokenType_Identifier) {
+		pos := *lexer.CurrentPosition
+		lexer.Advance()
+		lexer.addTokenWithPos(TokenType_LeftBracket, "", pos, pos)
+		return
+	}
+
+	lexer.makeString()
 
 }
 
@@ -178,21 +244,30 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			break
 		}
 
-		if lexer.CurrentChar == ' ' || lexer.CurrentChar == '\t' || lexer.CurrentChar == '\r' {
+		if lexer.CurrentChar == ' ' || lexer.CurrentChar == '\t' {
 			lexer.Advance()
 			continue
 		}
 
 		switch lexer.CurrentChar {
 		case '\n':
-
-			// TODO ignore multiple new lines?
-
 			lexer.addToken(TokenType_NewLine, "")
-
+		case '=':
+			lexer.makeEqualsToken()
+			continue
 		case '+':
 			lexer.makePlusToken()
 			continue
+		case ',':
+			lexer.addToken(TokenType_Comma, "")
+		case '"', '\'':
+			lexer.makeString()
+			continue
+		case '[':
+			lexer.makeStringOrBracket()
+			continue
+		case '@':
+			lexer.addToken(TokenType_Ampersand, "")
 		case '-':
 			lexer.makeMinusToken()
 			continue
@@ -210,8 +285,6 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 				lexer.makeIdentifier()
 				continue
 			}
-
-			fmt.Printf("Unknown char: %+q\n", lexer.CurrentChar)
 
 			lexer.reportError(shared.NewError(*lexer.CurrentPosition, *lexer.CurrentPosition, fmt.Sprintf("Invalid character: %s", string(lexer.CurrentChar))))
 		}
