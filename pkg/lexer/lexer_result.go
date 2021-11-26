@@ -13,21 +13,21 @@ type LexerResult struct {
 	Warnings []shared.Warning
 }
 
-func (this *LexerResult) AddError(error shared.Error) {
-	this.Errors = append(this.Errors, error)
+func (LexerResult *LexerResult) AddError(error shared.Error) {
+	LexerResult.Errors = append(LexerResult.Errors, error)
 }
 
-func (this *LexerResult) AddToken(token *LexerToken) {
-	this.Tokens = append(this.Tokens, token)
-	this.TokensCount++
+func (LexerResult *LexerResult) AddToken(token *LexerToken) {
+	LexerResult.Tokens = append(LexerResult.Tokens, token)
+	LexerResult.TokensCount++
 }
 
-func (this *LexerResult) String() string {
+func (LexerResult *LexerResult) String() string {
 
 	str := "LexerResult{\n"
 
-	for pointer := range this.Tokens {
-		tok := this.Tokens[pointer]
+	for pointer := range LexerResult.Tokens {
+		tok := LexerResult.Tokens[pointer]
 		str += "  " + fmt.Sprintf("%+v", tok) + "\n"
 	}
 

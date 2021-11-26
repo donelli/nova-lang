@@ -8,10 +8,10 @@ import (
 type LexerTokenType uint8
 
 const (
-	// TokenType_EOF represents the end of file token.
+	// TokenType_EOF represents the end of file token
 	TokenType_EOF LexerTokenType = iota + 1
 
-	// TokenType_EOF represents the end of line token.
+	// TokenType_EOF represents the end of line token
 	TokenType_NewLine
 
 	// TokenType_Identifier represents an identifier token (variable, function name, ...)
@@ -44,7 +44,7 @@ const (
 	// TokenType_Modulo represents a modulo operator token
 	TokenType_Percent
 
-	// TokenType_Ampersand represents an @
+	// TokenType_Ampersand represents an &
 	TokenType_Ampersand
 
 	// TokenType_Equal represents an =
@@ -91,6 +91,18 @@ const (
 
 	// TokenType_QuestionMark represents a ?
 	TokenType_QuestionMark
+
+	// TokenType_DollarSign represents a $
+	TokenType_DollarSign
+
+	// TokenType_AtSign represents a @
+	TokenType_AtSign
+
+	// TokenType_Boolean represents a boolean (.t. or .f.)
+	TokenType_Boolean
+
+	// TokenType_Dot represents a .
+	TokenType_Dot
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_
@@ -101,12 +113,12 @@ type LexerToken struct {
 	Value string
 }
 
-func (this *LexerToken) String() string {
+func (lexerToken *LexerToken) String() string {
 
-	if this.Value != "" {
-		return fmt.Sprintf("Tok{Range: %v, Type: %v, Val: %v}", this.Range, this.Type, this.Value)
+	if lexerToken.Value != "" {
+		return fmt.Sprintf("Tok{Range: %v, Type: %v, Val: %v}", lexerToken.Range, lexerToken.Type, lexerToken.Value)
 	} else {
-		return fmt.Sprintf("Tok{Range: %v, Type: %v}", this.Range, this.Type)
+		return fmt.Sprintf("Tok{Range: %v, Type: %v}", lexerToken.Range, lexerToken.Type)
 	}
 
 }

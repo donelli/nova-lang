@@ -39,6 +39,21 @@ func (lexer *Lexer) addTokenWithPos(tokenType LexerTokenType, value string, star
 	lexer.currentResult.AddToken(NewLexerToken(startPos, endPos, tokenType, value))
 }
 
+func (lexer *Lexer) getNextBytes(charCount int32) []byte {
+
+	nextBytes := make([]byte, 0, charCount)
+
+	index := lexer.CurrentPosition.Index + 1
+	endIndex := index + charCount
+
+	for index < lexer.contentLen && index < endIndex {
+		nextBytes = append(nextBytes, lexer.FileContent[index])
+		index++
+	}
+
+	return nextBytes
+}
+
 func (lexer *Lexer) makePlusToken() {
 
 	startPos := *lexer.CurrentPosition
@@ -77,11 +92,7 @@ func (lexer *Lexer) isFirstTokenOfTheLine() bool {
 
 	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
 
-	if lastToken.Range.End.Row != lexer.CurrentPosition.Row {
-		return true
-	}
-
-	return false
+	return lastToken.Range.End.Row != lexer.CurrentPosition.Row
 }
 
 func (lexer *Lexer) makeComment() {
@@ -258,6 +269,54 @@ func (lexer *Lexer) makeStringOrBracket() {
 
 }
 
+func (lexer *Lexer) makeLessThenEqualsToken() {
+
+	startPos := *lexer.CurrentPosition
+	lexer.Advance()
+
+	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+		lexer.addTokenWithPos(TokenType_LessThanEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.Advance()
+	} else {
+		lexer.addTokenWithPos(TokenType_LessThan, "", startPos, startPos)
+	}
+
+}
+
+func (lexer *Lexer) makeGreaterThanEqualsToken() {
+
+	startPos := *lexer.CurrentPosition
+	lexer.Advance()
+
+	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+		lexer.addTokenWithPos(TokenType_GreaterThanEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.Advance()
+	} else {
+		lexer.addTokenWithPos(TokenType_GreaterThan, "", startPos, startPos)
+	}
+
+}
+
+func (lexer *Lexer) makeBoolOrDotToken() {
+
+	nextChars := string(lexer.getNextBytes(2))
+
+	if nextChars == ".t" || nextChars == ".f" {
+
+		startPos := *lexer.CurrentPosition
+		boolValue := string(lexer.CurrentChar) + nextChars
+		lexer.Advance()
+		lexer.Advance()
+		lexer.addTokenWithPos(TokenType_Boolean, boolValue, startPos, *lexer.CurrentPosition)
+
+		return
+	}
+
+	lexer.addToken(TokenType_Dot, "")
+	lexer.Advance()
+
+}
+
 func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 	result := NewLexerResult()
@@ -275,11 +334,13 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		}
 
 		switch lexer.CurrentChar {
-		case '\n':
-			lexer.addToken(TokenType_NewLine, "")
 		case '=':
 			lexer.makeEqualsToken()
 			continue
+		case '(':
+			lexer.addToken(TokenType_LeftParenthesis, "")
+		case ')':
+			lexer.addToken(TokenType_RightParenthesis, "")
 		case '+':
 			lexer.makePlusToken()
 			continue
@@ -293,16 +354,31 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			continue
 		case ']':
 			lexer.addToken(TokenType_RightBracket, "")
+		case '$':
+			lexer.addToken(TokenType_DollarSign, "")
 		case '@':
+			lexer.addToken(TokenType_AtSign, "")
+		case '&':
 			lexer.addToken(TokenType_Ampersand, "")
+		case '<':
+			lexer.makeLessThenEqualsToken()
+			continue
+		case '>':
+			lexer.makeGreaterThanEqualsToken()
+			continue
 		case '-':
 			lexer.makeMinusToken()
+			continue
+		case '.':
+			lexer.makeBoolOrDotToken()
 			continue
 		case '*':
 			lexer.makeMultiplierOrCommentToken()
 			continue
 		case '?':
 			lexer.addToken(TokenType_QuestionMark, "")
+		case '\n':
+			lexer.addToken(TokenType_NewLine, "")
 		default:
 
 			if strings.Contains(shared.Digits, string(lexer.CurrentChar)) {
