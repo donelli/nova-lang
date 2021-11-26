@@ -1,10 +1,10 @@
 
-# Recital Analysis Tools (RAT)
+# Recital Tools (RT)
 
-## Compiling and testing
+## Compiling
 
 ```sh
-go build cmd/recital/recital.go & recital.exe lex prgs/if_and_number_operations.prg
+go build -o rt.exe cmd/recital/recital_tools.go
 ```
 
 ## Commands
@@ -12,6 +12,6 @@ go build cmd/recital/recital.go & recital.exe lex prgs/if_and_number_operations.
 Print the lexer result of that file
 
 ```sh
-rat lex <fileName>
+rt.exe lex <fileName>
 ```
 
