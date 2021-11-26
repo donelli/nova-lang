@@ -269,13 +269,16 @@ func (lexer *Lexer) makeStringOrBracket() {
 
 }
 
-func (lexer *Lexer) makeLessThenEqualsToken() {
+func (lexer *Lexer) makeLessThenEqualsOrNotToken() {
 
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
 	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
 		lexer.addTokenWithPos(TokenType_LessThanEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.Advance()
+	} else if lexer.hasCurrentChar && lexer.CurrentChar == '>' {
+		lexer.addTokenWithPos(TokenType_NotEqual, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
 		lexer.addTokenWithPos(TokenType_LessThan, "", startPos, startPos)
@@ -317,6 +320,20 @@ func (lexer *Lexer) makeBoolOrDotToken() {
 
 }
 
+func (lexer *Lexer) makeNotOrNotEqualsToken() {
+
+	startPos := *lexer.CurrentPosition
+	lexer.Advance()
+
+	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+		lexer.addTokenWithPos(TokenType_NotEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.Advance()
+	} else {
+		lexer.addTokenWithPos(TokenType_Not, "", startPos, startPos)
+	}
+
+}
+
 func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 	result := NewLexerResult()
@@ -349,6 +366,9 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '"', '\'':
 			lexer.makeString()
 			continue
+		case '!':
+			lexer.makeNotOrNotEqualsToken()
+			continue
 		case '[':
 			lexer.makeStringOrBracket()
 			continue
@@ -361,7 +381,7 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '&':
 			lexer.addToken(TokenType_Ampersand, "")
 		case '<':
-			lexer.makeLessThenEqualsToken()
+			lexer.makeLessThenEqualsOrNotToken()
 			continue
 		case '>':
 			lexer.makeGreaterThanEqualsToken()

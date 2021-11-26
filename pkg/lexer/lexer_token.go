@@ -103,6 +103,9 @@ const (
 
 	// TokenType_Dot represents a .
 	TokenType_Dot
+
+	// TokenType_Not represents a ! or not
+	TokenType_Not
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_
