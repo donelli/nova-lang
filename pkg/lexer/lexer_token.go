@@ -88,6 +88,9 @@ const (
 
 	// TokenType_Keyword represents a keyword (reserved word)
 	TokenType_Keyword
+
+	// TokenType_QuestionMark represents a ?
+	TokenType_QuestionMark
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_

@@ -191,9 +191,6 @@ func (lexer *Lexer) makeEqualsToken() {
 
 func (lexer *Lexer) makeString() {
 
-	// TODO implement ; to allow multi line strings
-	// TODO check if recital ignores the string after ;
-
 	startPos := *lexer.CurrentPosition
 	stringValue := ""
 
@@ -205,7 +202,35 @@ func (lexer *Lexer) makeString() {
 
 	lexer.Advance()
 
-	for lexer.hasCurrentChar && lexer.CurrentChar != '\n' && lexer.CurrentChar != endChar {
+	lastChar := ' '
+
+	for lexer.hasCurrentChar {
+
+		if lexer.CurrentChar == endChar {
+			break
+		}
+
+		if lexer.CurrentChar == '\n' {
+
+			if lastChar != ';' {
+				break
+			}
+
+			stringValue = strings.TrimSuffix(stringValue, " ")
+			stringValue = strings.TrimSuffix(stringValue, ";")
+
+			stringValue += " "
+
+			lastChar = lexer.CurrentChar
+			lexer.Advance()
+			continue
+
+		}
+
+		if lexer.CurrentChar != ' ' {
+			lastChar = lexer.CurrentChar
+		}
+
 		stringValue += string(lexer.CurrentChar)
 		lexer.Advance()
 	}
@@ -266,6 +291,8 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '[':
 			lexer.makeStringOrBracket()
 			continue
+		case ']':
+			lexer.addToken(TokenType_RightBracket, "")
 		case '@':
 			lexer.addToken(TokenType_Ampersand, "")
 		case '-':
@@ -274,6 +301,8 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '*':
 			lexer.makeMultiplierOrCommentToken()
 			continue
+		case '?':
+			lexer.addToken(TokenType_QuestionMark, "")
 		default:
 
 			if strings.Contains(shared.Digits, string(lexer.CurrentChar)) {

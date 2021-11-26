@@ -1,4 +1,9 @@
 
+cStr = "This is ;
+a test string;
+with multi;
+lines"
+
 cStr = "S"
 
 if cStr == 'S'
@@ -8,4 +13,3 @@ else
 endif
 
 return
-

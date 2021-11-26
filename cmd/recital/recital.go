@@ -71,7 +71,7 @@ func main() {
 			// TODO show warnings
 		}
 
-		fmt.Printf("\n-> Lexer result:")
+		fmt.Printf("\n-> Lexer result: %d tokens", res.TokensCount)
 		fmt.Printf("\n%+v\n", res.String())
 
 	}
