@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"recital_lsp/pkg/lexer"
+	"recital_lsp/pkg/lsp"
 	"recital_lsp/pkg/utils"
 	"time"
 )
@@ -73,6 +74,10 @@ func main() {
 
 		fmt.Printf("\n-> Lexer result: %d tokens", res.TokensCount)
 		fmt.Printf("\n%+v\n", res.String())
+
+	} else if command == "lsp" {
+
+		lsp.CreateServer()
 
 	}
 

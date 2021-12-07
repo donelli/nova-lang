@@ -106,6 +106,9 @@ const (
 
 	// TokenType_Not represents a ! or not
 	TokenType_Not
+
+	// TokenType_Date represents a date: {} {01/01/21} {01/01/2021}
+	TokenType_Date
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_

@@ -11,7 +11,7 @@ type Position struct {
 }
 
 func (p *Position) String() string {
-	return fmt.Sprintf("{%d,%d}", p.Row, p.Column)
+	return fmt.Sprintf("{%d:%d}", p.Row, p.Column)
 }
 
 func (p *Position) Advance(char rune) {

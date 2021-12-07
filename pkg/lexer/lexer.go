@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// TODO define optimal number to startTokenCount
 // Start Token count for the lexer
 const startTokenCount = 500
 
@@ -99,8 +100,6 @@ func (lexer *Lexer) makeComment() {
 
 	startPos := *lexer.CurrentPosition
 	comment := ""
-
-	// TODO some wierd caracter is in the comment
 
 	for lexer.hasCurrentChar && lexer.CurrentChar != '\n' {
 		comment += string(lexer.CurrentChar)
@@ -334,10 +333,48 @@ func (lexer *Lexer) makeNotOrNotEqualsToken() {
 
 }
 
+func (lexer *Lexer) makeDate() {
+
+	startPos := *lexer.CurrentPosition
+	lexer.Advance()
+
+	dateValue := ""
+
+	for lexer.hasCurrentChar && lexer.CurrentChar != '}' && lexer.CurrentChar != '\n' {
+
+		// if string(lexer.CurrentChar) == "/" || strings.Contains(shared.Digits, string(lexer.CurrentChar)) {
+		dateValue += string(lexer.CurrentChar)
+		lexer.Advance()
+		continue
+		// }
+
+		// lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "Invalid character in date: "+string(lexer.CurrentChar)))
+		// return
+
+	}
+
+	if !lexer.hasCurrentChar || lexer.CurrentChar != '}' {
+		lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "Expected '}' to close date"))
+		lexer.Advance()
+		return
+	}
+
+	// TODO check for valid date
+	// \d{0,2}\/\d{0,2}\/\d{2,4}
+	// dateRegex, _ := regexp.Compile("p([a-z]+)ch")
+
+	lexer.addTokenWithPos(TokenType_Date, dateValue, startPos, *lexer.CurrentPosition)
+	lexer.Advance()
+
+}
+
 func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 	result := NewLexerResult()
 	lexer.currentResult = result
+
+	// TODO add path token
+	// if last token is a keyword, is a path
 
 	for {
 
@@ -399,6 +436,9 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			lexer.addToken(TokenType_QuestionMark, "")
 		case '\n':
 			lexer.addToken(TokenType_NewLine, "")
+		case '{':
+			lexer.makeDate()
+			continue
 		default:
 
 			if strings.Contains(shared.Digits, string(lexer.CurrentChar)) {
