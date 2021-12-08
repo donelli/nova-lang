@@ -94,12 +94,12 @@ func (lexer *Lexer) makePlusToken() {
 	lexer.Advance()
 
 	if lexer.hasCurrentChar && lexer.CurrentRune == '+' {
-		lexer.addTokenWithPos(TokenType_PlusPlus, "", startPos, *lexer.CurrentPosition)
+		lexer.addTokenWithPos(TokenType_PlusPlus, "++", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 		return
 	}
 
-	lexer.addToken(TokenType_Plus, "")
+	lexer.addToken(TokenType_Plus, "+")
 
 }
 
@@ -109,12 +109,12 @@ func (lexer *Lexer) makeMinusToken() {
 	lexer.Advance()
 
 	if lexer.hasCurrentChar && lexer.CurrentRune == '-' {
-		lexer.addTokenWithPos(TokenType_MinusMinus, "", startPos, *lexer.CurrentPosition)
+		lexer.addTokenWithPos(TokenType_MinusMinus, "--", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 		return
 	}
 
-	lexer.addToken(TokenType_Minus, "")
+	lexer.addToken(TokenType_Minus, "-")
 
 }
 
@@ -150,7 +150,7 @@ func (lexer *Lexer) makeMultiplierOrCommentToken() {
 		return
 	}
 
-	lexer.addToken(TokenType_Star, "")
+	lexer.addToken(TokenType_Star, "*")
 	lexer.Advance()
 
 }
@@ -233,10 +233,10 @@ func (lexer *Lexer) makeEqualsToken() {
 	lexer.Advance()
 
 	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
-		lexer.addTokenWithPos(TokenType_EqualsEquals, "", startPos, *lexer.CurrentPosition)
+		lexer.addTokenWithPos(TokenType_EqualsEquals, "==", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
-		lexer.addTokenWithPos(TokenType_Equals, "", startPos, startPos)
+		lexer.addTokenWithPos(TokenType_Equals, "=", startPos, startPos)
 	}
 
 }
@@ -302,7 +302,7 @@ func (lexer *Lexer) makeStringOrBracket() {
 	if lexer.matchLastTokenType(TokenType_Identifier) {
 		pos := *lexer.CurrentPosition
 		lexer.Advance()
-		lexer.addTokenWithPos(TokenType_LeftBracket, "", pos, pos)
+		lexer.addTokenWithPos(TokenType_LeftBracket, "[", pos, pos)
 		return
 	}
 
@@ -316,13 +316,13 @@ func (lexer *Lexer) makeLessThenEqualsOrNotToken() {
 	lexer.Advance()
 
 	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
-		lexer.addTokenWithPos(TokenType_LessThanEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.addTokenWithPos(TokenType_LessThanEqual, "<=", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else if lexer.hasCurrentChar && lexer.CurrentRune == '>' {
-		lexer.addTokenWithPos(TokenType_NotEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.addTokenWithPos(TokenType_NotEqual, "<>", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
-		lexer.addTokenWithPos(TokenType_LessThan, "", startPos, startPos)
+		lexer.addTokenWithPos(TokenType_LessThan, "<", startPos, startPos)
 	}
 
 }
@@ -333,10 +333,10 @@ func (lexer *Lexer) makeGreaterThanEqualsToken() {
 	lexer.Advance()
 
 	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
-		lexer.addTokenWithPos(TokenType_GreaterThanEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.addTokenWithPos(TokenType_GreaterThanEqual, ">=", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
-		lexer.addTokenWithPos(TokenType_GreaterThan, "", startPos, startPos)
+		lexer.addTokenWithPos(TokenType_GreaterThan, ">", startPos, startPos)
 	}
 
 }
@@ -345,10 +345,11 @@ func (lexer *Lexer) makeBoolOrDotToken() {
 
 	nextChars := string(lexer.getNextBytes(2))
 
-	if nextChars == ".t" || nextChars == ".f" {
+	if nextChars == "t." || nextChars == "f." {
 
 		startPos := *lexer.CurrentPosition
 		boolValue := lexer.CurrentChar + nextChars
+		lexer.Advance()
 		lexer.Advance()
 		lexer.Advance()
 		lexer.addTokenWithPos(TokenType_Boolean, boolValue, startPos, *lexer.CurrentPosition)
@@ -356,7 +357,7 @@ func (lexer *Lexer) makeBoolOrDotToken() {
 		return
 	}
 
-	lexer.addToken(TokenType_Dot, "")
+	lexer.addToken(TokenType_Dot, ".")
 	lexer.Advance()
 
 }
@@ -367,10 +368,10 @@ func (lexer *Lexer) makeNotOrNotEqualsToken() {
 	lexer.Advance()
 
 	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
-		lexer.addTokenWithPos(TokenType_NotEqual, "", startPos, *lexer.CurrentPosition)
+		lexer.addTokenWithPos(TokenType_NotEqual, "!=", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
-		lexer.addTokenWithPos(TokenType_Not, "", startPos, startPos)
+		lexer.addTokenWithPos(TokenType_Not, "!", startPos, startPos)
 	}
 
 }
@@ -413,7 +414,7 @@ func (lexer *Lexer) makeDividerOrCommentToken() {
 		return
 	}
 
-	lexer.addToken(TokenType_Slash, "")
+	lexer.addToken(TokenType_Slash, "/")
 	lexer.Advance()
 
 }
@@ -425,7 +426,7 @@ func (lexer *Lexer) makeCommentOrMacro() {
 	if hasNextRune && lexer.CurrentRune == nextRune {
 		lexer.makeComment()
 	} else {
-		lexer.addToken(TokenType_Macro, "")
+		lexer.addToken(TokenType_Macro, "&")
 		lexer.Advance()
 	}
 
@@ -452,14 +453,14 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			lexer.makeEqualsToken()
 			continue
 		case '(':
-			lexer.addToken(TokenType_LeftParenthesis, "")
+			lexer.addToken(TokenType_LeftParenthesis, "(")
 		case ')':
-			lexer.addToken(TokenType_RightParenthesis, "")
+			lexer.addToken(TokenType_RightParenthesis, ")")
 		case '+':
 			lexer.makePlusToken()
 			continue
 		case ',':
-			lexer.addToken(TokenType_Comma, "")
+			lexer.addToken(TokenType_Comma, ",")
 		case '"', '\'':
 			lexer.makeString()
 			continue
@@ -470,11 +471,11 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			lexer.makeStringOrBracket()
 			continue
 		case ']':
-			lexer.addToken(TokenType_RightBracket, "")
+			lexer.addToken(TokenType_RightBracket, "]")
 		case '$':
-			lexer.addToken(TokenType_DollarSign, "")
+			lexer.addToken(TokenType_DollarSign, "$")
 		case '@':
-			lexer.addToken(TokenType_AtSign, "")
+			lexer.addToken(TokenType_AtSign, "@")
 		case '&':
 			lexer.makeCommentOrMacro()
 			continue
@@ -505,7 +506,7 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 				startPos := *lexer.CurrentPosition
 				lexer.Advance()
 
-				lexer.addTokenWithPos(TokenType_Ampersand, "", startPos, *lexer.CurrentPosition)
+				lexer.addTokenWithPos(TokenType_Ampersand, "\\&", startPos, *lexer.CurrentPosition)
 
 				lexer.Advance()
 				continue
@@ -515,14 +516,14 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			lexer.Advance()
 
 		case '?':
-			lexer.addToken(TokenType_QuestionMark, "")
+			lexer.addToken(TokenType_QuestionMark, "?")
 		case '\n':
 			lexer.addToken(TokenType_NewLine, "")
 		case '{':
 			lexer.makeDate()
 			continue
 		case '%':
-			lexer.addToken(TokenType_Percent, "")
+			lexer.addToken(TokenType_Percent, "%")
 		case ';':
 
 			lexer.Advance()
