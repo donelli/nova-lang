@@ -11,3 +11,9 @@ func NormalizeNewlines(d []byte) []byte {
 	d = bytes.Replace(d, []byte{13}, []byte{10}, -1)
 	return d
 }
+
+func Assert(cond bool, msg string) {
+	if !cond {
+		panic(msg)
+	}
+}

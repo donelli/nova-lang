@@ -1,9 +1,11 @@
 
-set procedure to /path/to/library
-set procedure to otherlib additive
+set procedure to
+set procedure to  /path/to/library
+set procedure to  otherlib additive
+set procedure to  /path/to/otherlib2 additive
 
 cName      = space(10)
-dBirthDate = {0w1/01a/21}
+dBirthDate = {01/01/21}
 
 @ 01, 01 say "Name......:"
 @ 02, 01 say "Birth Date:"

@@ -21,32 +21,34 @@ func _() {
 	_ = x[TokenType_Slash-11]
 	_ = x[TokenType_Percent-12]
 	_ = x[TokenType_Ampersand-13]
-	_ = x[TokenType_Equals-14]
-	_ = x[TokenType_EqualsEquals-15]
-	_ = x[TokenType_NotEqual-16]
-	_ = x[TokenType_LessThan-17]
-	_ = x[TokenType_GreaterThan-18]
-	_ = x[TokenType_LessThanEqual-19]
-	_ = x[TokenType_GreaterThanEqual-20]
-	_ = x[TokenType_LeftParenthesis-21]
-	_ = x[TokenType_RightParenthesis-22]
-	_ = x[TokenType_Comment-23]
-	_ = x[TokenType_Comma-24]
-	_ = x[TokenType_LeftBracket-25]
-	_ = x[TokenType_RightBracket-26]
-	_ = x[TokenType_Keyword-27]
-	_ = x[TokenType_QuestionMark-28]
-	_ = x[TokenType_DollarSign-29]
-	_ = x[TokenType_AtSign-30]
-	_ = x[TokenType_Boolean-31]
-	_ = x[TokenType_Dot-32]
-	_ = x[TokenType_Not-33]
-	_ = x[TokenType_Date-34]
+	_ = x[TokenType_Macro-14]
+	_ = x[TokenType_Equals-15]
+	_ = x[TokenType_EqualsEquals-16]
+	_ = x[TokenType_NotEqual-17]
+	_ = x[TokenType_LessThan-18]
+	_ = x[TokenType_GreaterThan-19]
+	_ = x[TokenType_LessThanEqual-20]
+	_ = x[TokenType_GreaterThanEqual-21]
+	_ = x[TokenType_LeftParenthesis-22]
+	_ = x[TokenType_RightParenthesis-23]
+	_ = x[TokenType_Comment-24]
+	_ = x[TokenType_Comma-25]
+	_ = x[TokenType_LeftBracket-26]
+	_ = x[TokenType_RightBracket-27]
+	_ = x[TokenType_Keyword-28]
+	_ = x[TokenType_QuestionMark-29]
+	_ = x[TokenType_DollarSign-30]
+	_ = x[TokenType_AtSign-31]
+	_ = x[TokenType_Boolean-32]
+	_ = x[TokenType_Dot-33]
+	_ = x[TokenType_Not-34]
+	_ = x[TokenType_Date-35]
+	_ = x[TokenType_Path-36]
 }
 
-const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandEqualsEqualsEqualsNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesisCommentCommaLeftBracketRightBracketKeywordQuestionMarkDollarSignAtSignBooleanDotNotDate"
+const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandMacroEqualsEqualsEqualsNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesisCommentCommaLeftBracketRightBracketKeywordQuestionMarkDollarSignAtSignBooleanDotNotDatePath"
 
-var _LexerTokenType_index = [...]uint16{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 90, 102, 110, 118, 129, 142, 158, 173, 189, 196, 201, 212, 224, 231, 243, 253, 259, 266, 269, 272, 276}
+var _LexerTokenType_index = [...]uint16{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 89, 95, 107, 115, 123, 134, 147, 163, 178, 194, 201, 206, 217, 229, 236, 248, 258, 264, 271, 274, 277, 281, 285}
 
 func (i LexerTokenType) String() string {
 	i -= 1

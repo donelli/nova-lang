@@ -3,6 +3,8 @@ package lexer
 import (
 	"fmt"
 	"recital_lsp/pkg/shared"
+	"recital_lsp/pkg/utils"
+	"regexp"
 	"strings"
 )
 
@@ -16,20 +18,51 @@ type Lexer struct {
 	contentLen  int32
 
 	CurrentPosition *shared.Position
-	CurrentChar     rune
+	CurrentChar     string
+	CurrentRune     rune
 	hasCurrentChar  bool
 	currentResult   *LexerResult
+
+	dateRegex *regexp.Regexp
 }
 
 func (lexer *Lexer) Advance() {
-	lexer.CurrentPosition.Advance(lexer.CurrentChar)
+	lexer.CurrentPosition.Advance(lexer.CurrentRune)
 
 	if lexer.CurrentPosition.Index >= lexer.contentLen {
 		lexer.hasCurrentChar = false
 	} else {
-		lexer.CurrentChar = rune(lexer.FileContent[lexer.CurrentPosition.Index])
+		lexer.CurrentChar = string(lexer.FileContent[lexer.CurrentPosition.Index])
+		lexer.CurrentRune = rune(lexer.FileContent[lexer.CurrentPosition.Index])
 	}
 
+}
+
+func (lexer *Lexer) PeekNextChar() (rune, bool) {
+
+	index := lexer.CurrentPosition.Index + 1
+
+	if index >= lexer.contentLen {
+		return 0, false
+	}
+
+	return rune(lexer.FileContent[index]), true
+
+}
+
+func (lexer *Lexer) PeekNextNonEmptyChar() (rune, bool) {
+
+	index := lexer.CurrentPosition.Index + 1
+
+	for lexer.hasCurrentChar && index < lexer.contentLen && strings.Contains(shared.WhitespaceChars, string(lexer.FileContent[index])) {
+		lexer.Advance()
+	}
+
+	if index >= lexer.contentLen {
+		return 0, false
+	}
+
+	return rune(lexer.FileContent[index]), true
 }
 
 func (lexer *Lexer) addToken(tokenType LexerTokenType, value string) {
@@ -60,7 +93,7 @@ func (lexer *Lexer) makePlusToken() {
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
-	if lexer.hasCurrentChar && lexer.CurrentChar == '+' {
+	if lexer.hasCurrentChar && lexer.CurrentRune == '+' {
 		lexer.addTokenWithPos(TokenType_PlusPlus, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 		return
@@ -75,7 +108,7 @@ func (lexer *Lexer) makeMinusToken() {
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
-	if lexer.hasCurrentChar && lexer.CurrentChar == '-' {
+	if lexer.hasCurrentChar && lexer.CurrentRune == '-' {
 		lexer.addTokenWithPos(TokenType_MinusMinus, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 		return
@@ -101,8 +134,8 @@ func (lexer *Lexer) makeComment() {
 	startPos := *lexer.CurrentPosition
 	comment := ""
 
-	for lexer.hasCurrentChar && lexer.CurrentChar != '\n' {
-		comment += string(lexer.CurrentChar)
+	for lexer.hasCurrentChar && lexer.CurrentRune != '\n' {
+		comment += lexer.CurrentChar
 		lexer.Advance()
 	}
 
@@ -131,13 +164,13 @@ func (lexer *Lexer) makeNumber() {
 	number := ""
 	var dotCount uint8 = 0
 
-	for strings.Contains(shared.DigitsAndDot, string(lexer.CurrentChar)) {
+	for strings.Contains(shared.DigitsAndDot, lexer.CurrentChar) {
 
-		if lexer.CurrentChar == '.' {
+		if lexer.CurrentRune == '.' {
 			dotCount++
 		}
 
-		number += string(lexer.CurrentChar)
+		number += lexer.CurrentChar
 		lexer.Advance()
 	}
 
@@ -157,27 +190,36 @@ func (lexer *Lexer) matchLastTokenType(tokenType LexerTokenType) bool {
 
 	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
 
-	if lastToken.Type != tokenType {
+	return lastToken.Type == tokenType
+}
+
+func (lexer *Lexer) matchLastTokenTypeAndValue(tokenType LexerTokenType, value string) bool {
+
+	if lexer.currentResult.TokensCount == 0 {
 		return false
 	}
 
-	return true
+	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
+
+	return lastToken.Type == tokenType && lastToken.Value == value
 }
 
 func (lexer *Lexer) makeIdentifier() {
 	startPos := *lexer.CurrentPosition
 	identifier := ""
 
-	for strings.Contains(shared.LettersAndUnderline, string(lexer.CurrentChar)) {
-		identifier += string(lexer.CurrentChar)
+	for strings.Contains(shared.LettersAndUnderline, lexer.CurrentChar) {
+		identifier += lexer.CurrentChar
 		lexer.Advance()
 	}
 
 	// TODO check if identifier is a keyword
 	// Store keywords in a json, then load and store in a map in the first time ou initialization
 
-	if identifier == "say" || identifier == "if" {
-		lexer.addTokenWithPos(TokenType_Keyword, identifier, startPos, *lexer.CurrentPosition)
+	identifierLower := strings.ToLower(identifier)
+
+	if identifierLower == "say" || identifierLower == "if" || identifierLower == "to" || identifierLower == "or" || identifierLower == "elseif" || identifierLower == "case" || identifierLower == "and" {
+		lexer.addTokenWithPos(TokenType_Keyword, identifierLower, startPos, *lexer.CurrentPosition)
 		return
 	}
 
@@ -190,7 +232,7 @@ func (lexer *Lexer) makeEqualsToken() {
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
-	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
 		lexer.addTokenWithPos(TokenType_EqualsEquals, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
@@ -204,7 +246,7 @@ func (lexer *Lexer) makeString() {
 	startPos := *lexer.CurrentPosition
 	stringValue := ""
 
-	startChar := lexer.CurrentChar
+	startChar := lexer.CurrentRune
 	endChar := startChar
 	if startChar == '[' {
 		endChar = ']'
@@ -216,11 +258,11 @@ func (lexer *Lexer) makeString() {
 
 	for lexer.hasCurrentChar {
 
-		if lexer.CurrentChar == endChar {
+		if lexer.CurrentRune == endChar {
 			break
 		}
 
-		if lexer.CurrentChar == '\n' {
+		if lexer.CurrentRune == '\n' {
 
 			if lastChar != ';' {
 				break
@@ -231,21 +273,21 @@ func (lexer *Lexer) makeString() {
 
 			stringValue += " "
 
-			lastChar = lexer.CurrentChar
+			lastChar = lexer.CurrentRune
 			lexer.Advance()
 			continue
 
 		}
 
-		if lexer.CurrentChar != ' ' {
-			lastChar = lexer.CurrentChar
+		if lexer.CurrentRune != ' ' {
+			lastChar = lexer.CurrentRune
 		}
 
-		stringValue += string(lexer.CurrentChar)
+		stringValue += lexer.CurrentChar
 		lexer.Advance()
 	}
 
-	if lexer.CurrentChar != endChar {
+	if lexer.CurrentRune != endChar {
 		lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "String not terminated"))
 		return
 	}
@@ -273,10 +315,10 @@ func (lexer *Lexer) makeLessThenEqualsOrNotToken() {
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
-	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
 		lexer.addTokenWithPos(TokenType_LessThanEqual, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
-	} else if lexer.hasCurrentChar && lexer.CurrentChar == '>' {
+	} else if lexer.hasCurrentChar && lexer.CurrentRune == '>' {
 		lexer.addTokenWithPos(TokenType_NotEqual, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
@@ -290,7 +332,7 @@ func (lexer *Lexer) makeGreaterThanEqualsToken() {
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
-	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
 		lexer.addTokenWithPos(TokenType_GreaterThanEqual, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
@@ -306,7 +348,7 @@ func (lexer *Lexer) makeBoolOrDotToken() {
 	if nextChars == ".t" || nextChars == ".f" {
 
 		startPos := *lexer.CurrentPosition
-		boolValue := string(lexer.CurrentChar) + nextChars
+		boolValue := lexer.CurrentChar + nextChars
 		lexer.Advance()
 		lexer.Advance()
 		lexer.addTokenWithPos(TokenType_Boolean, boolValue, startPos, *lexer.CurrentPosition)
@@ -324,7 +366,7 @@ func (lexer *Lexer) makeNotOrNotEqualsToken() {
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
-	if lexer.hasCurrentChar && lexer.CurrentChar == '=' {
+	if lexer.hasCurrentChar && lexer.CurrentRune == '=' {
 		lexer.addTokenWithPos(TokenType_NotEqual, "", startPos, *lexer.CurrentPosition)
 		lexer.Advance()
 	} else {
@@ -340,31 +382,52 @@ func (lexer *Lexer) makeDate() {
 
 	dateValue := ""
 
-	for lexer.hasCurrentChar && lexer.CurrentChar != '}' && lexer.CurrentChar != '\n' {
+	for lexer.hasCurrentChar && lexer.CurrentRune != '}' && lexer.CurrentRune != '\n' {
 
-		// if string(lexer.CurrentChar) == "/" || strings.Contains(shared.Digits, string(lexer.CurrentChar)) {
-		dateValue += string(lexer.CurrentChar)
+		dateValue += lexer.CurrentChar
 		lexer.Advance()
-		continue
-		// }
-
-		// lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "Invalid character in date: "+string(lexer.CurrentChar)))
-		// return
 
 	}
 
-	if !lexer.hasCurrentChar || lexer.CurrentChar != '}' {
+	if !lexer.hasCurrentChar || lexer.CurrentRune != '}' {
 		lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "Expected '}' to close date"))
 		lexer.Advance()
 		return
 	}
 
-	// TODO check for valid date
-	// \d{0,2}\/\d{0,2}\/\d{2,4}
-	// dateRegex, _ := regexp.Compile("p([a-z]+)ch")
+	if dateValue != "" && !lexer.dateRegex.Match([]byte(dateValue)) {
+		lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "Invalid date"))
+	}
 
 	lexer.addTokenWithPos(TokenType_Date, dateValue, startPos, *lexer.CurrentPosition)
 	lexer.Advance()
+
+}
+
+func (lexer *Lexer) makeDividerOrCommentToken() {
+
+	nextChar, hasChar := lexer.PeekNextChar()
+
+	if hasChar && nextChar == '/' {
+		lexer.makeComment()
+		return
+	}
+
+	lexer.addToken(TokenType_Slash, "")
+	lexer.Advance()
+
+}
+
+func (lexer *Lexer) makeCommentOrMacro() {
+
+	nextRune, hasNextRune := lexer.PeekNextChar()
+
+	if hasNextRune && lexer.CurrentRune == nextRune {
+		lexer.makeComment()
+	} else {
+		lexer.addToken(TokenType_Macro, "")
+		lexer.Advance()
+	}
 
 }
 
@@ -373,21 +436,18 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 	result := NewLexerResult()
 	lexer.currentResult = result
 
-	// TODO add path token
-	// if last token is a keyword, is a path
-
 	for {
 
 		if !lexer.hasCurrentChar {
 			break
 		}
 
-		if lexer.CurrentChar == ' ' || lexer.CurrentChar == '\t' {
+		if strings.Contains(shared.WhitespaceChars, lexer.CurrentChar) {
 			lexer.Advance()
 			continue
 		}
 
-		switch lexer.CurrentChar {
+		switch lexer.CurrentRune {
 		case '=':
 			lexer.makeEqualsToken()
 			continue
@@ -416,7 +476,8 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '@':
 			lexer.addToken(TokenType_AtSign, "")
 		case '&':
-			lexer.addToken(TokenType_Ampersand, "")
+			lexer.makeCommentOrMacro()
+			continue
 		case '<':
 			lexer.makeLessThenEqualsOrNotToken()
 			continue
@@ -432,6 +493,27 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '*':
 			lexer.makeMultiplierOrCommentToken()
 			continue
+		case '/':
+			lexer.makeDividerOrCommentToken()
+			continue
+		case '\\':
+
+			nextRune, hasNextRune := lexer.PeekNextChar()
+
+			if hasNextRune && nextRune == '&' {
+
+				startPos := *lexer.CurrentPosition
+				lexer.Advance()
+
+				lexer.addTokenWithPos(TokenType_Ampersand, "", startPos, *lexer.CurrentPosition)
+
+				lexer.Advance()
+				continue
+			}
+
+			lexer.reportError(shared.NewError(*lexer.CurrentPosition, *lexer.CurrentPosition, "Unexpected '\\'"))
+			lexer.Advance()
+
 		case '?':
 			lexer.addToken(TokenType_QuestionMark, "")
 		case '\n':
@@ -439,19 +521,50 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 		case '{':
 			lexer.makeDate()
 			continue
+		case '%':
+			lexer.addToken(TokenType_Percent, "")
+		case ';':
+
+			lexer.Advance()
+			startPos := *lexer.CurrentPosition
+			ignoreUntilNewLine := false
+
+			for lexer.hasCurrentChar && lexer.CurrentRune != '\n' {
+
+				if !ignoreUntilNewLine && !strings.Contains(shared.WhitespaceChars, lexer.CurrentChar) {
+
+					nextRune, hasNextRune := lexer.PeekNextChar()
+
+					if lexer.CurrentRune == '&' && hasNextRune && nextRune == '&' {
+						ignoreUntilNewLine = true
+						continue
+					}
+
+					lexer.reportError(shared.NewError(startPos, startPos, "Invalid sintax for ';'"))
+					break
+				}
+
+				lexer.Advance()
+			}
+
+			if lexer.hasCurrentChar && lexer.CurrentRune == '\n' {
+				lexer.Advance()
+			}
+
+			continue
 		default:
 
-			if strings.Contains(shared.Digits, string(lexer.CurrentChar)) {
+			if strings.Contains(shared.Digits, lexer.CurrentChar) {
 				lexer.makeNumber()
 				continue
 			}
 
-			if strings.Contains(shared.LettersAndUnderline, string(lexer.CurrentChar)) {
+			if strings.Contains(shared.LettersAndUnderline, lexer.CurrentChar) {
 				lexer.makeIdentifier()
 				continue
 			}
 
-			lexer.reportError(shared.NewError(*lexer.CurrentPosition, *lexer.CurrentPosition, fmt.Sprintf("Invalid character: %s", string(lexer.CurrentChar))))
+			lexer.reportError(shared.NewError(*lexer.CurrentPosition, *lexer.CurrentPosition, fmt.Sprintf("Invalid character: %s", lexer.CurrentChar)))
 		}
 
 		lexer.Advance()
@@ -462,13 +575,21 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 }
 
 func NewLexer(fileName string, fileContent string) *Lexer {
+
+	dateRegex, err := regexp.Compile(`\d{0,2}\/\d{0,2}\/\d{2,4}`)
+	utils.Assert(err == nil, "Error compiling date regex")
+
 	return &Lexer{
-		FileName:        fileName,
-		FileContent:     fileContent,
-		contentLen:      int32(len(fileContent)),
-		CurrentChar:     ' ',
+		FileName:    fileName,
+		FileContent: fileContent,
+		contentLen:  int32(len(fileContent)),
+
+		CurrentRune:     ' ',
+		CurrentChar:     "",
 		hasCurrentChar:  true,
 		CurrentPosition: shared.NewPosition(),
 		currentResult:   nil,
+
+		dateRegex: dateRegex,
 	}
 }

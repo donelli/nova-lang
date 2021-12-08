@@ -26,6 +26,14 @@ func (p *Position) Advance(char rune) {
 
 }
 
+func (p *Position) Copy() *Position {
+	return &Position{
+		Row:    p.Row,
+		Column: p.Column,
+		Index:  p.Index,
+	}
+}
+
 func NewPosition() *Position {
 	return &Position{
 		Row:    0,

@@ -6,4 +6,6 @@ const (
 	LettersAndUnderline = Letters + "_"
 	LettersAndDigits    = Letters + Digits
 	DigitsAndDot        = Digits + "."
+	ValidPathChars      = LettersAndDigits + "/_."
+	WhitespaceChars     = " \t "
 )
