@@ -41,11 +41,14 @@ const (
 	// TokenType_Divide represents a divide operator token
 	TokenType_Slash
 
-	// TokenType_Modulo represents a modulo operator token
+	// TokenType_Modulo represents a modulo operator token (%)
 	TokenType_Percent
 
-	// TokenType_Ampersand represents an &
+	// TokenType_Ampersand represents an escaped &
 	TokenType_Ampersand
+
+	// TokenType_Macro represents an &
+	TokenType_Macro
 
 	// TokenType_Equal represents an =
 	TokenType_Equals
@@ -109,6 +112,9 @@ const (
 
 	// TokenType_Date represents a date: {} {01/01/21} {01/01/2021}
 	TokenType_Date
+
+	// TokenType_Path represents a path: '/home/user/file.txt'
+	TokenType_Path
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_
