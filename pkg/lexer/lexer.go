@@ -204,7 +204,7 @@ func (lexer *Lexer) matchLastTokenTypeAndValue(tokenType LexerTokenType, value s
 	return lastToken.Type == tokenType && lastToken.Value == value
 }
 
-func (lexer *Lexer) makeIdentifier() {
+func (lexer *Lexer) makeIdentifierOrKeyword() {
 	startPos := *lexer.CurrentPosition
 	identifier := ""
 
@@ -213,13 +213,10 @@ func (lexer *Lexer) makeIdentifier() {
 		lexer.Advance()
 	}
 
-	// TODO check if identifier is a keyword
-	// Store keywords in a json, then load and store in a map in the first time ou initialization
-
 	identifierLower := strings.ToLower(identifier)
 
-	if identifierLower == "say" || identifierLower == "if" || identifierLower == "to" || identifierLower == "or" || identifierLower == "elseif" || identifierLower == "case" || identifierLower == "and" {
-		lexer.addTokenWithPos(TokenType_Keyword, identifierLower, startPos, *lexer.CurrentPosition)
+	if realKeword, ok := shared.KeywordsMap[identifierLower]; ok {
+		lexer.addTokenWithPos(TokenType_Keyword, realKeword, startPos, *lexer.CurrentPosition)
 		return
 	}
 
@@ -561,7 +558,7 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			}
 
 			if strings.Contains(shared.LettersAndUnderline, lexer.CurrentChar) {
-				lexer.makeIdentifier()
+				lexer.makeIdentifierOrKeyword()
 				continue
 			}
 
@@ -579,6 +576,8 @@ func NewLexer(fileName string, fileContent string) *Lexer {
 
 	dateRegex, err := regexp.Compile(`\d{0,2}\/\d{0,2}\/\d{2,4}`)
 	utils.Assert(err == nil, "Error compiling date regex")
+
+	shared.LoadKeywords()
 
 	return &Lexer{
 		FileName:    fileName,
