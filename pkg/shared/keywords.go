@@ -5,7 +5,7 @@ import (
 	"recital_lsp/pkg/utils"
 )
 
-const keywordCount = 71
+const keywordCount = 79
 
 var KeywordsMap = make(map[string]string, keywordCount)
 
@@ -28,6 +28,9 @@ func LoadKeywords() {
 	// General
 	generateKeyword("to", false)
 	generateKeyword("do", false)
+	generateKeyword("run", false)
+	generateKeyword("in", false)
+	generateKeyword("on", false)
 
 	// User interaction
 	generateKeyword("set", false)
@@ -68,6 +71,11 @@ func LoadKeywords() {
 	generateKeyword("parameters", true)
 	generateKeyword("return", true)
 	generateKeyword("additive", true)
+
+	// DBF
+	generateKeyword("use", false)
+	generateKeyword("alias", true)
+	generateKeyword("index", true)
 
 	utils.Assert(len(KeywordsMap) == keywordCount, fmt.Sprintf("KeywordsMap size is %d, expected %d", len(KeywordsMap), keywordCount))
 
