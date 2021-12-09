@@ -208,7 +208,7 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 	startPos := *lexer.CurrentPosition
 	identifier := ""
 
-	for strings.Contains(shared.LettersAndUnderline, lexer.CurrentChar) {
+	for strings.Contains(shared.VariableChars, lexer.CurrentChar) {
 		identifier += lexer.CurrentChar
 		lexer.Advance()
 	}

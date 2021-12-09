@@ -1,6 +1,9 @@
 package utils
 
-import "bytes"
+import (
+	"bytes"
+	"encoding/gob"
+)
 
 // NormalizeNewlines normalizes \r\n (windows) and \r (mac)
 // into \n (unix)
@@ -16,4 +19,12 @@ func Assert(cond bool, msg string) {
 	if !cond {
 		panic(msg)
 	}
+}
+
+func GetRealSizeOf(v interface{}) (int, error) {
+	b := new(bytes.Buffer)
+	if err := gob.NewEncoder(b).Encode(v); err != nil {
+		return 0, err
+	}
+	return b.Len(), nil
 }

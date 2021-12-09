@@ -5,6 +5,7 @@ const (
 	Letters             = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	LettersAndUnderline = Letters + "_"
 	LettersAndDigits    = Letters + Digits
+	VariableChars       = LettersAndUnderline + Digits
 	DigitsAndDot        = Digits + "."
 	ValidPathChars      = LettersAndDigits + "/_."
 	WhitespaceChars     = " \t "
