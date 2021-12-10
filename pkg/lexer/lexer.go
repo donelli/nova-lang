@@ -155,7 +155,7 @@ func (lexer *Lexer) makeMultiplierOrCommentToken() {
 
 }
 
-func (lexer *Lexer) reportError(error shared.Error) {
+func (lexer *Lexer) reportError(error *shared.Error) {
 	lexer.currentResult.AddError(error)
 }
 
