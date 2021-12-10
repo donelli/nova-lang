@@ -47,8 +47,8 @@ func (r *ParseResult) TryRegister(res *ParseResult) *Node {
 	return r.Register(res)
 }
 
-func (r *ParseResult) Success(node *Node) *ParseResult {
-	r.Node = node
+func (r *ParseResult) Success(node Node) *ParseResult {
+	r.Node = &node
 	return r
 }
 

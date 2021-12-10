@@ -11,6 +11,15 @@ type Parser struct {
 	CurrentToken      *lexer.LexerToken
 }
 
+func NewParser(lexerResult *lexer.LexerResult) *Parser {
+	parser := &Parser{
+		LexerResult:       lexerResult,
+		CurrentTokenIndex: -1,
+	}
+	parser.advance()
+	return parser
+}
+
 func (p *Parser) advance() {
 	p.CurrentTokenIndex++
 	p.updateCurrentToken()
@@ -42,12 +51,45 @@ func (p *Parser) Parse() *ParseResult {
 	return res
 }
 
+func (p *Parser) parseStatement() *ParseResult {
+
+	return nil
+}
+
 func (p *Parser) parseStatements() *ParseResult {
 
 	res := NewParseResult()
-	// startPos := p.CurrentToken.Range.Start.Copy()
-	// statements := []*StatementNode{}
+	startPos := p.CurrentToken.Range.Start.Copy()
+	statements := make([]*Node, 10)
 
-	return res
-	// return res.Success(NewListNode(statements, startPos, p.CurrentToken.Range.End))
+	for p.CurrentToken.Type == lexer.TokenType_NewLine {
+		res.RegisterAdvancement()
+		p.advance()
+	}
+
+	statement := res.Register(p.parseStatement())
+
+	if res.Err != nil {
+		return res
+	}
+
+	statements = append(statements, statement)
+	moreStatements := true
+
+	for {
+
+		newlineCount := 0
+		for p.CurrentToken.Type == lexer.TokenType_NewLine {
+			res.RegisterAdvancement()
+			p.advance()
+			newlineCount += 1
+		}
+
+		if newlineCount == 0 {
+			moreStatements = false
+		}
+
+	}
+
+	return res.Success(NewListNode(statements, startPos, &p.CurrentToken.Range.End))
 }

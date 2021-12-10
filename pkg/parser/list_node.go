@@ -3,13 +3,23 @@ package parser
 import "recital_lsp/pkg/shared"
 
 type ListNode struct {
-	Statements []*StatementNode
-	*Node
+	Nodes    []*Node
+	startPos *shared.Position
+	endPos   *shared.Position
 }
 
-func NewListNode(statements []*StatementNode, startPos *shared.Position, endtPos *shared.Position) *ListNode {
+func NewListNode(Nodes []*Node, startPos *shared.Position, endPos *shared.Position) *ListNode {
 	return &ListNode{
-		Statements: statements,
-		Node:       NewNode(startPos, endtPos),
+		Nodes:    Nodes,
+		startPos: startPos,
+		endPos:   endPos,
 	}
+}
+
+func (l *ListNode) StartPos() *shared.Position {
+	return l.startPos
+}
+
+func (l *ListNode) EndPos() *shared.Position {
+	return l.endPos
 }
