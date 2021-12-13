@@ -15,13 +15,17 @@ func NewError(startPos Position, endPos Position, message string) *Error {
 }
 
 func (e Error) String() string {
-	return e.Message + " at " + e.Range.String()
+	errorType := ""
+	if e.Type != "" {
+		errorType = e.Type + ": "
+	}
+	return errorType + e.Message + " at " + e.Range.String()
 }
 
 func NewInvalidSyntaxError(startPos Position, endPos Position, message string) *Error {
 	return &Error{
 		Message: message,
-		Type:    "Invalid Syntax",
+		Type:    "Invalid Syntax Error",
 		Range:   NewRange(startPos, endPos),
 	}
 }

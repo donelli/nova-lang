@@ -4,7 +4,7 @@ import "recital_lsp/pkg/shared"
 
 type ParseResult struct {
 	Err                        *shared.Error
-	Node                       *Node
+	Node                       Node
 	LastRegisteredAdvanceCount int
 	AdvanceCount               int
 	ToReverseCount             int
@@ -25,7 +25,7 @@ func (r *ParseResult) RegisterAdvancement() {
 	r.AdvanceCount++
 }
 
-func (r *ParseResult) Register(res *ParseResult) *Node {
+func (r *ParseResult) Register(res *ParseResult) Node {
 
 	r.LastRegisteredAdvanceCount = res.AdvanceCount
 	r.AdvanceCount += res.AdvanceCount
@@ -37,7 +37,7 @@ func (r *ParseResult) Register(res *ParseResult) *Node {
 	return res.Node
 }
 
-func (r *ParseResult) TryRegister(res *ParseResult) *Node {
+func (r *ParseResult) TryRegister(res *ParseResult) Node {
 
 	if res.Err != nil {
 		r.Err = res.Err
@@ -48,7 +48,7 @@ func (r *ParseResult) TryRegister(res *ParseResult) *Node {
 }
 
 func (r *ParseResult) Success(node Node) *ParseResult {
-	r.Node = &node
+	r.Node = node
 	return r
 }
 

@@ -1,4 +1,10 @@
 
+set dele on
+set talk off
+
+set separator to "."
+set point to ","
+
 set procedure to
 set procedure to  /path/to/library
 set procedure to  otherlib additive

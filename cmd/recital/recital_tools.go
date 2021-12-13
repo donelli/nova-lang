@@ -4,15 +4,102 @@ import (
 	"fmt"
 	"os"
 	"recital_lsp/pkg/lexer"
-	"recital_lsp/pkg/lsp"
+	"recital_lsp/pkg/parser"
 	"recital_lsp/pkg/utils"
 	"time"
 )
 
+func readFileContent(fileName string) string {
+
+	fileReadStart := time.Now()
+
+	dat, err := os.ReadFile(fileName)
+
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
+
+	dat = utils.NormalizeNewlines(dat)
+
+	fmt.Printf("\n-> File read time: %d ms\n", (time.Since(fileReadStart)).Milliseconds())
+
+	return string(dat)
+}
+
+func execLexer(fileName string, fileContent string) *lexer.LexerResult {
+
+	lexerStartTime := time.Now()
+
+	lex := lexer.NewLexer(fileName, fileContent)
+
+	res, err := lex.Parse()
+
+	lexerEndTime := time.Now()
+
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("-> Lexer time: %d ms\n\n", (lexerEndTime.Sub(lexerStartTime)).Milliseconds())
+
+	if len(res.Errors) == 0 {
+		fmt.Printf("-> No errors\n")
+	} else {
+		fmt.Printf("-> Found %d errors\n", len(res.Errors))
+	}
+
+	if len(res.Warnings) == 0 {
+		fmt.Printf("-> No warnings\n")
+	} else {
+		fmt.Printf("-> Found %d warnings\n", len(res.Warnings))
+	}
+
+	fmt.Printf("\n-> Lexer result: %d tokens\n", res.TokensCount)
+
+	return res
+}
+
+func execParser(lexerRes *lexer.LexerResult) {
+
+	startTime := time.Now()
+
+	parser := parser.NewParser(lexerRes)
+
+	res := parser.Parse()
+
+	fmt.Printf("-> Parser time: %d ms\n\n", (time.Since(startTime)).Milliseconds())
+
+	fmt.Printf("Res: %v\n", res.Node)
+
+	if res.Err != nil {
+		fmt.Printf("%v\n", res.Err)
+		return
+	}
+
+	fmt.Printf("ok\n")
+
+	// if len(res.Errors) == 0 {
+	// 	fmt.Printf("-> No errors\n")
+	// } else {
+	// 	fmt.Printf("-> Found %d errors\n", len(res.Errors))
+	// }
+
+	// if len(res.Warnings) == 0 {
+	// 	fmt.Printf("-> No warnings\n")
+	// } else {
+	// 	fmt.Printf("-> Found %d warnings\n", len(res.Warnings))
+	// }
+
+	// fmt.Printf("\n-> Lexer result: %d tokens\n", res.TokensCount)
+
+}
+
 func main() {
 
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: recital <command>")
+		fmt.Println("Usage: rt <command>")
 		return
 	}
 
@@ -21,61 +108,37 @@ func main() {
 	if command == "lex" {
 
 		if len(os.Args) < 4 {
-			fmt.Println("Usage: recital lex <filename> <html output filename>")
+			fmt.Println("Usage: rt lex <filename> <html output filename>")
 			return
 		}
 
 		fileName := os.Args[2]
 		htmlOutputFileName := os.Args[3]
 
-		fileReadStart := time.Now()
+		fileContent := readFileContent(fileName)
 
-		dat, err := os.ReadFile(fileName)
-
-		fileReadEnd := time.Now()
-
-		if err != nil {
-			fmt.Printf("%v\n", err)
-			return
-		}
-
-		dat = utils.NormalizeNewlines(dat)
-
-		lexerStartTime := time.Now()
-
-		lex := lexer.NewLexer(fileName, string(dat))
-
-		res, err := lex.Parse()
-
-		lexerEndTime := time.Now()
-
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			return
-		}
-
-		fmt.Printf("\n-> File read time: %d ms\n", (fileReadEnd.Sub(fileReadStart)).Milliseconds())
-		fmt.Printf("-> Lexer time: %d ms\n\n", (lexerEndTime.Sub(lexerStartTime)).Milliseconds())
-
-		if len(res.Errors) == 0 {
-			fmt.Printf("-> No errors\n")
-		} else {
-			fmt.Printf("-> Found %d errors\n", len(res.Errors))
-		}
-
-		if len(res.Warnings) == 0 {
-			fmt.Printf("-> No warnings\n")
-		} else {
-			fmt.Printf("-> Found %d warnings\n", len(res.Warnings))
-		}
-
-		fmt.Printf("\n-> Lexer result: %d tokens\n", res.TokensCount)
+		res := execLexer(fileName, fileContent)
 
 		lexer.PrintLexerResultToHTML(res, htmlOutputFileName)
 
-	} else if command == "lsp" {
+	} else if command == "parse" {
 
-		lsp.CreateServer()
+		if len(os.Args) < 3 {
+			fmt.Println("Usage: rt parse <filename>")
+			return
+		}
+
+		fileName := os.Args[2]
+
+		fileContent := readFileContent(fileName)
+
+		res := execLexer(fileName, fileContent)
+
+		if len(res.Errors) > 0 {
+			return
+		}
+
+		execParser(res)
 
 	}
 

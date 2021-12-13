@@ -569,6 +569,8 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 	}
 
+	lexer.addToken(TokenType_EOF, "")
+
 	return lexer.currentResult, nil
 }
 

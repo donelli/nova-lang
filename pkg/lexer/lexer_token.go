@@ -125,6 +125,14 @@ type LexerToken struct {
 	Value string
 }
 
+func (lexerToken *LexerToken) MatchType(tokenType LexerTokenType) bool {
+	return lexerToken.Type == tokenType
+}
+
+func (lexerToken *LexerToken) Match(tokenType LexerTokenType, value string) bool {
+	return lexerToken.Type == tokenType && lexerToken.Value == value
+}
+
 func (lexerToken *LexerToken) String() string {
 
 	if lexerToken.Value != "" {
