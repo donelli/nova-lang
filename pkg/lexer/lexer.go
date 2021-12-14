@@ -150,8 +150,20 @@ func (lexer *Lexer) makeMultiplierOrCommentToken() {
 		return
 	}
 
-	lexer.addToken(TokenType_Star, "*")
-	lexer.Advance()
+	next, hasNext := lexer.PeekNextChar()
+
+	if hasNext && next == '*' {
+
+		startPos := *lexer.CurrentPosition
+		lexer.Advance()
+
+		lexer.addTokenWithPos(TokenType_Exponential, "**", startPos, *lexer.CurrentPosition)
+		lexer.Advance()
+
+	} else {
+		lexer.addToken(TokenType_Star, "*")
+		lexer.Advance()
+	}
 
 }
 
@@ -178,7 +190,7 @@ func (lexer *Lexer) makeNumber() {
 		lexer.reportError(shared.NewError(startPos, *lexer.CurrentPosition, "Invalid number"))
 	}
 
-	lexer.addToken(TokenType_Number, number)
+	lexer.addTokenWithPos(TokenType_Number, number, startPos, *lexer.CurrentPosition)
 
 }
 
@@ -550,6 +562,8 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			}
 
 			continue
+		case '^':
+			lexer.addToken(TokenType_Exponential, "^")
 		default:
 
 			if strings.Contains(shared.Digits, lexer.CurrentChar) {

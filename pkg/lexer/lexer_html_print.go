@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"html"
 	"os"
 )
@@ -63,6 +64,21 @@ func PrintLexerResultToHTML(lexerResult *LexerResult, outputFile string) {
 	<body>
 	`)
 
+	if len(lexerResult.Errors) > 0 {
+
+		fh.WriteString("<h4>Errors</h4>")
+
+		for i := range lexerResult.Errors {
+			fh.WriteString(fmt.Sprintf("%v\n", lexerResult.Errors[i]))
+			fh.WriteString("<br>")
+		}
+
+	} else {
+		fh.WriteString("No errors")
+	}
+
+	fh.WriteString("<hr>")
+
 	for _, token := range lexerResult.Tokens {
 
 		htmlStr := ""
@@ -83,6 +99,8 @@ func PrintLexerResultToHTML(lexerResult *LexerResult, outputFile string) {
 			htmlStr = `<span class="token token-number">{` + token.Value + `}</span>`
 		} else if token.Type == TokenType_Boolean {
 			htmlStr = `<span class="token token-bool">` + token.Value + `</span>`
+		} else if token.Type == TokenType_EOF {
+			htmlStr = `<span class="token token-comment">**EOF**</span>`
 		} else {
 			htmlStr = `<span class="token token-operator">` + token.Value + `</span>`
 		}

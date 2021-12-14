@@ -115,6 +115,9 @@ const (
 
 	// TokenType_Path represents a path: '/home/user/file.txt'
 	TokenType_Path
+
+	// TokenType_Not represents a ^ or **
+	TokenType_Exponential
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_

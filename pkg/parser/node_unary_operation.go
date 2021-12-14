@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"recital_lsp/pkg/lexer"
 	"recital_lsp/pkg/shared"
 )
@@ -27,4 +28,12 @@ func (l *UnaryOperation) StartPos() *shared.Position {
 
 func (l *UnaryOperation) EndPos() *shared.Position {
 	return l.endPos
+}
+
+func (l *UnaryOperation) ToHTML() string {
+	panic("Not implemented")
+}
+
+func (l *UnaryOperation) String() string {
+	return fmt.Sprintf("UnaryNode{Oper: %v, Node: %v, startPos: %v, endPos: %v}", l.operationToken, l.node, l.startPos, l.endPos)
 }

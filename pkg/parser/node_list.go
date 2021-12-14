@@ -1,6 +1,9 @@
 package parser
 
-import "recital_lsp/pkg/shared"
+import (
+	"fmt"
+	"recital_lsp/pkg/shared"
+)
 
 type ListNode struct {
 	Nodes    []Node
@@ -22,4 +25,19 @@ func (l *ListNode) StartPos() *shared.Position {
 
 func (l *ListNode) EndPos() *shared.Position {
 	return l.endPos
+}
+
+func (l *ListNode) ToHTML() string {
+
+	str := "<div class=\"node node-list\">"
+
+	for i := range l.Nodes {
+		str += l.Nodes[i].ToHTML() + "<hr>"
+	}
+
+	return str + "</div>"
+}
+
+func (l *ListNode) String() string {
+	return fmt.Sprintf("ListNode{Nodes: %v, startPos: %v, endPos: %v}", l.Nodes, l.startPos, l.endPos)
 }
