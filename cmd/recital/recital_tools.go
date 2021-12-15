@@ -61,7 +61,7 @@ func execLexer(fileName string, fileContent string) *lexer.LexerResult {
 	return res
 }
 
-func execParser(lexerRes *lexer.LexerResult) *parser.ParseResult {
+func execParser(lexerRes *lexer.LexerResult, fileName string) *parser.ParseResult {
 
 	startTime := time.Now()
 
@@ -72,7 +72,7 @@ func execParser(lexerRes *lexer.LexerResult) *parser.ParseResult {
 	fmt.Printf("-> Parser time: %d ms\n\n", (time.Since(startTime)).Milliseconds())
 
 	if res.Err != nil {
-		fmt.Printf("%v\n", res.Err)
+		fmt.Printf("%s\n", res.Err.StringWithProgram(fileName))
 	} else {
 		fmt.Printf("ok\n")
 	}
@@ -138,9 +138,11 @@ func main() {
 			return
 		}
 
-		parseRes := execParser(res)
+		parseRes := execParser(res, fileName)
 
-		parser.PrintParseResultToHTML(parseRes, htmlOutputFileName)
+		if parseRes.Err == nil {
+			parser.PrintParseResultToHTML(parseRes, htmlOutputFileName)
+		}
 
 	}
 

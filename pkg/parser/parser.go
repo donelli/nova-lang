@@ -305,6 +305,8 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	cases := []IfCase{}
 	var elseCase Node = nil
 
+	startIfPos := p.CurrentToken.Range.Start
+
 	if !p.CurrentToken.Match(lexer.TokenType_Keyword, caseWord) {
 		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, fmt.Sprintf("Expected '%s' keyword", caseWord))), nil, nil
 	}
@@ -317,17 +319,11 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 		return res, nil, nil
 	}
 
-	if caseWord == "elseif" {
-		fmt.Printf("condition: %v\n", condition)
-	}
-
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
 		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected new line after expression")), nil, nil
 	}
 
 	statements := res.Register(p.parseStatements())
-
-	// TODO parei aqui
 
 	if res.Err != nil {
 		return res, nil, nil
@@ -342,14 +338,14 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	}
 
 	if !p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"else", "elseif"}) {
-		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected 'else', 'elseif' or 'endif' keyword")), nil, nil
+		return res.Failure(shared.NewInvalidSyntaxError(startIfPos, p.CurrentToken.Range.End, "If block unclosed. Expected 'else', 'elseif' or 'endif' keyword")), nil, nil
 	}
 
 	if p.CurrentToken.Match(lexer.TokenType_Keyword, "elseif") {
 
 		elseifErr, elseifCases, elseNode := p.parseIfCase("elseif")
 
-		if elseifErr != nil {
+		if elseifErr.Err != nil {
 			return elseifErr, nil, nil
 		}
 
@@ -364,6 +360,12 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 		res.RegisterAdvancement()
 		p.advance()
 
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "'else' cannot have conditions")), nil, nil
+		}
+
+		startPos := p.CurrentToken.Range.Start
+
 		statements := res.Register(p.parseStatements())
 		if res.Err != nil {
 			return res, nil, nil
@@ -371,8 +373,12 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 
 		elseCase = statements
 
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "else") {
+			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Only one 'else' can be used by 'if'")), nil, nil
+		}
+
 		if !p.CurrentToken.Match(lexer.TokenType_Keyword, "endif") {
-			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected 'endif' keyword")), nil, nil
+			return res.Failure(shared.NewInvalidSyntaxError(startPos, p.CurrentToken.Range.End, "Expected 'endif' keyword")), nil, nil
 		}
 
 	}
@@ -659,6 +665,7 @@ func (p *Parser) parseStatement() *ParseResult {
 
 	}
 
+	// TODO pass this list as a parameter
 	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"elseif", "else", "endif"}) {
 		return res
 	}
