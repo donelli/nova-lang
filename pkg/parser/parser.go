@@ -12,7 +12,7 @@ func TokenToString(tokenType lexer.LexerTokenType, value string) string {
 }
 
 var andTokenString = TokenToString(lexer.TokenType_Keyword, "and")
-var orTokenString = TokenToString(lexer.TokenType_Keyword, "and")
+var orTokenString = TokenToString(lexer.TokenType_Keyword, "or")
 
 type Parser struct {
 	LexerResult       *lexer.LexerResult
@@ -197,6 +197,7 @@ func (p *Parser) parseCompareExpr() *ParseResult {
 
 	node := res.Register(p.parseBinaryOperation("arithExpr", "arithExpr", []string{}, []lexer.LexerTokenType{
 		lexer.TokenType_Equals,
+		lexer.TokenType_EqualsEquals,
 		lexer.TokenType_NotEqual,
 		lexer.TokenType_LessThan,
 		lexer.TokenType_LessThanEqual,
@@ -225,7 +226,7 @@ func (p *Parser) invokeFunction(funcName string) *ParseResult {
 		return p.parseFactor()
 	}
 
-	panic(fmt.Sprintf("%s is not valid", funcName))
+	panic(fmt.Sprintf("'%s' is not a valid function", funcName))
 }
 
 func (p *Parser) parseBinaryOperation(leftFuncName string, rightFuncName string, typeValueOptions []string, typeOptions []lexer.LexerTokenType) *ParseResult {
@@ -242,10 +243,12 @@ func (p *Parser) parseBinaryOperation(leftFuncName string, rightFuncName string,
 
 		isValidOption := false
 
-		if typeValueOptions == nil {
+		if len(typeValueOptions) > 0 {
 
-			for opt := range typeOptions {
-				if typeOptions[opt] == p.CurrentToken.Type {
+			tokenStr := TokenToString(p.CurrentToken.Type, p.CurrentToken.Value)
+
+			for opt := range typeValueOptions {
+				if tokenStr == typeValueOptions[opt] {
 					isValidOption = true
 					break
 				}
@@ -253,10 +256,8 @@ func (p *Parser) parseBinaryOperation(leftFuncName string, rightFuncName string,
 
 		} else {
 
-			tokenStr := TokenToString(p.CurrentToken.Type, p.CurrentToken.Value)
-
-			for opt := range typeValueOptions {
-				if tokenStr == typeValueOptions[opt] {
+			for opt := range typeOptions {
+				if typeOptions[opt] == p.CurrentToken.Type {
 					isValidOption = true
 					break
 				}
