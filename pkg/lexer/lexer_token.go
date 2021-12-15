@@ -136,6 +136,21 @@ func (lexerToken *LexerToken) Match(tokenType LexerTokenType, value string) bool
 	return lexerToken.Type == tokenType && lexerToken.Value == value
 }
 
+func (lexerToken *LexerToken) MatchMultiple(tokenType LexerTokenType, values []string) bool {
+
+	if lexerToken.Type != tokenType {
+		return false
+	}
+
+	for _, value := range values {
+		if lexerToken.Value == value {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (lexerToken *LexerToken) String() string {
 
 	if lexerToken.Value != "" {

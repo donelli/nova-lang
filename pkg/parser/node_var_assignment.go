@@ -30,7 +30,7 @@ func (l *VarAssignmentNode) EndPos() *shared.Position {
 }
 
 func (l *VarAssignmentNode) ToHTML() string {
-	return BuildNodeBoxHTML("assign", "var-assign-node", l.VarName, " = ", l.Expr.ToHTML())
+	return BuildNodeBoxHTML("assign", "var-assign-node", l.VarName, l.Expr.ToHTML())
 }
 
 func (l *VarAssignmentNode) String() string {

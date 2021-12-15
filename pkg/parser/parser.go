@@ -298,6 +298,45 @@ func (p *Parser) parseExpression() *ParseResult {
 	return res.Success(node)
 }
 
+func (p *Parser) parseVariableDeclaration() *ParseResult {
+
+	res := NewParseResult()
+	modifier := p.CurrentToken.Value
+	varNames := []string{}
+	startPos := p.CurrentToken.Range.Start
+	endPos := p.CurrentToken.Range.End
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	for !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected variable name"))
+		}
+
+		varNames = append(varNames, p.CurrentToken.Value)
+		endPos = p.CurrentToken.Range.End
+
+		p.advance()
+		res.RegisterAdvancement()
+
+		if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			break
+		}
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected ',' after variable name"))
+		}
+
+		p.advance()
+		res.RegisterAdvancement()
+
+	}
+
+	return res.Success(NewVarDeclarationNode(modifier, varNames, &startPos, &endPos))
+}
+
 func (p *Parser) parseVariableAssignment() *ParseResult {
 
 	res := NewParseResult()
@@ -485,6 +524,15 @@ func (p *Parser) parseStatement() *ParseResult {
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
 
 		printRes := res.Register(p.parseVariableAssignment())
+		if res.Err != nil {
+			return res
+		}
+
+		return res.Success(printRes)
+
+	} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"private", "public", "local"}) {
+
+		printRes := res.Register(p.parseVariableDeclaration())
 		if res.Err != nil {
 			return res
 		}

@@ -29,16 +29,7 @@ func (l *VarDeclarationNode) EndPos() *shared.Position {
 }
 
 func (l *VarDeclarationNode) ToHTML() string {
-
-	panic("not implemented")
-
-	// str := "<div class=\"node node-list\">"
-
-	// for i := range l.Nodes {
-	// 	str += l.Nodes[i].ToHTML() + "<hr>"
-	// }
-
-	// return str + "</div>"
+	return BuildNodeBoxHTML(l.Modifier, "var-decl-node", l.VarNames...)
 }
 
 func (l *VarDeclarationNode) String() string {
