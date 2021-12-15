@@ -29,7 +29,7 @@ func (l *CommentNode) EndPos() *shared.Position {
 }
 
 func (l *CommentNode) ToHTML() string {
-	return fmt.Sprintf("<div class=\"node node-comment\">%s</div><br>", l.Value)
+	return BuildNodeBoxHTML("Com", "comment-node", l.Value)
 }
 
 func (l *CommentNode) String() string {

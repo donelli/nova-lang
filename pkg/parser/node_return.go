@@ -28,7 +28,11 @@ func (l *ReturnNode) EndPos() *shared.Position {
 }
 
 func (l *ReturnNode) ToHTML() string {
-	return fmt.Sprintf("<div class=\"node node-number\">return %s</div>", l.Expr.ToHTML())
+	if l.Expr != nil {
+		return BuildNodeBoxHTML("", "bin-op-node", "return", l.Expr.ToHTML())
+	} else {
+		return BuildNodeBoxHTML("", "bin-op-node", "return")
+	}
 }
 
 func (l *ReturnNode) String() string {

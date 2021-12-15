@@ -130,10 +130,17 @@ func (p *Parser) parseAtom() *ParseResult {
 
 	} else if token.MatchType(lexer.TokenType_String) {
 		// TODO return string node
+		panic("not implemented")
 	} else if token.MatchType(lexer.TokenType_Boolean) {
 		// TODO return bool node
+		panic("not implemented")
 	} else if token.MatchType(lexer.TokenType_Identifier) {
-		// TODO return var acess node
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		return res.Success(NewVarAccessNode(token))
+
 	} else if token.MatchType(lexer.TokenType_LeftParenthesis) {
 
 		res.RegisterAdvancement()
@@ -155,7 +162,10 @@ func (p *Parser) parseAtom() *ParseResult {
 		return res.Success(expr)
 	}
 
-	return res.Failure(shared.NewInvalidSyntaxError(token.Range.Start, token.Range.End, "Unexpected token"))
+	return res.Failure(shared.NewInvalidSyntaxError(token.Range.Start, token.Range.End, fmt.Sprintf("Expected number, string, bool, identifier or parenthesis, found %s", token.Type.String())))
+
+	// return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected expression, found end of line"))
+	// return res.Failure(shared.NewInvalidSyntaxError(token.Range.Start, token.Range.End, "Unexpected token"))
 }
 
 func (p *Parser) parsePower() *ParseResult {
@@ -288,6 +298,31 @@ func (p *Parser) parseExpression() *ParseResult {
 	return res.Success(node)
 }
 
+func (p *Parser) parseVariableAssignment() *ParseResult {
+
+	res := NewParseResult()
+	token := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Equals) {
+		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected '=' after variable name"))
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	expr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	// TODO must be EOF or NewLine
+
+	return res.Success(NewVarAssignmentNode(token.Value, expr, &token.Range.Start, expr.EndPos()))
+}
+
 func (p *Parser) parseReturn() *ParseResult {
 
 	res := NewParseResult()
@@ -325,7 +360,7 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, fmt.Sprintf("Expected new line (got %s)", p.CurrentToken.Type.String())))
+		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Unexpected end of command"))
 	}
 
 	return res.Success(NewPrintStdoutNode(expr))
@@ -441,6 +476,15 @@ func (p *Parser) parseStatement() *ParseResult {
 	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "return") {
 
 		printRes := res.Register(p.parseReturn())
+		if res.Err != nil {
+			return res
+		}
+
+		return res.Success(printRes)
+
+	} else if p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+
+		printRes := res.Register(p.parseVariableAssignment())
 		if res.Err != nil {
 			return res
 		}

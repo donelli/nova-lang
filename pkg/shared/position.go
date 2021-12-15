@@ -21,7 +21,7 @@ func (p *Position) Advance(char rune) {
 
 	if char == '\n' {
 		p.Row++
-		p.Column = 0
+		p.Column = 1
 	}
 
 }
@@ -36,8 +36,8 @@ func (p *Position) Copy() *Position {
 
 func NewPosition() *Position {
 	return &Position{
-		Row:    0,
-		Column: -1,
+		Row:    1,
+		Column: 1,
 		Index:  -1,
 	}
 }
