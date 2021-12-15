@@ -40,7 +40,7 @@ func (r *ParseResult) Register(res *ParseResult) Node {
 func (r *ParseResult) TryRegister(res *ParseResult) Node {
 
 	if res.Err != nil {
-		r.Err = res.Err
+		res.ToReverseCount = r.AdvanceCount
 		return nil
 	}
 
@@ -53,6 +53,10 @@ func (r *ParseResult) Success(node Node) *ParseResult {
 }
 
 func (r *ParseResult) Failure(err *shared.Error) *ParseResult {
-	r.Err = err
+
+	if r.Err == nil || r.LastRegisteredAdvanceCount == 0 {
+		r.Err = err
+	}
+
 	return r
 }

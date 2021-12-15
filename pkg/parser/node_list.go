@@ -32,7 +32,10 @@ func (l *ListNode) ToHTML() string {
 	str := "<div class=\"node node-list\">"
 
 	for i := range l.Nodes {
-		str += l.Nodes[i].ToHTML() + "<hr>"
+		str += l.Nodes[i].ToHTML()
+		if i < len(l.Nodes)-1 {
+			str += "<hr>"
+		}
 	}
 
 	return str + "</div>"

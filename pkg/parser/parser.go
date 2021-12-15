@@ -299,6 +299,107 @@ func (p *Parser) parseExpression() *ParseResult {
 	return res.Success(node)
 }
 
+func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
+
+	res := NewParseResult()
+	cases := []IfCase{}
+	var elseCase Node = nil
+
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, caseWord) {
+		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, fmt.Sprintf("Expected '%s' keyword", caseWord))), nil, nil
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	condition := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res, nil, nil
+	}
+
+	if caseWord == "elseif" {
+		fmt.Printf("condition: %v\n", condition)
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected new line after expression")), nil, nil
+	}
+
+	statements := res.Register(p.parseStatements())
+
+	// TODO parei aqui
+
+	if res.Err != nil {
+		return res, nil, nil
+	}
+
+	cases = append(cases, NewIfCase(condition, statements))
+
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "endif") {
+		res.RegisterAdvancement()
+		p.advance()
+		return res, cases, elseCase
+	}
+
+	if !p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"else", "elseif"}) {
+		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected 'else', 'elseif' or 'endif' keyword")), nil, nil
+	}
+
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "elseif") {
+
+		elseifErr, elseifCases, elseNode := p.parseIfCase("elseif")
+
+		if elseifErr != nil {
+			return elseifErr, nil, nil
+		}
+
+		elseCase = elseNode
+
+		if len(elseifCases) > 0 {
+			cases = append(cases, elseifCases...)
+		}
+
+	} else {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		statements := res.Register(p.parseStatements())
+		if res.Err != nil {
+			return res, nil, nil
+		}
+
+		elseCase = statements
+
+		if !p.CurrentToken.Match(lexer.TokenType_Keyword, "endif") {
+			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected 'endif' keyword")), nil, nil
+		}
+
+	}
+
+	return res, cases, elseCase
+}
+
+func (p *Parser) parseIfStatement() *ParseResult {
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	ifRes, ifCases, elseCase := p.parseIfCase("if")
+
+	res.Register(ifRes)
+	if res.Err != nil {
+		return res
+	}
+
+	endifToken := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	return res.Success(NewIfNode(ifCases, elseCase, &startPos, &endifToken.Range.End))
+}
+
 func (p *Parser) parseVariableDeclaration() *ParseResult {
 
 	res := NewParseResult()
@@ -319,8 +420,8 @@ func (p *Parser) parseVariableDeclaration() *ParseResult {
 		varNames = append(varNames, p.CurrentToken.Value)
 		endPos = p.CurrentToken.Range.End
 
-		p.advance()
 		res.RegisterAdvancement()
+		p.advance()
 
 		if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
 			break
@@ -330,8 +431,8 @@ func (p *Parser) parseVariableDeclaration() *ParseResult {
 			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected ',' after variable name"))
 		}
 
-		p.advance()
 		res.RegisterAdvancement()
+		p.advance()
 
 	}
 
@@ -391,6 +492,8 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	// ? <expr>
 
 	res := NewParseResult()
+
+	res.RegisterAdvancement()
 	p.advance()
 
 	expr := res.Register(p.parseExpression())
@@ -414,6 +517,8 @@ func (p *Parser) parseSet() *ParseResult {
 
 	res := NewParseResult()
 	startPos := p.CurrentToken.Range.Start.Copy()
+
+	res.RegisterAdvancement()
 	p.advance()
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
@@ -421,11 +526,12 @@ func (p *Parser) parseSet() *ParseResult {
 	}
 
 	configName := p.CurrentToken.Value
-	p.advance()
 	res.RegisterAdvancement()
+	p.advance()
 
 	if p.CurrentToken.Match(lexer.TokenType_Keyword, "to") {
 
+		res.RegisterAdvancement()
 		p.advance()
 
 		if p.CurrentToken.MatchType(lexer.TokenType_NewLine) || p.CurrentToken.MatchType(lexer.TokenType_Comment) {
@@ -455,6 +561,7 @@ func (p *Parser) parseSet() *ParseResult {
 			fmt.Println("set On")
 
 			endPos := p.CurrentToken.Range.End.Copy()
+			res.RegisterAdvancement()
 			p.advance()
 
 			return res.Success(NewBoolSetNode(configName, "on", startPos, endPos))
@@ -464,6 +571,7 @@ func (p *Parser) parseSet() *ParseResult {
 			fmt.Println("set off")
 
 			endPos := p.CurrentToken.Range.End.Copy()
+			res.RegisterAdvancement()
 			p.advance()
 
 			return res.Success(NewBoolSetNode(configName, "off", startPos, endPos))
@@ -540,9 +648,28 @@ func (p *Parser) parseStatement() *ParseResult {
 
 		return res.Success(printRes)
 
+	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "if") {
+
+		printRes := res.Register(p.parseIfStatement())
+		if res.Err != nil {
+			return res
+		}
+
+		return res.Success(printRes)
+
 	}
 
-	panic(fmt.Sprintf("%v is not a valid statement", p.CurrentToken))
+	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"elseif", "else", "endif"}) {
+		return res
+	}
+
+	// expr := res.Register(p.parseExpression())
+	// if res.Err != nil {
+	// 	return res
+	// }
+
+	// return res.Success(expr)
+	return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Invalid statement for start of line: "+p.CurrentToken.String()))
 }
 
 func (p *Parser) parseStatements() *ParseResult {
@@ -558,7 +685,7 @@ func (p *Parser) parseStatements() *ParseResult {
 
 	statement := res.Register(p.parseStatement())
 
-	if res.Err != nil {
+	if statement == nil || res.Err != nil {
 		return res
 	}
 
@@ -586,13 +713,24 @@ func (p *Parser) parseStatements() *ParseResult {
 			break
 		}
 
-		statement := res.TryRegister(p.parseStatement())
+		statement := res.Register(p.parseStatement())
+
+		if res.Err != nil {
+			return res
+		}
 
 		if statement == nil {
-			p.reverseAmount(res.ToReverseCount)
-			moreStatements = false
-			continue
+			break
 		}
+
+		// if statement == nil {
+
+		// 	fmt.Println("reverse: ", len(statements))
+
+		// 	p.reverseAmount(res.ToReverseCount)
+		// 	moreStatements = false
+		// 	continue
+		// }
 
 		statements = append(statements, statement)
 

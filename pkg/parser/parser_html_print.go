@@ -38,8 +38,6 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 		margin-right: 5px;
 		padding-right: 3px;
 		text-align: center;
-		margin-top: auto;
-		margin-bottom: auto;
 	}
 	.node-box > .node-box-subnodes {
 		display: flex;
@@ -100,6 +98,17 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 
 	.value-node {
 		border-color: #9732a8;
+	}
+
+	.if-node > .node-box-subnodes > span {
+		flex-direction: column;
+	}
+
+	.if-case {
+		border-bottom: 1px solid lightgray;
+		margin-bottom: 5px;
+		padding: 3px;
+		width: 100%;
 	}
 
 	</style>
