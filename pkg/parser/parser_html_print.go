@@ -12,29 +12,6 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 
 	defer fh.Close()
 
-	/*
-		.node-comment {
-			border-color: #006b0b;
-			background-color: #006b0b33;
-		}
-		.node h3 {
-			margin-top: 0;
-			margin-bottom: 3px;
-			border-bottom: 1px solid lightgray;
-			width: auto;
-		}
-		.node-bin-op {
-			display: flex;
-			align-items: center;
-		}
-		.node-bin-op > div {
-			height: 100%;
-		}
-		.node-bin-op .operation {
-			font-weight: bold;
-		}
-	*/
-
 	fh.WriteString(`
 	<html>
 	<head>
@@ -53,13 +30,16 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 		display: flex;
 	}
 	.node-box > .node-box-type {
-		writing-mode: vertical-rl;
-		text-orientation: mixed;
+		width: 10px;
+		word-wrap: break-word;
+		font-family: monospace;
 		font-size: 12px;
 		border-right: 1px solid lightgray;
 		margin-right: 5px;
 		padding-right: 3px;
 		text-align: center;
+		margin-top: auto;
+		margin-bottom: auto;
 	}
 	.node-box > .node-box-subnodes {
 		display: flex;
@@ -105,6 +85,21 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 	}
 	.bin-op-node.node-box > .node-box-subnodes > span {
 		border-color: #CC1F26;
+	}
+
+	.var-assign-node {
+		border-color: #FFA500;
+		background-color: #FFA50033;
+	}
+	.var-assign-node.node-box > .node-box-type {
+		border-color: #FFA500;
+	}
+	.var-assign-node.node-box > .node-box-subnodes > span {
+		border-color: #FFA500;
+	}
+
+	.value-node {
+		border-color: #9732a8;
 	}
 
 	</style>

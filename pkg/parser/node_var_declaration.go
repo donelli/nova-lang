@@ -5,14 +5,16 @@ import (
 )
 
 type VarDeclarationNode struct {
-	modifier string
-	varNames []string
+	Modifier string
+	VarNames []string
 	startPos *shared.Position
 	endPos   *shared.Position
 }
 
-func NewVarDeclarationNode(Nodes []Node, startPos *shared.Position, endPos *shared.Position) *VarDeclarationNode {
+func NewVarDeclarationNode(modifier string, varNames []string, startPos *shared.Position, endPos *shared.Position) *VarDeclarationNode {
 	return &VarDeclarationNode{
+		Modifier: modifier,
+		VarNames: varNames,
 		startPos: startPos,
 		endPos:   endPos,
 	}

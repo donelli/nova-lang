@@ -33,7 +33,7 @@ func (l *BinaryOperationNode) EndPos() *shared.Position {
 }
 
 func (l *BinaryOperationNode) ToHTML() string {
-	return BuildNodeBoxHTML("", "bin-op-node", l.leftNode.ToHTML(), l.operationToken.Value, l.rightNode.ToHTML())
+	return BuildNodeBoxHTML("bin", "bin-op-node", l.leftNode.ToHTML(), l.operationToken.Value, l.rightNode.ToHTML())
 }
 
 func (l *BinaryOperationNode) String() string {

@@ -29,7 +29,7 @@ func (l *NumberNode) EndPos() *shared.Position {
 }
 
 func (l *NumberNode) ToHTML() string {
-	return fmt.Sprintf("<div class=\"node-number\">%v</div>", l.Value)
+	return BuildNodeBoxHTML("", "value-node", fmt.Sprintf("%v", l.Value))
 }
 
 func (l *NumberNode) String() string {

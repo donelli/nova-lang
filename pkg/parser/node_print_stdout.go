@@ -28,7 +28,7 @@ func (l *PrintStdoutNode) EndPos() *shared.Position {
 }
 
 func (l *PrintStdoutNode) ToHTML() string {
-	return BuildNodeBoxHTML("", "print-stdout-node", "print", l.expr.ToHTML())
+	return BuildNodeBoxHTML("print", "print-stdout-node", l.expr.ToHTML())
 }
 
 func (l *PrintStdoutNode) String() string {
