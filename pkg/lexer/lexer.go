@@ -301,8 +301,9 @@ func (lexer *Lexer) makeString() {
 		return
 	}
 
-	lexer.addTokenWithPos(TokenType_String, stringValue, startPos, *lexer.CurrentPosition)
 	lexer.Advance()
+
+	lexer.addTokenWithPos(TokenType_String, stringValue, startPos, *lexer.CurrentPosition)
 
 }
 

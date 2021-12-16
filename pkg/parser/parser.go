@@ -129,11 +129,19 @@ func (p *Parser) parseAtom() *ParseResult {
 		return res.Success(NewNumberNode(value, token))
 
 	} else if token.MatchType(lexer.TokenType_String) {
-		// TODO return string node
-		panic("not implemented")
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		return res.Success(NewStringNode(token))
+
 	} else if token.MatchType(lexer.TokenType_Boolean) {
-		// TODO return bool node
-		panic("not implemented")
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		return res.Success(NewBooleanNode(token.Value == ".t.", token))
+
 	} else if token.MatchType(lexer.TokenType_Identifier) {
 
 		res.RegisterAdvancement()

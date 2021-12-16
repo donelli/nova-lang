@@ -98,6 +98,10 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 
 	.value-node {
 		border-color: #9732a8;
+		padding: 3px;
+	}
+	.value-node.node-box > .node-box-type {
+		border-color: #9732a8;
 	}
 
 	.if-node > .node-box-subnodes > span {
