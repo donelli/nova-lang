@@ -46,5 +46,11 @@ func (l *ListNode) ToHTML() string {
 }
 
 func (l *ListNode) String() string {
-	return fmt.Sprintf("ListNode{Nodes: %v, startPos: %v, endPos: %v}", l.Nodes, l.startPos, l.endPos)
+
+	str := ""
+	for i := range l.Nodes {
+		str += fmt.Sprintf("\n%s", l.Nodes[i])
+	}
+
+	return fmt.Sprintf("ListNode{Nodes: %v\n, startPos: %v, endPos: %v}", str, l.startPos, l.endPos)
 }

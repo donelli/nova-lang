@@ -77,5 +77,5 @@ func (l *CaseNode) ToHTML() string {
 }
 
 func (l *CaseNode) String() string {
-	panic("not implemented")
+	return fmt.Sprintf("CaseNode{Cases: %v, OtherwiseCase: %v, start: %v, end: %v}", l.Cases, l.OtherwiseCase, l.startPos, l.endPos)
 }

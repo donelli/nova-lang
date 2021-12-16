@@ -71,5 +71,5 @@ func (l *IfNode) ToHTML() string {
 }
 
 func (l *IfNode) String() string {
-	panic("not implemented")
+	return fmt.Sprintf("If{cases: %v, else: %v, start: %v, end: %v}", l.IfCases, l.ElseCase, l.startPos, l.endPos)
 }

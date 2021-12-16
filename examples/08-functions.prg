@@ -1,6 +1,6 @@
 
 
-// TODO call functions
+f3Equals(fDouble(2), 2, 3)
 
 return
 
@@ -17,9 +17,9 @@ return .f.
 procedure fDouble
    parameters pnVal
 
-return pnVal * 2
+return pnVal * fGetNumber()
 
 
 function fGetNumber
-return 15
+return 2
 

@@ -120,6 +120,56 @@ func (p *Parser) parseCall() *ParseResult {
 		return res
 	}
 
+	if p.CurrentToken.MatchType(lexer.TokenType_LeftParenthesis) {
+
+		if atom.Type() != Node_VarAccess {
+			return res.Failure(shared.NewInvalidSyntaxError(*atom.StartPos(), *atom.EndPos(), "Function name expected"))
+		}
+
+		endPos := p.CurrentToken.Range.End
+
+		res.RegisterAdvancement()
+		p.advance()
+		argNodes := []Node{}
+
+		if p.CurrentToken.MatchType(lexer.TokenType_RightParenthesis) {
+			res.RegisterAdvancement()
+			p.advance()
+		} else {
+
+			expr := res.Register(p.parseExpression())
+			if res.Err != nil {
+				return res
+			}
+
+			argNodes = append(argNodes, expr)
+
+			for p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+
+				res.RegisterAdvancement()
+				p.advance()
+
+				expr = res.Register(p.parseExpression())
+				if res.Err != nil {
+					return res
+				}
+
+				argNodes = append(argNodes, expr)
+
+			}
+
+			if !p.CurrentToken.MatchType(lexer.TokenType_RightParenthesis) {
+				return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected ',' or ')'"))
+			}
+
+			res.RegisterAdvancement()
+			p.advance()
+
+		}
+
+		return res.Success(NewFunctionCallNode(atom, argNodes, *atom.StartPos(), endPos))
+	}
+
 	// Add here funcion calls and arrays calls
 
 	return res.Success(atom)
@@ -358,8 +408,8 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	cases = append(cases, NewIfCase(condition, statements))
 
 	if p.CurrentToken.Match(lexer.TokenType_Keyword, "endif") {
-		res.RegisterAdvancement()
-		p.advance()
+		// res.RegisterAdvancement()
+		// p.advance()
 		return res, cases, elseCase
 	}
 
@@ -463,10 +513,15 @@ func (p *Parser) parseFunction() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after function name"))
 	}
 
-	statements := res.Register(p.parseStatements([]string{"return", "function", "procedure"})).(*ListNode)
+	node := res.Register(p.parseStatements([]string{"return", "function", "procedure"}))
+	if res.Err != nil {
+		return res
+	}
+
+	statements := node.(*ListNode)
 
 	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "return") {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'return' after function body"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'return' after function body (got "+p.CurrentToken.Value+")"))
 	}
 
 	returnToken := res.Register(p.parseReturn())
@@ -995,12 +1050,18 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
 
-		varAssignRes := res.Register(p.parseVariableAssignment())
-		if res.Err != nil {
-			return res
-		}
+		nextToken, hasNextToken := p.getNextToken()
 
-		successNode = varAssignRes
+		if hasNextToken && nextToken.MatchType(lexer.TokenType_Equals) {
+
+			varAssignRes := res.Register(p.parseVariableAssignment())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = varAssignRes
+
+		}
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
 
@@ -1093,7 +1154,14 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		return res.Success(successNode)
 	}
 
-	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid statement for start of line: '"+p.CurrentToken.Value+"'"))
+	expr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	return res.Success(expr)
+
+	// return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid statement for start of line: '"+p.CurrentToken.Value+"'"))
 }
 
 func (p *Parser) parseStatements(keywordsToIgnore []string) *ParseResult {

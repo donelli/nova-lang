@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"recital_lsp/pkg/shared"
 )
 
@@ -38,7 +39,7 @@ func (l *VarDeclarationNode) ToHTML() string {
 
 func (l *VarDeclarationNode) String() string {
 
-	panic("not implemented")
+	return fmt.Sprintf("VarDeclar{modifier: %v, varNames: %v, startPos: %v, endPos: %v}", l.Modifier, l.VarNames, l.startPos, l.endPos)
 
 	// return fmt.Sprintf("VarDeclarationNode{Nodes: %v, startPos: %v, endPos: %v}", l.Nodes, l.startPos, l.endPos)
 }
