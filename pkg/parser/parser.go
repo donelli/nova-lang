@@ -442,6 +442,83 @@ func (p *Parser) parseExit() *ParseResult {
 	return res.Success(NewExitNode(token.Range))
 }
 
+func (p *Parser) parseForStatement() *ParseResult {
+
+	res := NewParseResult()
+	forKeywordToken := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable name after 'for' keyword"))
+	}
+
+	varName := p.CurrentToken.Value
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Equals) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected '=' after variable name in 'for' loop"))
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	startExpr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "to") {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'to' after start value in 'for' loop"))
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	endExpr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	var stepExpr Node = nil
+
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "step") {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		stepExpr = res.Register(p.parseExpression())
+		if res.Err != nil {
+			return res
+		}
+
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after 'for' loop"))
+	}
+
+	body := res.Register(p.parseStatements([]string{"next"}))
+
+	if p.CurrentToken.MatchType(lexer.TokenType_EOF) {
+		return res.Failure(shared.NewInvalidSyntaxError(forKeywordToken.Range.Start, p.CurrentToken.Range.End, "Unclosed 'for' block"))
+	}
+
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "next") {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'next' keyword"))
+	}
+
+	endPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	return res.Success(NewForNode(varName, startExpr, endExpr, stepExpr, body, &forKeywordToken.Range.Start, &endPos))
+}
+
 func (p *Parser) parseDoStatement() *ParseResult {
 
 	res := NewParseResult()
@@ -466,8 +543,6 @@ func (p *Parser) parseDoStatement() *ParseResult {
 		}
 
 	} else {
-
-		// While
 
 		node = res.Register(p.parseDoWhile())
 		if res.Err != nil {
@@ -922,6 +997,15 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "loop") {
 
 		doRes := res.Register(p.parseLoop())
+		if res.Err != nil {
+			return res
+		}
+
+		successNode = doRes
+
+	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "for") {
+
+		doRes := res.Register(p.parseForStatement())
 		if res.Err != nil {
 			return res
 		}

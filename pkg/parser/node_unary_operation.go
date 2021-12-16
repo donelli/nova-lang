@@ -31,7 +31,7 @@ func (l *UnaryOperation) EndPos() *shared.Position {
 }
 
 func (l *UnaryOperation) ToHTML() string {
-	return BuildNodeBoxHTML("unary", "bin-op-node", l.operationToken.Value, l.node.ToHTML())
+	return BuildNodeBoxHTML("", "bin-op-node", l.operationToken.Value, l.node.ToHTML())
 }
 
 func (l *UnaryOperation) String() string {

@@ -1,7 +1,7 @@
 
 nNum = 0
 
-do while .t. 
+do while .t.
    
    nNum = nNum + 1
    
@@ -16,6 +16,20 @@ do while .t.
    ? "Here"
    
 enddo
+
+for i = 0 to 5
+   ? i
+next
+
+for i = 5 to 0 step -1
+   ? i
+next
+
+for i = 0 to 5
+   for j = 0 to 5
+      ? i * j
+   next
+next
 
 return
 

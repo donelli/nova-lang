@@ -106,10 +106,6 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 		border-color: #9732a8;
 	}
 
-	.if-node > .node-box-subnodes > span {
-		flex-direction: column;
-	}
-
 	.if-case {
 		border-bottom: 1px solid lightgray;
 		margin-bottom: 5px;
@@ -118,11 +114,15 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 		width: 100%;
 	}
 
-	.do-while-node > .node-box-subnodes > span {
+	.do-while-node > .node-box-subnodes > span, .for-node > .node-box-subnodes > span, .if-node > .node-box-subnodes > span {
 		flex-direction: column;
 		align-items: start;
 	}
 
+	.do-while-node > .node-box-subnodes > span > div, .for-node > .node-box-subnodes > span > div {
+		margin-bottom: 5px;
+	}
+	
 	</style>
 	</head>
 	<body>
