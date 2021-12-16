@@ -30,7 +30,6 @@ func (e Error) StringWithProgram(program string) string {
 		errorType = e.Type + ": "
 	}
 	return fmt.Sprintf("%s%s\n  at %s:%v:%v to %s:%v:%v", errorType, e.Message, program, e.Range.Start.Row, e.Range.Start.Column, program, e.Range.End.Row, e.Range.End.Column)
-	// return errorType + e.Message + " at " + program + e.Range.Start.Row
 }
 
 func NewInvalidSyntaxErrorRange(errRange *Range, message string) *Error {

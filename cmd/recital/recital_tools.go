@@ -77,6 +77,17 @@ func execParser(lexerRes *lexer.LexerResult, fileName string) *parser.ParseResul
 		fmt.Printf("ok\n")
 	}
 
+	if len(res.Warnings) == 0 {
+		fmt.Printf("-> No warnings\n")
+	} else {
+		fmt.Printf("-> Found %d warnings\n", len(res.Warnings))
+
+		for i := range res.Warnings {
+			fmt.Printf("%s\n", res.Warnings[i].StringWithProgram(fileName))
+		}
+
+	}
+
 	return res
 
 	// if len(res.Errors) == 0 {
@@ -97,12 +108,15 @@ func execParser(lexerRes *lexer.LexerResult, fileName string) *parser.ParseResul
 
 func main() {
 
+	start := time.Now()
+
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: rt <command>")
 		return
 	}
 
 	command := os.Args[1]
+	endTime := start
 
 	if command == "lex" {
 
@@ -117,6 +131,8 @@ func main() {
 		fileContent := readFileContent(fileName)
 
 		res := execLexer(fileName, fileContent)
+
+		endTime = time.Now()
 
 		lexer.PrintLexerResultToHTML(res, htmlOutputFileName)
 
@@ -140,10 +156,14 @@ func main() {
 
 		parseRes := execParser(res, fileName)
 
+		endTime = time.Now()
+
 		if parseRes.Err == nil {
 			parser.PrintParseResultToHTML(parseRes, htmlOutputFileName)
 		}
 
 	}
+
+	fmt.Printf("\n-> Total time: %d ms (+html: %d ms)\n", (endTime.Sub(start)).Milliseconds(), time.Since(start).Milliseconds())
 
 }

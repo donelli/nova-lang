@@ -4,6 +4,7 @@ import "recital_lsp/pkg/shared"
 
 type ParseResult struct {
 	Err                        *shared.Error
+	Warnings                   []*shared.Warning
 	Node                       Node
 	LastRegisteredAdvanceCount int
 	AdvanceCount               int
@@ -13,6 +14,7 @@ type ParseResult struct {
 func NewParseResult() *ParseResult {
 	return &ParseResult{
 		Err:                        nil,
+		Warnings:                   make([]*shared.Warning, 0),
 		Node:                       nil,
 		LastRegisteredAdvanceCount: 0,
 		AdvanceCount:               0,
@@ -32,6 +34,10 @@ func (r *ParseResult) Register(res *ParseResult) Node {
 
 	if res.Err != nil {
 		r.Err = res.Err
+	}
+
+	if len(res.Warnings) > 0 {
+		r.Warnings = append(r.Warnings, res.Warnings...)
 	}
 
 	return res.Node
@@ -58,5 +64,10 @@ func (r *ParseResult) Failure(err *shared.Error) *ParseResult {
 		r.Err = err
 	}
 
+	return r
+}
+
+func (r *ParseResult) Warning(err *shared.Warning) *ParseResult {
+	r.Warnings = append(r.Warnings, err)
 	return r
 }
