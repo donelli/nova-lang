@@ -3,7 +3,7 @@ nNumber = -5
 bOk = .f.
 
 if nNumber > 10
-   bOk = .t
+   bOk = .t.
 endif
 
 ? bOk

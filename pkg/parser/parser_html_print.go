@@ -42,9 +42,11 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 	.node-box > .node-box-subnodes {
 		display: flex;
 		align-items: center;
+		width: 100%;
 	}
 	.node-box > .node-box-subnodes > span {
 		height: 100%;
+		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -112,6 +114,7 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 		border-bottom: 1px solid lightgray;
 		margin-bottom: 5px;
 		padding: 3px;
+		padding-bottom: 5px;
 		width: 100%;
 	}
 
