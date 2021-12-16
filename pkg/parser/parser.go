@@ -38,6 +38,17 @@ func (p *Parser) advance() {
 	p.updateCurrentToken()
 }
 
+func (p *Parser) getNextToken() (*lexer.LexerToken, bool) {
+
+	index := p.CurrentTokenIndex + 1
+
+	if index < len(p.LexerResult.Tokens) {
+		return p.LexerResult.Tokens[index], true
+	}
+
+	return nil, false
+}
+
 // func (p *Parser) reverseAmount(amount int) {
 // 	p.CurrentTokenIndex -= amount
 // 	p.updateCurrentToken()
@@ -399,6 +410,111 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	}
 
 	return res, cases, elseCase
+}
+
+func (p *Parser) parseLoop() *ParseResult {
+
+	token := p.CurrentToken
+	res := NewParseResult()
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after 'loop' keyword"))
+	}
+
+	return res.Success(NewLoopNode(token.Range))
+}
+
+func (p *Parser) parseExit() *ParseResult {
+
+	token := p.CurrentToken
+	res := NewParseResult()
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after 'exit' keyword"))
+	}
+
+	return res.Success(NewExitNode(token.Range))
+}
+
+func (p *Parser) parseDoStatement() *ParseResult {
+
+	res := NewParseResult()
+	nextToken, hasNextToken := p.getNextToken()
+	var node Node
+
+	if !hasNextToken {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected something after 'do' keyword"))
+	}
+
+	if !nextToken.MatchMultiple(lexer.TokenType_Keyword, []string{"while", "case"}) {
+		res.RegisterAdvancement()
+		p.advance()
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'case' or 'while' after 'do' keyword"))
+	}
+
+	if nextToken.Match(lexer.TokenType_Keyword, "case") {
+
+		node = res.Register(p.parseDoCase())
+		if res.Err != nil {
+			return res
+		}
+
+	} else {
+
+		// While
+
+		node = res.Register(p.parseDoWhile())
+		if res.Err != nil {
+			return res
+		}
+
+	}
+
+	return res.Success(node)
+}
+
+func (p *Parser) parseDoWhile() *ParseResult {
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	condition := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after 'do while' condition"))
+	}
+
+	statements := res.Register(p.parseStatements([]string{"enddo"}))
+
+	if p.CurrentToken.MatchType(lexer.TokenType_EOF) {
+		return res.Failure(shared.NewInvalidSyntaxError(startPos, p.CurrentToken.Range.End, "Unclosed 'do while' block"))
+	}
+
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "enddo") {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'enddo' keyword"))
+	}
+
+	endPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	return res.Success(NewDoWhileNode(condition, statements, &startPos, &endPos))
 }
 
 func (p *Parser) parseDoCase() *ParseResult {
@@ -787,7 +903,25 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "do") {
 
-		doRes := res.Register(p.parseDoCase())
+		doRes := res.Register(p.parseDoStatement())
+		if res.Err != nil {
+			return res
+		}
+
+		successNode = doRes
+
+	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "exit") {
+
+		doRes := res.Register(p.parseExit())
+		if res.Err != nil {
+			return res
+		}
+
+		successNode = doRes
+
+	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "loop") {
+
+		doRes := res.Register(p.parseLoop())
 		if res.Err != nil {
 			return res
 		}
@@ -796,12 +930,12 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 	}
 
-	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, keywordsToIgnore) {
-		return res
-	}
-
 	if successNode != nil {
 		return res.Success(successNode)
+	}
+
+	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, keywordsToIgnore) {
+		return res
 	}
 
 	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid statement for start of line: '"+p.CurrentToken.Value+"'"))

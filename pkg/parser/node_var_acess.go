@@ -29,7 +29,7 @@ func (l *VarAccessNode) EndPos() *shared.Position {
 }
 
 func (l *VarAccessNode) ToHTML() string {
-	return BuildNodeBoxHTML("", "value-node", l.VarName)
+	return BuildNodeBoxHTML("var", "value-node", l.VarName)
 }
 
 func (l *VarAccessNode) String() string {

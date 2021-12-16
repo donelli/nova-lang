@@ -118,6 +118,11 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 		width: 100%;
 	}
 
+	.do-while-node > .node-box-subnodes > span {
+		flex-direction: column;
+		align-items: start;
+	}
+
 	</style>
 	</head>
 	<body>

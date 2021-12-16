@@ -15,10 +15,6 @@ do case
             ? "less than 1"
          case nNumber <= 5
             
-            if .t.
-            
-            
-         case nNumber <= 2
       endcase
       
 endcase
