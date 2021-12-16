@@ -27,6 +27,10 @@ func (l *ListNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *ListNode) Type() ParserNodeType {
+	return Node_List
+}
+
 func (l *ListNode) ToHTML() string {
 
 	str := "<div class=\"node node-list\">"

@@ -28,6 +28,10 @@ func (l *CommentNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *CommentNode) Type() ParserNodeType {
+	return Node_Comment
+}
+
 func (l *CommentNode) ToHTML() string {
 	return BuildNodeBoxHTML("Com", "comment-node", l.Value)
 }

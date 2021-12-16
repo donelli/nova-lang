@@ -28,6 +28,10 @@ func (l *BooleanNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *BooleanNode) Type() ParserNodeType {
+	return Node_Bool
+}
+
 func (l *BooleanNode) ToHTML() string {
 	return BuildNodeBoxHTML("bool", "value-node", fmt.Sprintf("%v", l.Value))
 }

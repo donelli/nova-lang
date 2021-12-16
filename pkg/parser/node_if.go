@@ -45,6 +45,10 @@ func (l *IfNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *IfNode) Type() ParserNodeType {
+	return Node_If
+}
+
 func (l *IfNode) ToHTML() string {
 
 	content := ""

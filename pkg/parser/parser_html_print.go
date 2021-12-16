@@ -113,13 +113,13 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 		padding-bottom: 5px;
 		width: 100%;
 	}
-
-	.do-while-node > .node-box-subnodes > span, .for-node > .node-box-subnodes > span, .if-node > .node-box-subnodes > span {
+	
+	.do-while-node > .node-box-subnodes > span, .for-node > .node-box-subnodes > span, .if-node > .node-box-subnodes > span, .function-node > .node-box-subnodes > span {
 		flex-direction: column;
 		align-items: start;
 	}
 
-	.do-while-node > .node-box-subnodes > span > div, .for-node > .node-box-subnodes > span > div {
+	.do-while-node > .node-box-subnodes > span > div, .for-node > .node-box-subnodes > span > div, .function-node > .node-box-subnodes > span > div {
 		margin-bottom: 5px;
 	}
 	

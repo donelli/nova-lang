@@ -28,6 +28,10 @@ func (l *VarAccessNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *VarAccessNode) Type() ParserNodeType {
+	return Node_VarAccess
+}
+
 func (l *VarAccessNode) ToHTML() string {
 	return BuildNodeBoxHTML("var", "value-node", l.VarName)
 }

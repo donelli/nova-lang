@@ -32,6 +32,10 @@ func (l *BinaryOperationNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *BinaryOperationNode) Type() ParserNodeType {
+	return Node_BinOp
+}
+
 func (l *BinaryOperationNode) ToHTML() string {
 	return BuildNodeBoxHTML("", "bin-op-node", l.leftNode.ToHTML(), l.operationToken.Value, l.rightNode.ToHTML())
 }

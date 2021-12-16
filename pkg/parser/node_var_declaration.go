@@ -28,6 +28,10 @@ func (l *VarDeclarationNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *VarDeclarationNode) Type() ParserNodeType {
+	return Node_VarDeclar
+}
+
 func (l *VarDeclarationNode) ToHTML() string {
 	return BuildNodeBoxHTML(l.Modifier, "var-decl-node", l.VarNames...)
 }

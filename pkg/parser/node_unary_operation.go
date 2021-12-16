@@ -30,6 +30,10 @@ func (l *UnaryOperation) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *UnaryOperation) Type() ParserNodeType {
+	return Node_UnaryOp
+}
+
 func (l *UnaryOperation) ToHTML() string {
 	return BuildNodeBoxHTML("", "bin-op-node", l.operationToken.Value, l.node.ToHTML())
 }

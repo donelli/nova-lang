@@ -45,6 +45,10 @@ func (l *CaseNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *CaseNode) Type() ParserNodeType {
+	return Node_DoCase
+}
+
 func (l *CaseNode) ToHTML() string {
 
 	content := ""

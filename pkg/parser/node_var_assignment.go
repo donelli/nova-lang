@@ -29,6 +29,10 @@ func (l *VarAssignmentNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *VarAssignmentNode) Type() ParserNodeType {
+	return Node_VarAssign
+}
+
 func (l *VarAssignmentNode) ToHTML() string {
 	return BuildNodeBoxHTML("assign", "var-assign-node", l.VarName, l.Expr.ToHTML())
 }

@@ -29,6 +29,10 @@ func (l *DoWhileNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *DoWhileNode) Type() ParserNodeType {
+	return Node_DoWhile
+}
+
 func (l *DoWhileNode) ToHTML() string {
 	return BuildNodeBoxHTML("DO&nbsp;WHILE", "do-while-node", "<div>Condition:<br>"+l.Condition.ToHTML()+"</div><div>Body:<br>"+l.Body.ToHTML()+"</div>")
 }

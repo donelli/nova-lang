@@ -35,6 +35,10 @@ func (l *ForNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *ForNode) Type() ParserNodeType {
+	return Node_ForLoop
+}
+
 func (l *ForNode) ToHTML() string {
 
 	step := "1"

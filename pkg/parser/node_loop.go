@@ -25,6 +25,10 @@ func (l *LoopNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *LoopNode) Type() ParserNodeType {
+	return Node_Loop
+}
+
 func (l *LoopNode) ToHTML() string {
 	return BuildNodeBoxHTML("", "loop-node", "loop")
 }

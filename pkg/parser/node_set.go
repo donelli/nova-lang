@@ -47,6 +47,10 @@ func (l *SetNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *SetNode) Type() ParserNodeType {
+	return Node_Set
+}
+
 func (l *SetNode) ToHTML() string {
 	panic("Not implemented")
 }

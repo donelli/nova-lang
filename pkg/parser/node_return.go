@@ -27,6 +27,10 @@ func (l *ReturnNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *ReturnNode) Type() ParserNodeType {
+	return Node_Return
+}
+
 func (l *ReturnNode) ToHTML() string {
 	if l.Expr != nil {
 		return BuildNodeBoxHTML("", "bin-op-node", "return", l.Expr.ToHTML())

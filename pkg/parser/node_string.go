@@ -28,6 +28,10 @@ func (l *StringNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *StringNode) Type() ParserNodeType {
+	return Node_String
+}
+
 func (l *StringNode) ToHTML() string {
 	return BuildNodeBoxHTML("str", "value-node", fmt.Sprintf("\"%v\"", l.Value))
 }

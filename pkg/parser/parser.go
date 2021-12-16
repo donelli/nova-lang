@@ -442,6 +442,64 @@ func (p *Parser) parseExit() *ParseResult {
 	return res.Success(NewExitNode(token.Range))
 }
 
+func (p *Parser) parseFunction() *ParseResult {
+
+	res := NewParseResult()
+	funcKeywordToken := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected function name"))
+	}
+
+	funcName := p.CurrentToken.Value
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after function name"))
+	}
+
+	statements := res.Register(p.parseStatements([]string{"return", "function", "procedure"})).(*ListNode)
+
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "return") {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'return' after function body"))
+	}
+
+	returnToken := res.Register(p.parseReturn())
+	if res.Err != nil {
+		return res
+	}
+
+	statements.Nodes = append(statements.Nodes, returnToken)
+
+	params := []string{}
+	var paramNode Node = nil
+
+	for i := range statements.Nodes {
+		if statements.Nodes[i].Type() == Node_VarDeclar {
+
+			if paramNode != nil {
+				return res.Failure(shared.NewInvalidSyntaxError(*statements.Nodes[i].StartPos(), *statements.Nodes[i].EndPos(), "Multiple parameters definitions in function"))
+			}
+
+			paramNode = statements.Nodes[i]
+			params = append(params, statements.Nodes[i].(*VarDeclarationNode).VarNames...)
+		}
+	}
+
+	if paramNode != nil {
+		if statements.Nodes[0] != paramNode {
+			res.Warning(shared.NewWarning(*paramNode.StartPos(), *paramNode.EndPos(), "Function parameters should be defined in the first line of the function"))
+		}
+	}
+
+	return res.Success(NewFunctionNode(funcName, statements, params, funcKeywordToken.Range.Start, *returnToken.EndPos()))
+}
+
 func (p *Parser) parseForStatement() *ParseResult {
 
 	res := NewParseResult()
@@ -914,16 +972,11 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 	res := NewParseResult()
 	var successNode Node = nil
 
-	if p.CurrentToken.Match(lexer.TokenType_Keyword, "set") {
+	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, keywordsToIgnore) {
+		return res
+	}
 
-		setRes := res.Register(p.parseSet())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = setRes
-
-	} else if p.CurrentToken.MatchType(lexer.TokenType_QuestionMark) {
+	if p.CurrentToken.MatchType(lexer.TokenType_QuestionMark) {
 
 		printRes := res.Register(p.parsePrintStdout())
 		if res.Err != nil {
@@ -940,15 +993,6 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 		successNode = NewCommentNode(token)
 
-	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "return") {
-
-		returnRes := res.Register(p.parseReturn())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = returnRes
-
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
 
 		varAssignRes := res.Register(p.parseVariableAssignment())
@@ -958,68 +1002,95 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 		successNode = varAssignRes
 
-	} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"private", "public", "local"}) {
+	} else if p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
 
-		varDeclarNode := res.Register(p.parseVariableDeclaration())
-		if res.Err != nil {
-			return res
+		if p.CurrentToken.Value == "set" {
+
+			setRes := res.Register(p.parseSet())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = setRes
+
+		} else if p.CurrentToken.Value == "return" {
+
+			returnRes := res.Register(p.parseReturn())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = returnRes
+
+		} else if p.CurrentToken.Value == "if" {
+
+			ifRes := res.Register(p.parseIfStatement())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = ifRes
+
+		} else if p.CurrentToken.Value == "do" {
+
+			doRes := res.Register(p.parseDoStatement())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = doRes
+
+		} else if p.CurrentToken.Value == "exit" {
+
+			doRes := res.Register(p.parseExit())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = doRes
+
+		} else if p.CurrentToken.Value == "loop" {
+
+			doRes := res.Register(p.parseLoop())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = doRes
+
+		} else if p.CurrentToken.Value == "for" {
+
+			doRes := res.Register(p.parseForStatement())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = doRes
+
+		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"function", "procedure"}) {
+
+			funcRes := res.Register(p.parseFunction())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = funcRes
+
+		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"private", "public", "local", "parameters"}) {
+
+			varDeclarNode := res.Register(p.parseVariableDeclaration())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = varDeclarNode
+
 		}
-
-		successNode = varDeclarNode
-
-	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "if") {
-
-		ifRes := res.Register(p.parseIfStatement())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = ifRes
-
-	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "do") {
-
-		doRes := res.Register(p.parseDoStatement())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = doRes
-
-	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "exit") {
-
-		doRes := res.Register(p.parseExit())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = doRes
-
-	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "loop") {
-
-		doRes := res.Register(p.parseLoop())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = doRes
-
-	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "for") {
-
-		doRes := res.Register(p.parseForStatement())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = doRes
 
 	}
 
 	if successNode != nil {
 		return res.Success(successNode)
-	}
-
-	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, keywordsToIgnore) {
-		return res
 	}
 
 	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid statement for start of line: '"+p.CurrentToken.Value+"'"))
@@ -1038,7 +1109,11 @@ func (p *Parser) parseStatements(keywordsToIgnore []string) *ParseResult {
 
 	statement := res.Register(p.parseStatement(keywordsToIgnore))
 
-	if statement == nil || res.Err != nil {
+	if statement == nil {
+		return res.Success(NewListNode(statements, startPos, &p.CurrentToken.Range.End))
+	}
+
+	if res.Err != nil {
 		return res
 	}
 

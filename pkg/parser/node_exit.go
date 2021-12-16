@@ -25,6 +25,10 @@ func (l *ExitNode) EndPos() *shared.Position {
 	return l.endPos
 }
 
+func (l *ExitNode) Type() ParserNodeType {
+	return Node_Exit
+}
+
 func (l *ExitNode) ToHTML() string {
 	return BuildNodeBoxHTML("", "exit-node", "exit")
 }
