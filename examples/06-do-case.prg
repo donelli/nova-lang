@@ -13,6 +13,12 @@ do case
             ? "grater than 2"
          case nNumber <= 1
             ? "less than 1"
+         case nNumber <= 5
+            
+            if .t.
+            
+            
+         case nNumber <= 2
       endcase
       
 endcase

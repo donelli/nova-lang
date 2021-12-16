@@ -29,6 +29,10 @@ func NewParser(lexerResult *lexer.LexerResult) *Parser {
 	return parser
 }
 
+func GetRangeFromNode(node Node) *shared.Range {
+	return shared.NewRange(*node.StartPos(), *node.EndPos())
+}
+
 func (p *Parser) advance() {
 	p.CurrentTokenIndex++
 	p.updateCurrentToken()
@@ -46,7 +50,7 @@ func (p *Parser) updateCurrentToken() {
 }
 
 func (p *Parser) Parse() *ParseResult {
-	res := p.parseStatements()
+	res := p.parseStatements([]string{})
 
 	if res.Err == nil && p.CurrentToken.Type != lexer.TokenType_EOF {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Token cannot appear after previous tokens"))
@@ -307,6 +311,9 @@ func (p *Parser) parseExpression() *ParseResult {
 	return res.Success(node)
 }
 
+var ifKeywordsToIgnore = []string{"else", "elseif", "endif"}
+var doCaseKeywordsToIgnore = []string{"case", "endcase", "otherwise"}
+
 func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 
 	res := NewParseResult()
@@ -331,7 +338,7 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected new line after expression")), nil, nil
 	}
 
-	statements := res.Register(p.parseStatements())
+	statements := res.Register(p.parseStatements(ifKeywordsToIgnore))
 
 	if res.Err != nil {
 		return res, nil, nil
@@ -374,7 +381,7 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 
 		startPos := p.CurrentToken.Range.Start
 
-		statements := res.Register(p.parseStatements())
+		statements := res.Register(p.parseStatements(ifKeywordsToIgnore))
 		if res.Err != nil {
 			return res, nil, nil
 		}
@@ -397,6 +404,7 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 func (p *Parser) parseDoCase() *ParseResult {
 
 	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
 
 	res.RegisterAdvancement()
 	p.advance()
@@ -415,7 +423,8 @@ func (p *Parser) parseDoCase() *ParseResult {
 	res.RegisterAdvancement()
 	p.advance()
 
-	panic("continue implementation from here...")
+	var cases []DoCaseCase = []DoCaseCase{}
+	var otherwiseCase Node = nil
 
 	for {
 
@@ -423,12 +432,77 @@ func (p *Parser) parseDoCase() *ParseResult {
 			break
 		}
 
-		if p.CurrentToken.Match(lexer.TokenType_Keyword, "endcase") {
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "otherwise") {
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+				return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression after 'otherwise'"))
+			}
+
+			otherwiseCase = res.Register(p.parseStatements([]string{"endcase"}))
+			continue
+
 		}
 
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "case") {
+
+			caseToken := p.CurrentToken
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+				return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected conditional expression after 'case' keyword"))
+			}
+
+			condition := res.Register(p.parseExpression())
+
+			if res.Err != nil {
+				return res
+			}
+
+			if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+				return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression after 'do case' condition expression"))
+			}
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			statements := res.Register(p.parseStatements(doCaseKeywordsToIgnore))
+
+			if res.Err != nil {
+				return res
+			}
+
+			if statements == nil {
+				res.Warning(shared.NewWarning(caseToken.Range.Start, *condition.EndPos(), "Empty case body"))
+			}
+
+			doCase := NewDoCaseCase(condition, statements)
+			cases = append(cases, doCase)
+
+			continue
+		}
+
+		if p.CurrentToken.MatchType(lexer.TokenType_EOF) {
+			return res.Failure(shared.NewInvalidSyntaxError(startPos, p.CurrentToken.Range.End, "Unclosed 'do case' block"))
+		}
+
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'case', 'otherwise' or 'endcase' keyword, found '"+p.CurrentToken.Value+"'"))
 	}
 
-	return res
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "endcase") {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'endcase' keyword"))
+	}
+
+	endPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	return res.Success(NewCaseNode(cases, otherwiseCase, &startPos, &endPos))
 }
 
 func (p *Parser) parseIfStatement() *ParseResult {
@@ -640,9 +714,10 @@ func (p *Parser) parseSet() *ParseResult {
 
 }
 
-func (p *Parser) parseStatement() *ParseResult {
+func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 	res := NewParseResult()
+	var successNode Node = nil
 
 	// TODO change to switch statement
 
@@ -653,7 +728,7 @@ func (p *Parser) parseStatement() *ParseResult {
 			return res
 		}
 
-		return res.Success(setRes)
+		successNode = setRes
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_QuestionMark) {
 
@@ -662,7 +737,7 @@ func (p *Parser) parseStatement() *ParseResult {
 			return res
 		}
 
-		return res.Success(printRes)
+		successNode = printRes
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Comment) {
 
@@ -670,64 +745,72 @@ func (p *Parser) parseStatement() *ParseResult {
 		res.RegisterAdvancement()
 		p.advance()
 
-		return res.Success(NewCommentNode(token))
+		successNode = NewCommentNode(token)
 
 	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "return") {
 
-		printRes := res.Register(p.parseReturn())
+		returnRes := res.Register(p.parseReturn())
 		if res.Err != nil {
 			return res
 		}
 
-		return res.Success(printRes)
+		successNode = returnRes
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
 
-		printRes := res.Register(p.parseVariableAssignment())
+		varAssignRes := res.Register(p.parseVariableAssignment())
 		if res.Err != nil {
 			return res
 		}
 
-		return res.Success(printRes)
+		successNode = varAssignRes
 
 	} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"private", "public", "local"}) {
 
-		printRes := res.Register(p.parseVariableDeclaration())
+		varDeclarNode := res.Register(p.parseVariableDeclaration())
 		if res.Err != nil {
 			return res
 		}
 
-		return res.Success(printRes)
+		successNode = varDeclarNode
 
 	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "if") {
 
-		printRes := res.Register(p.parseIfStatement())
+		ifRes := res.Register(p.parseIfStatement())
 		if res.Err != nil {
 			return res
 		}
 
-		return res.Success(printRes)
+		successNode = ifRes
 
 	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "do") {
 
-		printRes := res.Register(p.parseDoCase())
+		doRes := res.Register(p.parseDoCase())
 		if res.Err != nil {
 			return res
 		}
 
-		return res.Success(printRes)
+		successNode = doRes
 
 	}
 
-	// TODO pass this list as a parameter
-	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"elseif", "else", "endif"}) {
+	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, keywordsToIgnore) {
 		return res
 	}
 
-	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid statement for start of line: "+p.CurrentToken.String()))
+	// TODO pass this list as a parameter
+	// if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"elseif", "else", "endif"}) {
+	// 	return res
+	// }
+
+	if successNode != nil {
+		return res.Success(successNode)
+	}
+
+	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid statement for start of line: '"+p.CurrentToken.Value+"'"))
 }
 
-func (p *Parser) parseStatements() *ParseResult {
+func (p *Parser) parseStatements(keywordsToIgnore []string) *ParseResult {
 
 	res := NewParseResult()
 	startPos := p.CurrentToken.Range.Start.Copy()
@@ -738,7 +821,7 @@ func (p *Parser) parseStatements() *ParseResult {
 		p.advance()
 	}
 
-	statement := res.Register(p.parseStatement())
+	statement := res.Register(p.parseStatement(keywordsToIgnore))
 
 	if statement == nil || res.Err != nil {
 		return res
@@ -768,7 +851,7 @@ func (p *Parser) parseStatements() *ParseResult {
 			break
 		}
 
-		statement := res.Register(p.parseStatement())
+		statement := res.Register(p.parseStatement(keywordsToIgnore))
 
 		if res.Err != nil {
 			return res

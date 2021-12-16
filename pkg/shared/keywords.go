@@ -1,6 +1,6 @@
 package shared
 
-const KeywordCount = 642
+const KeywordCount = 644
 
 var KeywordsMap = make(map[string]string, KeywordCount)
 
@@ -88,6 +88,7 @@ func LoadKeywords() {
 	generateKeyword("elseif", false)
 	generateKeyword("emacros", true)
 	generateKeyword("encryption", true)
+	generateKeyword("endcase", false)
 	generateKeyword("enddo", false)
 	generateKeyword("endif", false)
 	generateKeyword("erase", false)

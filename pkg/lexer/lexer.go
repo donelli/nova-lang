@@ -3,7 +3,6 @@ package lexer
 import (
 	"fmt"
 	"recital_lsp/pkg/shared"
-	"recital_lsp/pkg/utils"
 	"regexp"
 	"strings"
 )
@@ -591,8 +590,7 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 func NewLexer(fileName string, fileContent string) *Lexer {
 
-	dateRegex, err := regexp.Compile(`\d{0,2}\/\d{0,2}\/\d{2,4}`)
-	utils.Assert(err == nil, "Error compiling date regex")
+	dateRegex, _ := regexp.Compile(`\d{0,2}\/\d{0,2}\/\d{2,4}`)
 
 	shared.LoadKeywords()
 
