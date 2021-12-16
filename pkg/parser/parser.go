@@ -38,10 +38,10 @@ func (p *Parser) advance() {
 	p.updateCurrentToken()
 }
 
-func (p *Parser) reverseAmount(amount int) {
-	p.CurrentTokenIndex -= amount
-	p.updateCurrentToken()
-}
+// func (p *Parser) reverseAmount(amount int) {
+// 	p.CurrentTokenIndex -= amount
+// 	p.updateCurrentToken()
+// }
 
 func (p *Parser) updateCurrentToken() {
 	if p.CurrentTokenIndex >= 0 && p.CurrentTokenIndex < len(p.LexerResult.Tokens) {
@@ -584,7 +584,9 @@ func (p *Parser) parseVariableAssignment() *ParseResult {
 		return res
 	}
 
-	// TODO must be EOF or NewLine
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after variable assignment"))
+	}
 
 	return res.Success(NewVarAssignmentNode(token.Value, expr, &token.Range.Start, expr.EndPos()))
 }
@@ -607,7 +609,9 @@ func (p *Parser) parseReturn() *ParseResult {
 		return res
 	}
 
-	// TODO Check if EOL or Newline
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after return expression"))
+	}
 
 	return res.Success(NewReturnNode(expr, &token.Range.Start, expr.EndPos()))
 }
@@ -719,8 +723,6 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 	res := NewParseResult()
 	var successNode Node = nil
 
-	// TODO change to switch statement
-
 	if p.CurrentToken.Match(lexer.TokenType_Keyword, "set") {
 
 		setRes := res.Register(p.parseSet())
@@ -797,11 +799,6 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, keywordsToIgnore) {
 		return res
 	}
-
-	// TODO pass this list as a parameter
-	// if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"elseif", "else", "endif"}) {
-	// 	return res
-	// }
 
 	if successNode != nil {
 		return res.Success(successNode)
