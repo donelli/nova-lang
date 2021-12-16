@@ -77,6 +77,7 @@ func LoadKeywords() {
 	generateKeyword("dictionary", true)
 	generateKeyword("directory", true)
 	generateKeyword("display", true)
+	generateKeyword("do", false)
 	generateKeyword("doescape", true)
 	generateKeyword("dohistory", true)
 	generateKeyword("echo", false)

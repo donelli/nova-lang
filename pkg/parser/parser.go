@@ -49,7 +49,7 @@ func (p *Parser) Parse() *ParseResult {
 	res := p.parseStatements()
 
 	if res.Err == nil && p.CurrentToken.Type != lexer.TokenType_EOF {
-		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Token cannot appear after previous tokens"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Token cannot appear after previous tokens"))
 	}
 
 	return res
@@ -161,7 +161,7 @@ func (p *Parser) parseAtom() *ParseResult {
 		}
 
 		if !p.CurrentToken.MatchType(lexer.TokenType_RightParenthesis) {
-			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected ')' after expression"))
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected ')' after expression"))
 		}
 
 		res.RegisterAdvancement()
@@ -172,7 +172,7 @@ func (p *Parser) parseAtom() *ParseResult {
 
 	return res.Failure(shared.NewInvalidSyntaxError(token.Range.Start, token.Range.End, fmt.Sprintf("Expected number, string, bool, identifier or parenthesis, found %s", token.Type.String())))
 
-	// return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected expression, found end of line"))
+	// return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected expression, found end of line"))
 	// return res.Failure(shared.NewInvalidSyntaxError(token.Range.Start, token.Range.End, "Unexpected token"))
 }
 
@@ -316,7 +316,7 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	startIfPos := p.CurrentToken.Range.Start
 
 	if !p.CurrentToken.Match(lexer.TokenType_Keyword, caseWord) {
-		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, fmt.Sprintf("Expected '%s' keyword", caseWord))), nil, nil
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, fmt.Sprintf("Expected '%s' keyword", caseWord))), nil, nil
 	}
 
 	res.RegisterAdvancement()
@@ -328,7 +328,7 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected new line after expression")), nil, nil
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected new line after expression")), nil, nil
 	}
 
 	statements := res.Register(p.parseStatements())
@@ -369,7 +369,7 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 		p.advance()
 
 		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "'else' cannot have conditions")), nil, nil
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "'else' cannot have conditions")), nil, nil
 		}
 
 		startPos := p.CurrentToken.Range.Start
@@ -382,7 +382,7 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 		elseCase = statements
 
 		if p.CurrentToken.Match(lexer.TokenType_Keyword, "else") {
-			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Only one 'else' can be used by 'if'")), nil, nil
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Only one 'else' can be used by 'if'")), nil, nil
 		}
 
 		if !p.CurrentToken.Match(lexer.TokenType_Keyword, "endif") {
@@ -392,6 +392,43 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	}
 
 	return res, cases, elseCase
+}
+
+func (p *Parser) parseDoCase() *ParseResult {
+
+	res := NewParseResult()
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "case") {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'case' after 'do' keyword"))
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after 'do case' keyword"))
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	panic("continue implementation from here...")
+
+	for {
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "endcase") {
+			break
+		}
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "endcase") {
+		}
+
+	}
+
+	return res
 }
 
 func (p *Parser) parseIfStatement() *ParseResult {
@@ -428,7 +465,7 @@ func (p *Parser) parseVariableDeclaration() *ParseResult {
 	for !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
 
 		if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
-			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected variable name"))
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable name"))
 		}
 
 		varNames = append(varNames, p.CurrentToken.Value)
@@ -442,7 +479,7 @@ func (p *Parser) parseVariableDeclaration() *ParseResult {
 		}
 
 		if !p.CurrentToken.MatchType(lexer.TokenType_Comma) {
-			return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected ',' after variable name"))
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected ',' after variable name"))
 		}
 
 		res.RegisterAdvancement()
@@ -462,7 +499,7 @@ func (p *Parser) parseVariableAssignment() *ParseResult {
 	p.advance()
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_Equals) {
-		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Expected '=' after variable name"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected '=' after variable name"))
 	}
 
 	res.RegisterAdvancement()
@@ -517,7 +554,7 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Unexpected end of command"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected end of command"))
 	}
 
 	return res.Success(NewPrintStdoutNode(expr))
@@ -671,6 +708,15 @@ func (p *Parser) parseStatement() *ParseResult {
 
 		return res.Success(printRes)
 
+	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "do") {
+
+		printRes := res.Register(p.parseDoCase())
+		if res.Err != nil {
+			return res
+		}
+
+		return res.Success(printRes)
+
 	}
 
 	// TODO pass this list as a parameter
@@ -678,13 +724,7 @@ func (p *Parser) parseStatement() *ParseResult {
 		return res
 	}
 
-	// expr := res.Register(p.parseExpression())
-	// if res.Err != nil {
-	// 	return res
-	// }
-
-	// return res.Success(expr)
-	return res.Failure(shared.NewInvalidSyntaxError(p.CurrentToken.Range.Start, p.CurrentToken.Range.End, "Invalid statement for start of line: "+p.CurrentToken.String()))
+	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid statement for start of line: "+p.CurrentToken.String()))
 }
 
 func (p *Parser) parseStatements() *ParseResult {

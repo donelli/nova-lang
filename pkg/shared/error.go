@@ -33,6 +33,10 @@ func (e Error) StringWithProgram(program string) string {
 	// return errorType + e.Message + " at " + program + e.Range.Start.Row
 }
 
+func NewInvalidSyntaxErrorRange(errRange *Range, message string) *Error {
+	return NewInvalidSyntaxError(errRange.Start, errRange.End, message)
+}
+
 func NewInvalidSyntaxError(startPos Position, endPos Position, message string) *Error {
 	return &Error{
 		Message: message,
