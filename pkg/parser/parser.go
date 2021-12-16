@@ -555,6 +555,79 @@ func (p *Parser) parseFunction() *ParseResult {
 	return res.Success(NewFunctionNode(funcName, statements, params, funcKeywordToken.Range.Start, *returnToken.EndPos()))
 }
 
+func (p *Parser) parseSaveCommand() *ParseResult {
+
+	// SAVE COLOR TO <memvar>
+	// SAVE COLOR TO FILE <filename>
+	// SAVE GETS [TO <memvar>]
+	// SAVE KEYS TO <memvar>
+	// SAVE MENU [TO <memvar>]
+	// SAVE RECORDVIEW TO <memvar>
+	// SAVE SCREEN TO <memory variable>
+	// SAVE SCREEN TO FILE <.img file>
+	// SAVE SCREEN TO FILE (<exp>)
+	// SAVE SCREEN [AT <row>, <col> TO <endrow>, <endcol>]
+	// SAVE TO <.mem file> / (<expC>) [ERROR / ALL LIKE <skeleton> / ALL EXCEPT <skeleton>]
+	//   ex: save to monday all like mon_*
+	// SAVE WINDOW <window-name list>/ALL TO <.win filename>
+	//   ex: save windows invoice,payables to acct
+
+	// <skeleton>:
+	// '?' matching any character, and '*' matching zero or more characters
+
+	panic("not implemented")
+}
+
+func (p *Parser) parseRestoreCommand() *ParseResult {
+
+	// RESTORE COLOR FROM <memvar>
+	// RESTORE COLOR FROM FILE <filename>
+	// RESTORE FROM <.mem file> [ADDITIVE]
+	// RESTORE GETS [TO <memvar>]      (??? FROM ???)
+	// RESTORE KEYS FROM <memvar>
+	// RESTORE MENU [FROM <memvar>]
+	// RESTORE RECORDVIEW FROM <memvar>
+	// RESTORE SCREEN [AT <row>,<col> TO <row>,<col>]
+	// RESTORE SCREEN FROM [<memory variable>] / [FILE <.img file>] [AT <row>,<col> TO <row>,<col>]
+	// RESTORE WINDOW <window-name list>/ALL FROM <.win filename>
+
+	panic("not implemented")
+}
+
+func (p *Parser) parseAppendCommand() *ParseResult {
+
+	// APPEND [NOCLEAR]
+	// APPEND BLANK [<expN>]
+	// APPEND FROM <filename>/(<expC>)
+	//		[FOR <condition>] [WHILE <condition>]
+	// 	[[TYPE] SDF/FIXED/2020/DELIMITED WITH BLANK / DELIMITED [WITH <delimiter>]
+	// APPEND FROM ARRAY <array> [FOR <condition>] [WHILE <condition>] [REINDEX]
+	// APPEND MEMO <memo field> FROM <filename> [OVERWRITE]
+
+	panic("not implemented")
+}
+
+func (p *Parser) parseCleanCommand() *ParseResult {
+
+	// CLEAR
+	// CLEAR ALL
+	// CLEAR FCACHE
+	// CLEAR GETS
+	// CLEAR IOSTATS
+	// CLEAR KEYS
+	// CLEAR LOCKS
+	// CLEAR MEMORY
+	// CLEAR MENUS
+	// CLEAR POPUPS
+	// CLEAR PROGRAM
+	// CLEAR PROMPT
+	// CLEAR SCREEN
+	// CLEAR TYPEAHEAD
+	// CLEAR WINDOW
+
+	panic("not implemented")
+}
+
 func (p *Parser) parseForStatement() *ParseResult {
 
 	res := NewParseResult()
@@ -1127,6 +1200,15 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 			}
 
 			successNode = doRes
+
+		} else if p.CurrentToken.Value == "save" {
+
+			saveRes := res.Register(p.parseSaveCommand())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = saveRes
 
 		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"function", "procedure"}) {
 
