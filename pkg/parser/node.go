@@ -10,12 +10,10 @@ const (
 	Node_Comment
 	Node_DoCase
 	Node_DoWhile
-	Node_Exit
 	Node_ForLoop
 	Node_Function
 	Node_If
 	Node_List
-	Node_Loop
 	Node_Number
 	Node_PrintStdout
 	Node_Return

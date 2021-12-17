@@ -10,6 +10,8 @@ type CommandType int8
 const (
 	CommandType_Close CommandType = iota + 1
 	CommandType_Clear
+	CommandType_Exit
+	CommandType_Loop
 )
 
 //go:generate stringer -type=CommandType -trimprefix=CommandType_
@@ -27,6 +29,15 @@ func NewCommandNode(commandType CommandType, args map[string]interface{}, startP
 		Args:        args,
 		startPos:    startPos,
 		endPos:      endPos,
+	}
+}
+
+func NewCommandNodeRange(commandType CommandType, args map[string]interface{}, commandRange *shared.Range) *CommandNode {
+	return &CommandNode{
+		CommandType: commandType,
+		Args:        args,
+		startPos:    &commandRange.Start,
+		endPos:      &commandRange.End,
 	}
 }
 

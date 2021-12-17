@@ -481,7 +481,7 @@ func (p *Parser) parseLoop() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after 'loop' keyword"))
 	}
 
-	return res.Success(NewLoopNode(token.Range))
+	return res.Success(NewCommandNodeRange(CommandType_Loop, nil, token.Range))
 }
 
 func (p *Parser) parseExit() *ParseResult {
@@ -496,7 +496,7 @@ func (p *Parser) parseExit() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after 'exit' keyword"))
 	}
 
-	return res.Success(NewExitNode(token.Range))
+	return res.Success(NewCommandNodeRange(CommandType_Exit, nil, token.Range))
 }
 
 func (p *Parser) parseFunction() *ParseResult {

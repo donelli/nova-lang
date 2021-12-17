@@ -10,11 +10,13 @@ func _() {
 	var x [1]struct{}
 	_ = x[CommandType_Close-1]
 	_ = x[CommandType_Clear-2]
+	_ = x[CommandType_Exit-3]
+	_ = x[CommandType_Loop-4]
 }
 
-const _CommandType_name = "CloseClear"
+const _CommandType_name = "CloseClearExitLoop"
 
-var _CommandType_index = [...]uint8{0, 5, 10}
+var _CommandType_index = [...]uint8{0, 5, 10, 14, 18}
 
 func (i CommandType) String() string {
 	i -= 1
