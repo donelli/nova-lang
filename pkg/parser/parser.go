@@ -13,6 +13,9 @@ func TokenToString(tokenType lexer.LexerTokenType, value string) string {
 
 var andTokenString = TokenToString(lexer.TokenType_Keyword, "and")
 var orTokenString = TokenToString(lexer.TokenType_Keyword, "or")
+var possibleClearArgs = []string{"all", "fcache", "gets", "iostats", "keys", "locks", "memory", "menus", "popups", "program", "prompt", "screen", "typeahead", "window"}
+var ifKeywordsToIgnore = []string{"else", "elseif", "endif"}
+var doCaseKeywordsToIgnore = []string{"case", "endcase", "otherwise"}
 
 type Parser struct {
 	LexerResult       *lexer.LexerResult
@@ -370,9 +373,6 @@ func (p *Parser) parseExpression() *ParseResult {
 
 	return res.Success(node)
 }
-
-var ifKeywordsToIgnore = []string{"else", "elseif", "endif"}
-var doCaseKeywordsToIgnore = []string{"case", "endcase", "otherwise"}
 
 func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 
@@ -955,7 +955,7 @@ func (p *Parser) parseClear() *ParseResult {
 		return res.Success(NewClearNode("", &startPos, &p.CurrentToken.Range.End))
 	}
 
-	if !p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"all", "fcache", "gets", "iostats", "keys", "locks", "memory", "menus", "popups", "program", "prompt", "screen", "typeahead", "window"}) {
+	if !p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, possibleClearArgs) {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid clear argument: `"+p.CurrentToken.Value+"`"))
 	}
 
