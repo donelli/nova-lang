@@ -17,6 +17,16 @@ var possibleClearArgs = []string{"all", "fcache", "gets", "iostats", "keys", "lo
 var ifKeywordsToIgnore = []string{"else", "elseif", "endif"}
 var doCaseKeywordsToIgnore = []string{"case", "endcase", "otherwise"}
 
+type ParseOption int8
+
+const (
+	optTerm ParseOption = iota + 1
+	optFactor
+	optCall
+	optArithExpr
+	optCompareExpr
+)
+
 type Parser struct {
 	LexerResult       *lexer.LexerResult
 	CurrentTokenIndex int
@@ -67,21 +77,21 @@ func (p *Parser) Parse() *ParseResult {
 	res := p.parseStatements([]string{})
 
 	if res.Err == nil && p.CurrentToken.Type != lexer.TokenType_EOF {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Token cannot appear after previous tokens"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Parser finished its work but there are still tokens left. Probably a error with the parser."))
 	}
 
 	return res
 }
 
 func (p *Parser) parseArithmeticExpr() *ParseResult {
-	return p.parseBinaryOperation("term", "term", nil, []lexer.LexerTokenType{
+	return p.parseBinaryOperation(optTerm, optTerm, nil, []lexer.LexerTokenType{
 		lexer.TokenType_Plus,
 		lexer.TokenType_Minus,
 	})
 }
 
 func (p *Parser) parseTerm() *ParseResult {
-	return p.parseBinaryOperation("factor", "factor", nil, []lexer.LexerTokenType{
+	return p.parseBinaryOperation(optFactor, optFactor, nil, []lexer.LexerTokenType{
 		lexer.TokenType_Star,
 		lexer.TokenType_Slash,
 		lexer.TokenType_Percent,
@@ -173,7 +183,7 @@ func (p *Parser) parseCall() *ParseResult {
 		return res.Success(NewFunctionCallNode(atom, argNodes, *atom.StartPos(), endPos))
 	}
 
-	// Add here funcion calls and arrays calls
+	// TODO Add here array acess `[`, `]`
 
 	return res.Success(atom)
 }
@@ -244,7 +254,7 @@ func (p *Parser) parseAtom() *ParseResult {
 
 func (p *Parser) parsePower() *ParseResult {
 
-	return p.parseBinaryOperation("call", "factor", nil, []lexer.LexerTokenType{
+	return p.parseBinaryOperation(optCall, optFactor, nil, []lexer.LexerTokenType{
 		lexer.TokenType_Exponential,
 		lexer.TokenType_Pipe,
 	})
@@ -270,7 +280,7 @@ func (p *Parser) parseCompareExpr() *ParseResult {
 
 	}
 
-	node := res.Register(p.parseBinaryOperation("arithExpr", "arithExpr", []string{}, []lexer.LexerTokenType{
+	node := res.Register(p.parseBinaryOperation(optArithExpr, optArithExpr, []string{}, []lexer.LexerTokenType{
 		lexer.TokenType_Equals,
 		lexer.TokenType_EqualsEquals,
 		lexer.TokenType_NotEqual,
@@ -287,24 +297,24 @@ func (p *Parser) parseCompareExpr() *ParseResult {
 	return res.Success(node)
 }
 
-func (p *Parser) invokeFunction(funcName string) *ParseResult {
+func (p *Parser) invokeFunction(funcName ParseOption) *ParseResult {
 
-	if funcName == "compareExpr" {
+	if funcName == optCompareExpr {
 		return p.parseCompareExpr()
-	} else if funcName == "arithExpr" {
+	} else if funcName == optArithExpr {
 		return p.parseArithmeticExpr()
-	} else if funcName == "term" {
+	} else if funcName == optTerm {
 		return p.parseTerm()
-	} else if funcName == "call" {
+	} else if funcName == optCall {
 		return p.parseCall()
-	} else if funcName == "factor" {
+	} else if funcName == optFactor {
 		return p.parseFactor()
 	}
 
-	panic(fmt.Sprintf("'%s' is not a valid function", funcName))
+	panic(fmt.Sprintf("'%d' is not a valid function", funcName))
 }
 
-func (p *Parser) parseBinaryOperation(leftFuncName string, rightFuncName string, typeValueOptions []string, typeOptions []lexer.LexerTokenType) *ParseResult {
+func (p *Parser) parseBinaryOperation(leftFuncName ParseOption, rightFuncName ParseOption, typeValueOptions []string, typeOptions []lexer.LexerTokenType) *ParseResult {
 
 	res := NewParseResult()
 
@@ -365,7 +375,7 @@ func (p *Parser) parseExpression() *ParseResult {
 
 	res := NewParseResult()
 
-	node := res.Register(p.parseBinaryOperation("compareExpr", "compareExpr", []string{andTokenString, orTokenString}, []lexer.LexerTokenType{}))
+	node := res.Register(p.parseBinaryOperation(optCompareExpr, optCompareExpr, []string{andTokenString, orTokenString}, []lexer.LexerTokenType{}))
 
 	if res.Err != nil {
 		return res
@@ -407,8 +417,6 @@ func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 	cases = append(cases, NewIfCase(condition, statements))
 
 	if p.CurrentToken.Match(lexer.TokenType_Keyword, "endif") {
-		// res.RegisterAdvancement()
-		// p.advance()
 		return res, cases, elseCase
 	}
 
