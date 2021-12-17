@@ -941,6 +941,32 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	return res.Success(NewPrintStdoutNode(expr))
 }
 
+func (p *Parser) parseClear() *ParseResult {
+
+	// clear [all/fcache/gets/iostats/keys/locks/memory/menus/popups/program/prompt/screen/typeahead/window]
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Success(NewClearNode("", &startPos, &p.CurrentToken.Range.End))
+	}
+
+	if !p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"all", "fcache", "gets", "iostats", "keys", "locks", "memory", "menus", "popups", "program", "prompt", "screen", "typeahead", "window"}) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid clear argument: `"+p.CurrentToken.Value+"`"))
+	}
+
+	arg := p.CurrentToken.Value
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	return res.Success(NewClearNode(arg, &startPos, &p.CurrentToken.Range.End))
+}
+
 func (p *Parser) parseSet() *ParseResult {
 
 	// Types of set:
@@ -1064,25 +1090,7 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
 
-		if p.CurrentToken.Value == "set" {
-
-			setRes := res.Register(p.parseSet())
-			if res.Err != nil {
-				return res
-			}
-
-			successNode = setRes
-
-		} else if p.CurrentToken.Value == "return" {
-
-			returnRes := res.Register(p.parseReturn())
-			if res.Err != nil {
-				return res
-			}
-
-			successNode = returnRes
-
-		} else if p.CurrentToken.Value == "if" {
+		if p.CurrentToken.Value == "if" {
 
 			ifRes := res.Register(p.parseIfStatement())
 			if res.Err != nil {
@@ -1127,6 +1135,15 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 			successNode = doRes
 
+		} else if p.CurrentToken.Value == "return" {
+
+			returnRes := res.Register(p.parseReturn())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = returnRes
+
 		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"function", "procedure"}) {
 
 			funcRes := res.Register(p.parseFunction())
@@ -1144,6 +1161,24 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 			}
 
 			successNode = varDeclarNode
+
+		} else if p.CurrentToken.Value == "set" {
+
+			setRes := res.Register(p.parseSet())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = setRes
+
+		} else if p.CurrentToken.Value == "clear" {
+
+			clearRes := res.Register(p.parseClear())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = clearRes
 
 		}
 
