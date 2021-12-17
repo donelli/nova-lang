@@ -45,11 +45,13 @@ func _() {
 	_ = x[TokenType_Date-35]
 	_ = x[TokenType_Path-36]
 	_ = x[TokenType_Exponential-37]
+	_ = x[TokenType_Arrrow-38]
+	_ = x[TokenType_Pipe-39]
 }
 
-const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandMacroEqualsEqualsEqualsNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesisCommentCommaLeftBracketRightBracketKeywordQuestionMarkDollarSignAtSignBooleanDotNotDatePathExponential"
+const _LexerTokenType_name = "EOFNewLineIdentifierNumberStringPlusPlusPlusMinusMinusMinusStarSlashPercentAmpersandMacroEqualsEqualsEqualsNotEqualLessThanGreaterThanLessThanEqualGreaterThanEqualLeftParenthesisRightParenthesisCommentCommaLeftBracketRightBracketKeywordQuestionMarkDollarSignAtSignBooleanDotNotDatePathExponentialArrrowPipe"
 
-var _LexerTokenType_index = [...]uint16{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 89, 95, 107, 115, 123, 134, 147, 163, 178, 194, 201, 206, 217, 229, 236, 248, 258, 264, 271, 274, 277, 281, 285, 296}
+var _LexerTokenType_index = [...]uint16{0, 3, 10, 20, 26, 32, 36, 44, 49, 59, 63, 68, 75, 84, 89, 95, 107, 115, 123, 134, 147, 163, 178, 194, 201, 206, 217, 229, 236, 248, 258, 264, 271, 274, 277, 281, 285, 296, 302, 306}
 
 func (i LexerTokenType) String() string {
 	i -= 1

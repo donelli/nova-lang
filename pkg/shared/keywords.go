@@ -1,5 +1,10 @@
 package shared
 
+import (
+	"fmt"
+	"recital_lsp/pkg/utils"
+)
+
 const KeywordCount = 644
 
 var KeywordsMap = make(map[string]string, KeywordCount)
@@ -21,8 +26,9 @@ func LoadKeywords() {
 	}
 
 	generateKeyword("additive", true)
-	generateKeyword("alias", true)
-	generateKeyword("alternate", true)
+	generateKeyword("all", false)
+	generateKeyword("alias", false)
+	generateKeyword("alternate", false)
 	generateKeyword("and", false)
 	generateKeyword("append", true)
 	generateKeyword("autojoin", false)
@@ -120,6 +126,7 @@ func LoadKeywords() {
 	generateKeyword("gateway", true)
 	generateKeyword("gcache", true)
 	generateKeyword("get", false)
+	generateKeyword("gets", false)
 	generateKeyword("go", false)
 	generateKeyword("heading", true)
 	generateKeyword("help", false)
@@ -131,6 +138,7 @@ func LoadKeywords() {
 	generateKeyword("hours", false)
 	generateKeyword("iblock", false)
 	generateKeyword("icache", false)
+	generateKeyword("iostats", false)
 	generateKeyword("if", false)
 	generateKeyword("in", false)
 	generateKeyword("index", false)
@@ -148,6 +156,7 @@ func LoadKeywords() {
 	generateKeyword("local", true)
 	generateKeyword("locate", false)
 	generateKeyword("lock", false)
+	generateKeyword("locks", false)
 	generateKeyword("lockwait", false)
 	generateKeyword("loop", false)
 	generateKeyword("mackey", false)
@@ -161,11 +170,13 @@ func LoadKeywords() {
 	generateKeyword("memoclear", false)
 	generateKeyword("memoext", false)
 	generateKeyword("memoformat", false)
+	generateKeyword("memory", false)
 	generateKeyword("memosoftcr", false)
 	generateKeyword("memowidth", false)
 	generateKeyword("memowindow", false)
 	generateKeyword("menu", false)
-	generateKeyword("menubar", true)
+	generateKeyword("menus", false)
+	generateKeyword("menubar", false)
 	generateKeyword("message", true)
 	generateKeyword("mouse", true)
 	generateKeyword("multiuser", true)
@@ -198,6 +209,7 @@ func LoadKeywords() {
 	generateKeyword("perfmeter", false)
 	generateKeyword("picture", true)
 	generateKeyword("point", true)
+	generateKeyword("popups", false)
 	generateKeyword("postfield", true)
 	generateKeyword("postform", true)
 	generateKeyword("postmenu", false)
@@ -211,6 +223,7 @@ func LoadKeywords() {
 	generateKeyword("printer", false)
 	generateKeyword("private", true)
 	generateKeyword("procedure", true)
+	generateKeyword("program", false)
 	generateKeyword("prompt", true)
 	generateKeyword("pshare", false)
 	generateKeyword("public", true)
@@ -288,5 +301,7 @@ func LoadKeywords() {
 	generateKeyword("with", false)
 	generateKeyword("wp", true)
 	generateKeyword("zap", false)
+
+	utils.Assert(len(KeywordsMap) == KeywordCount, fmt.Sprintf("keywordMap length (%d) dont match KeywordCount variable (%d)", len(KeywordsMap), KeywordCount))
 
 }

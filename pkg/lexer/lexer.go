@@ -37,6 +37,12 @@ func (lexer *Lexer) Advance() {
 
 }
 
+func (lexer *Lexer) AdvanceMultiple(count int) {
+	for i := 0; i < count; i++ {
+		lexer.Advance()
+	}
+}
+
 func (lexer *Lexer) PeekNextChar() (rune, bool) {
 
 	index := lexer.CurrentPosition.Index + 1
@@ -107,10 +113,18 @@ func (lexer *Lexer) makeMinusToken() {
 	startPos := *lexer.CurrentPosition
 	lexer.Advance()
 
-	if lexer.hasCurrentChar && lexer.CurrentRune == '-' {
-		lexer.addTokenWithPos(TokenType_MinusMinus, "--", startPos, *lexer.CurrentPosition)
-		lexer.Advance()
-		return
+	if lexer.hasCurrentChar {
+
+		if lexer.CurrentRune == '-' {
+			lexer.addTokenWithPos(TokenType_MinusMinus, "--", startPos, *lexer.CurrentPosition)
+			lexer.Advance()
+			return
+		} else if lexer.CurrentRune == '>' {
+			lexer.addTokenWithPos(TokenType_Arrrow, "->", startPos, *lexer.CurrentPosition)
+			lexer.Advance()
+			return
+		}
+
 	}
 
 	lexer.addToken(TokenType_Minus, "-")
@@ -204,16 +218,16 @@ func (lexer *Lexer) matchLastTokenType(tokenType LexerTokenType) bool {
 	return lastToken.Type == tokenType
 }
 
-func (lexer *Lexer) matchLastTokenTypeAndValue(tokenType LexerTokenType, value string) bool {
+// func (lexer *Lexer) matchLastTokenTypeAndValue(tokenType LexerTokenType, value string) bool {
 
-	if lexer.currentResult.TokensCount == 0 {
-		return false
-	}
+// 	if lexer.currentResult.TokensCount == 0 {
+// 		return false
+// 	}
 
-	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
+// 	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
 
-	return lastToken.Type == tokenType && lastToken.Value == value
-}
+// 	return lastToken.Type == tokenType && lastToken.Value == value
+// }
 
 func (lexer *Lexer) makeIdentifierOrKeyword() {
 	startPos := *lexer.CurrentPosition
@@ -352,18 +366,34 @@ func (lexer *Lexer) makeGreaterThanEqualsToken() {
 
 func (lexer *Lexer) makeBoolOrDotToken() {
 
-	nextChars := string(lexer.getNextBytes(2))
+	nextChars := string(lexer.getNextBytes(4))
 
-	if nextChars == "t." || nextChars == "f." {
+	if nextChars[0:2] == "t." || nextChars[0:2] == "f." {
 
 		startPos := *lexer.CurrentPosition
 		boolValue := lexer.CurrentChar + nextChars
-		lexer.Advance()
-		lexer.Advance()
-		lexer.Advance()
+		lexer.AdvanceMultiple(3)
 		lexer.addTokenWithPos(TokenType_Boolean, boolValue, startPos, *lexer.CurrentPosition)
 
 		return
+	}
+
+	if nextChars == "and." {
+		startPos := *lexer.CurrentPosition
+		lexer.AdvanceMultiple(5)
+		lexer.addTokenWithPos(TokenType_Keyword, "and", startPos, *lexer.CurrentPosition)
+	}
+
+	if nextChars == "not." {
+		startPos := *lexer.CurrentPosition
+		lexer.AdvanceMultiple(5)
+		lexer.addTokenWithPos(TokenType_Not, "not", startPos, *lexer.CurrentPosition)
+	}
+
+	if nextChars[0:3] == "or." {
+		startPos := *lexer.CurrentPosition
+		lexer.AdvanceMultiple(4)
+		lexer.addTokenWithPos(TokenType_Keyword, "or", startPos, *lexer.CurrentPosition)
 	}
 
 	lexer.addToken(TokenType_Dot, ".")
@@ -533,6 +563,10 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 			continue
 		case '%':
 			lexer.addToken(TokenType_Percent, "%")
+		case '#':
+			lexer.addToken(TokenType_NotEqual, "#")
+		case '|':
+			lexer.addToken(TokenType_Pipe, "|")
 		case ';':
 
 			lexer.Advance()

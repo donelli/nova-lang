@@ -118,6 +118,12 @@ const (
 
 	// TokenType_Not represents a ^ or **
 	TokenType_Exponential
+
+	// TokenType_Arrrow represents a ->
+	TokenType_Arrrow
+
+	// TokenType_Pipe represents a |
+	TokenType_Pipe
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_
