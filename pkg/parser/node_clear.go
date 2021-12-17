@@ -29,7 +29,7 @@ func (l *ClearNode) EndPos() *shared.Position {
 }
 
 func (l *ClearNode) Type() ParserNodeType {
-	return Node_VarAssign
+	return Node_Clear
 }
 
 func (l *ClearNode) ToHTML() string {
