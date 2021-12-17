@@ -17,5 +17,18 @@ clear screen
 clear typeahead
 clear window
 
+* All close commands
+
+close 
+close 1
+close tmpfile
+close all 
+close databases 
+close format 
+close index 
+close procedure
+close alternate
+close alternate to print
+
 return
 

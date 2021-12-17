@@ -125,12 +125,6 @@ CLASS <class name> [[OF <class name list>] DYNAMIC]
 ENDCLASS
 ```
 
-### Close command
-```
-CLOSE [<alias> / ALL / DATABASES / FORMAT / INDEX / PROCEDURE]
-CLOSE ALTERNATE [TO PRINT]
-```
-
 ### Copy command
 ```
 COPY DICTIONARY TO <.xad file> [ADDITIVE]

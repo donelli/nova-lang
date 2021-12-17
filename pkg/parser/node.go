@@ -26,7 +26,7 @@ const (
 	Node_VarAssign
 	Node_VarDeclar
 	Node_FuncCall
-	Node_Clear
+	Node_Command
 )
 
 type Node interface {

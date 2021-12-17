@@ -949,6 +949,78 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	return res.Success(NewPrintStdoutNode(expr))
 }
 
+func (p *Parser) parseClose() *ParseResult {
+
+	// CLOSE [<alias> / ALL / DATABASES / FORMAT / INDEX / PROCEDURE / ALTERNATE [TO PRINT]]
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Success(NewCommandNode(CommandType_Close, nil, &startPos, &p.CurrentToken.Range.End))
+	}
+
+	args := map[string]interface{}{}
+
+	if p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+
+		args["alias"] = p.CurrentToken.Value
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	} else if p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
+
+		args["arg"] = p.CurrentToken.Value
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+
+			if args["arg"] == "alternate" {
+
+				if !p.CurrentToken.Match(lexer.TokenType_Keyword, "to") {
+					return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'TO' after ALTERNATE"))
+				}
+
+				res.RegisterAdvancement()
+				p.advance()
+
+				if !p.CurrentToken.Match(lexer.TokenType_Keyword, "print") {
+					return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'PRINT' after TO"))
+				}
+
+				res.RegisterAdvancement()
+				p.advance()
+
+				args["toPrint"] = true
+
+			} else {
+				return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unrecognized token after close argument"))
+			}
+
+		}
+
+	} else if p.CurrentToken.MatchType(lexer.TokenType_Number) {
+
+		args["workarea"] = p.CurrentToken.Value
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unrecognized token after close argument"))
+	}
+
+	return res.Success(NewCommandNode(CommandType_Close, args, &startPos, &p.CurrentToken.Range.End))
+}
+
 func (p *Parser) parseClear() *ParseResult {
 
 	// clear [all/fcache/gets/iostats/keys/locks/memory/menus/popups/program/prompt/screen/typeahead/window]
@@ -960,7 +1032,7 @@ func (p *Parser) parseClear() *ParseResult {
 	p.advance()
 
 	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Success(NewClearNode("", &startPos, &p.CurrentToken.Range.End))
+		return res.Success(NewCommandNode(CommandType_Clear, nil, &startPos, &p.CurrentToken.Range.End))
 	}
 
 	if !p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, possibleClearArgs) {
@@ -972,7 +1044,9 @@ func (p *Parser) parseClear() *ParseResult {
 	res.RegisterAdvancement()
 	p.advance()
 
-	return res.Success(NewClearNode(arg, &startPos, &p.CurrentToken.Range.End))
+	args := map[string]interface{}{arg: true}
+
+	return res.Success(NewCommandNode(CommandType_Clear, args, &startPos, &p.CurrentToken.Range.End))
 }
 
 func (p *Parser) parseSet() *ParseResult {
@@ -1187,6 +1261,15 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 			}
 
 			successNode = clearRes
+
+		} else if p.CurrentToken.Value == "close" {
+
+			closeRes := res.Register(p.parseClose())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = closeRes
 
 		}
 
