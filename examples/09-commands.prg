@@ -64,5 +64,8 @@ compile *.prg
 compile /path/to/file/main.prg
 compile ./prog???.prg
 
+return to master
+return 420
+return to master 420
 return
 

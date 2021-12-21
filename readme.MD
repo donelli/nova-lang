@@ -21,6 +21,12 @@ Parses the file and save the nodes to a html file
 rt.exe parse <fileName> <htmlFile>
 ```
 
+## TODO
+
+```
+dates
+```
+
 ## New commands
 
 ### Save command
@@ -214,7 +220,7 @@ REPLACE [<scope>] <field1> WITH <exp1> [ADDITIVE]
    [<memo-field> WITH <exp> ADDITIVE]
    [BLANK]
 
-RETURN [TO MASTER] [<exp>]
+✔️ RETURN [TO MASTER] [<exp>]
 
 RUN <command line>
 !   <command line>
@@ -240,6 +246,3 @@ USE [<.dbf file>/<.brg file>/<.gtw file>] [IN <workarea>/<alias>] [ALIAS <name>]
 ZAP
 ```
 
-<!-- ### Restore command
-```
-``` -->

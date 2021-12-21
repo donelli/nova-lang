@@ -906,12 +906,29 @@ func (p *Parser) parseReturn() *ParseResult {
 
 	res := NewParseResult()
 	token := p.CurrentToken
+	toMaster := false
 
 	res.RegisterAdvancement()
 	p.advance()
 
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "to") {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.Match(lexer.TokenType_Keyword, "master") {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'master' keyword"))
+		}
+
+		toMaster = true
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	}
+
 	if p.CurrentToken.Type == lexer.TokenType_NewLine || p.CurrentToken.Type == lexer.TokenType_EOF {
-		return res.Success(NewReturnNode(nil, &token.Range.Start, &token.Range.End))
+		return res.Success(NewReturnNode(nil, toMaster, &token.Range.Start, &token.Range.End))
 	}
 
 	expr := res.Register(p.parseExpression())
@@ -924,7 +941,7 @@ func (p *Parser) parseReturn() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after return expression"))
 	}
 
-	return res.Success(NewReturnNode(expr, &token.Range.Start, expr.EndPos()))
+	return res.Success(NewReturnNode(expr, toMaster, &token.Range.Start, expr.EndPos()))
 }
 
 func (p *Parser) parsePrintStdout() *ParseResult {
