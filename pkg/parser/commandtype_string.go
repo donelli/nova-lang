@@ -12,11 +12,12 @@ func _() {
 	_ = x[CommandType_Clear-2]
 	_ = x[CommandType_Exit-3]
 	_ = x[CommandType_Loop-4]
+	_ = x[CommandType_Dialog-5]
 }
 
-const _CommandType_name = "CloseClearExitLoop"
+const _CommandType_name = "CloseClearExitLoopDialog"
 
-var _CommandType_index = [...]uint8{0, 5, 10, 14, 18}
+var _CommandType_index = [...]uint8{0, 5, 10, 14, 18, 24}
 
 func (i CommandType) String() string {
 	i -= 1

@@ -949,6 +949,131 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	return res.Success(NewPrintStdoutNode(expr))
 }
 
+func (p *Parser) parseDialog() *ParseResult {
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.Type != lexer.TokenType_Keyword {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid dialog command. Expected keyword"))
+	}
+
+	if p.CurrentToken.Value == "box" {
+
+		// DIALOG BOX <expC1> [LABEL <expC2>]
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		var label Node = nil
+
+		expr := res.Register(p.parseExpression())
+		if res.Err != nil {
+			return res
+		}
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "label") {
+			res.RegisterAdvancement()
+			p.advance()
+
+			label = res.Register(p.parseExpression())
+			if res.Err != nil {
+				return res
+			}
+
+		}
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
+		}
+
+		endPos := expr.EndPos()
+		if label != nil {
+			endPos = label.EndPos()
+		}
+
+		args := map[string]interface{}{"subcommand": "box", "message": expr, "label": label}
+		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, endPos))
+
+	} else if p.CurrentToken.Value == "fields" {
+		// DIALOG FIELDS [LABEL <expC>]
+		panic("not implemented")
+	} else if p.CurrentToken.Value == "files" {
+		// DIALOG FILES LIKE <skeleton> [TRIM] [LABEL <expC>]
+		panic("not implemented")
+	} else if p.CurrentToken.Value == "get" {
+		// DIALOG GET <memvar> [PICTURE <expC>] [HELP <expC>]
+		// [LABEL <expC>] [TITLE <expC>]
+		panic("not implemented")
+	} else if p.CurrentToken.Value == "message" {
+
+		// DIALOG MESSAGE <expC>
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		expr := res.Register(p.parseExpression())
+		if res.Err != nil {
+			return res
+		}
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after `dialog message`"))
+		}
+
+		args := map[string]interface{}{"subcommand": "message", "message": expr}
+		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, expr.EndPos()))
+
+	} else if p.CurrentToken.Value == "query" {
+
+		// DIALOG QUERY [LOCK]
+
+		endPos := p.CurrentToken.Range.End
+		lock := false
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "lock") {
+			lock = true
+			endPos = p.CurrentToken.Range.End
+			res.RegisterAdvancement()
+			p.advance()
+		}
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after `dialog query`"))
+		}
+
+		args := map[string]interface{}{"subcommand": "query", "lock": lock}
+		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, &endPos))
+
+	} else if p.CurrentToken.Value == "scope" {
+
+		// DIALOG SCOPE
+
+		endPos := p.CurrentToken.Range.End
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after `dialog scope`"))
+		}
+
+		args := map[string]interface{}{"subcommand": "scope"}
+		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, &endPos))
+
+	} else {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid dialog command"))
+	}
+
+	return res
+}
+
 func (p *Parser) parseClose() *ParseResult {
 
 	// CLOSE [<alias> / ALL / DATABASES / FORMAT / INDEX / PROCEDURE / ALTERNATE [TO PRINT]]
@@ -1270,6 +1395,15 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 			}
 
 			successNode = closeRes
+
+		} else if p.CurrentToken.Value == "dialog" {
+
+			dialogNode := res.Register(p.parseDialog())
+			if res.Err != nil {
+				return res
+			}
+
+			successNode = dialogNode
 
 		}
 
