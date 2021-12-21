@@ -13,6 +13,7 @@ const (
 	CommandType_Exit
 	CommandType_Loop
 	CommandType_Dialog
+	CommandType_Compile
 )
 
 //go:generate stringer -type=CommandType -trimprefix=CommandType_

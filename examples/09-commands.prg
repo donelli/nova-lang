@@ -57,5 +57,12 @@ DIALOG BOX "Hello" LABEL "label"
 *          title "Number" ;
 *          label "Number"
 
+
+* Misc commands
+
+compile *.prg
+compile /path/to/file/main.prg
+compile ./prog???.prg
+
 return
 

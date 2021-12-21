@@ -9,4 +9,5 @@ const (
 	DigitsAndDot        = Digits + "."
 	ValidPathChars      = LettersAndDigits + "/_."
 	WhitespaceChars     = " \t "
+	SkeletonChars       = LettersAndDigits + "_-.*?/"
 )

@@ -124,6 +124,9 @@ const (
 
 	// TokenType_Pipe represents a |
 	TokenType_Pipe
+
+	// TokenType_Colon represents a file path skeleton ('?' matching any character, and '*' matching zero or more characters)
+	TokenType_Skeleton
 )
 
 //go:generate stringer -type=LexerTokenType -trimprefix=TokenType_

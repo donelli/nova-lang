@@ -8,6 +8,7 @@ import (
 )
 
 // TODO define optimal number to startTokenCount
+
 // Start Token count for the lexer
 const startTokenCount = 500
 
@@ -229,6 +230,37 @@ func (lexer *Lexer) matchLastTokenType(tokenType LexerTokenType) bool {
 // 	return lastToken.Type == tokenType && lastToken.Value == value
 // }
 
+func (lexer *Lexer) makeSkeleton() {
+
+	// <skeleton>:
+	// '?' matching any character, and '*' matching zero or more characters
+
+	if !lexer.hasCurrentChar {
+		return
+	}
+
+	for lexer.hasCurrentChar && lexer.CurrentRune == ' ' {
+		lexer.Advance()
+	}
+
+	if !lexer.hasCurrentChar || lexer.CurrentRune == '\n' {
+		return
+	}
+
+	path := ""
+	start := *lexer.CurrentPosition
+
+	for strings.Contains(shared.SkeletonChars, lexer.CurrentChar) {
+		path += lexer.CurrentChar
+		lexer.Advance()
+	}
+
+	if len(path) > 0 {
+		lexer.addTokenWithPos(TokenType_Skeleton, path, start, *lexer.CurrentPosition)
+	}
+
+}
+
 func (lexer *Lexer) makeIdentifierOrKeyword() {
 	startPos := *lexer.CurrentPosition
 	identifier := ""
@@ -240,8 +272,13 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 	identifierLower := strings.ToLower(identifier)
 
-	if realKeword, ok := shared.KeywordsMap[identifierLower]; ok {
-		lexer.addTokenWithPos(TokenType_Keyword, realKeword, startPos, *lexer.CurrentPosition)
+	if realKeyWord, ok := shared.KeywordsMap[identifierLower]; ok {
+		lexer.addTokenWithPos(TokenType_Keyword, realKeyWord, startPos, *lexer.CurrentPosition)
+
+		if realKeyWord == "compile" || realKeyWord == "like" || realKeyWord == "except" {
+			lexer.makeSkeleton()
+		}
+
 		return
 	}
 

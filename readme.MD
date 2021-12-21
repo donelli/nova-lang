@@ -162,14 +162,14 @@ DELETE TAG <tagname1> [OF <.dbx filename>] [, <tagname2> [OF <.dbx filename>]...
 
 ### Dialog command
 ```
-DIALOG BOX <expC1> [LABEL <expC2>]
-DIALOG FIELDS [LABEL <expC>]
+✔️ DIALOG BOX <expC1> [LABEL <expC2>]
+✔️ DIALOG FIELDS [LABEL <expC>]
 DIALOG FILES LIKE <skeleton> [TRIM] [LABEL <expC>]
 DIALOG GET <memvar> [PICTURE <expC>] [HELP <expC>]
    [LABEL <expC>] [TITLE <expC>]
-DIALOG MESSAGE <expC>
-DIALOG QUERY [LOCK]
-DIALOG SCOPE
+✔️ DIALOG MESSAGE <expC>
+✔️ DIALOG QUERY [LOCK]
+✔️ DIALOG SCOPE
 ```
 
 ### Others command
@@ -181,7 +181,7 @@ BROWSE [COMPRESS] [FIELDS <field> [,<field>]...] [FOR <condition>] [FREEZE <expC
    [NOFOLLOW] [NOINIT] [NOMENU] [NOMODIFY] [NORMAL] [NOORGANIZE] [NOWAIT] [OVERLAY]
    [WIDTH <expN>] [WINDOW <window name>] [COLOR SCHEME <expN> / COLOR <colors>]
 
-COMPILE <skeleton>
+✔️ COMPILE <skeleton>
 
 CONTINUE
 
@@ -200,8 +200,6 @@ FLUSH
 INDEX ON <key expression> TO <.ndx file> / TAG <tagname> [OF <.dbx file>] [FOR <condition>] [UNIQUE] [TITLE <expC>] [DESCENDING]
 
 KEYBOARD <expC> [CLEAR]
-
-KEYWORD <expC1> <expC2>
 
 LOCATE [<scope>] [FOR <condition>] [WHILE <condition>]
 

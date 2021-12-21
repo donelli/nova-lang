@@ -949,6 +949,32 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	return res.Success(NewPrintStdoutNode(expr))
 }
 
+func (p *Parser) parseCompile() *ParseResult {
+
+	res := NewParseResult()
+	start := p.CurrentToken.Range.Start.Copy()
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Skeleton) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected path to files (skeleton)"))
+	}
+
+	skeletonToken := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
+	}
+
+	args := map[string]interface{}{"skeleton": skeletonToken.Value}
+	return res.Success(NewCommandNode(CommandType_Compile, args, start, &skeletonToken.Range.End))
+
+}
+
 func (p *Parser) parseDialog() *ParseResult {
 
 	res := NewParseResult()
@@ -1071,7 +1097,6 @@ func (p *Parser) parseDialog() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid dialog command"))
 	}
 
-	return res
 }
 
 func (p *Parser) parseClose() *ParseResult {
@@ -1297,113 +1322,98 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
 
+		// TODO maybe we could use a map(string -> func), to speed up the parsing of commands
+
 		if p.CurrentToken.Value == "if" {
 
-			ifRes := res.Register(p.parseIfStatement())
+			successNode = res.Register(p.parseIfStatement())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = ifRes
 
 		} else if p.CurrentToken.Value == "do" {
 
-			doRes := res.Register(p.parseDoStatement())
+			successNode = res.Register(p.parseDoStatement())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = doRes
 
 		} else if p.CurrentToken.Value == "exit" {
 
-			doRes := res.Register(p.parseExit())
+			successNode = res.Register(p.parseExit())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = doRes
 
 		} else if p.CurrentToken.Value == "loop" {
 
-			doRes := res.Register(p.parseLoop())
+			successNode = res.Register(p.parseLoop())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = doRes
 
 		} else if p.CurrentToken.Value == "for" {
 
-			doRes := res.Register(p.parseForStatement())
+			successNode = res.Register(p.parseForStatement())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = doRes
 
 		} else if p.CurrentToken.Value == "return" {
 
-			returnRes := res.Register(p.parseReturn())
+			successNode = res.Register(p.parseReturn())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = returnRes
 
 		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"function", "procedure"}) {
 
-			funcRes := res.Register(p.parseFunction())
+			successNode = res.Register(p.parseFunction())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = funcRes
 
 		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"private", "public", "local", "parameters"}) {
 
-			varDeclarNode := res.Register(p.parseVariableDeclaration())
+			successNode = res.Register(p.parseVariableDeclaration())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = varDeclarNode
 
 		} else if p.CurrentToken.Value == "set" {
 
-			setRes := res.Register(p.parseSet())
+			successNode = res.Register(p.parseSet())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = setRes
 
 		} else if p.CurrentToken.Value == "clear" {
 
-			clearRes := res.Register(p.parseClear())
+			successNode = res.Register(p.parseClear())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = clearRes
 
 		} else if p.CurrentToken.Value == "close" {
 
-			closeRes := res.Register(p.parseClose())
+			successNode = res.Register(p.parseClose())
 			if res.Err != nil {
 				return res
 			}
-
-			successNode = closeRes
 
 		} else if p.CurrentToken.Value == "dialog" {
 
-			dialogNode := res.Register(p.parseDialog())
+			successNode = res.Register(p.parseDialog())
 			if res.Err != nil {
 				return res
 			}
 
-			successNode = dialogNode
+		} else if p.CurrentToken.Value == "compile" {
+
+			successNode = res.Register(p.parseCompile())
+			if res.Err != nil {
+				return res
+			}
 
 		}
 
