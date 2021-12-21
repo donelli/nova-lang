@@ -37,5 +37,5 @@ func (l *VarAccessNode) ToHTML() string {
 }
 
 func (l *VarAccessNode) String() string {
-	return fmt.Sprintf("VarAssign{Var: %v, startPos: %v, endPos: %v}", l.VarName, l.startPos, l.endPos)
+	return fmt.Sprintf("VarAccess{Var: %v, startPos: %v, endPos: %v}", l.VarName, l.startPos, l.endPos)
 }

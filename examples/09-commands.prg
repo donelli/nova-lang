@@ -64,6 +64,15 @@ compile *.prg
 compile /path/to/file/main.prg
 compile ./prog???.prg
 
+ALIAS show "dialog box"
+
+eject
+
+sleep 5
+
+nNum = 7
+sleep nNum * 2
+
 return to master
 return 420
 return to master 420

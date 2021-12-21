@@ -14,11 +14,14 @@ func _() {
 	_ = x[CommandType_Loop-4]
 	_ = x[CommandType_Dialog-5]
 	_ = x[CommandType_Compile-6]
+	_ = x[CommandType_Alias-7]
+	_ = x[CommandType_Eject-8]
+	_ = x[CommandType_Sleep-9]
 }
 
-const _CommandType_name = "CloseClearExitLoopDialogCompile"
+const _CommandType_name = "CloseClearExitLoopDialogCompileAliasEjectSleep"
 
-var _CommandType_index = [...]uint8{0, 5, 10, 14, 18, 24, 31}
+var _CommandType_index = [...]uint8{0, 5, 10, 14, 18, 24, 31, 36, 41, 46}
 
 func (i CommandType) String() string {
 	i -= 1

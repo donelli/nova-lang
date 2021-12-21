@@ -180,7 +180,7 @@ DIALOG GET <memvar> [PICTURE <expC>] [HELP <expC>]
 
 ### Others command
 ```
-ALIAS <synonym> [<expC>]
+✔️ ALIAS <synonym> [<expC>]
 
 BROWSE [COMPRESS] [FIELDS <field> [,<field>]...] [FOR <condition>] [FREEZE <expC>]
    [FORMAT] [KEY <exp>] [LAST] [LOCK <expN>] [NOAPPEND] [NOCLEAR] [NODELETE] [NOEDIT]
@@ -195,7 +195,7 @@ COUNT [<scope>] [WHILE <condition>] [FOR <condition>] [TITLE <expC>] [TO <memvar
 
 DO <.prg file>/<procedure name>/(<expC>) [WITH <parameter>[,<parameter>]...]
 
-EJECT
+✔️ EJECT
 
 ERASE <filename>
 
@@ -229,7 +229,7 @@ SEEK <key expression>
 
 SKIP <expN> [IN <alias name | workarea number>]
 
-SLEEP <expN>
+✔️ SLEEP <expN>
 
 STORE <exp> TO <memvar>
 

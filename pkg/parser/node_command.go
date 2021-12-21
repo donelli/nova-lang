@@ -14,6 +14,9 @@ const (
 	CommandType_Loop
 	CommandType_Dialog
 	CommandType_Compile
+	CommandType_Alias
+	CommandType_Eject
+	CommandType_Sleep
 )
 
 //go:generate stringer -type=CommandType -trimprefix=CommandType_

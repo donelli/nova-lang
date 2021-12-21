@@ -966,10 +966,76 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	return res.Success(NewPrintStdoutNode(expr))
 }
 
-func (p *Parser) parseCompile() *ParseResult {
+func (p *Parser) parseEject() *ParseResult {
+
+	res := NewParseResult()
+	token := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
+	}
+
+	return res.Success(NewCommandNode(CommandType_Eject, nil, &token.Range.Start, &token.Range.End))
+}
+
+func (p *Parser) parseAlias() *ParseResult {
 
 	res := NewParseResult()
 	start := p.CurrentToken.Range.Start.Copy()
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected identifier (alias name)"))
+	}
+
+	aliasName := p.CurrentToken.Value
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	expr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
+	}
+
+	args := map[string]interface{}{"name": aliasName, "expr": expr}
+	return res.Success(NewCommandNode(CommandType_Alias, args, start, expr.EndPos()))
+}
+
+func (p *Parser) parseSleep() *ParseResult {
+
+	res := NewParseResult()
+	start := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	expr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
+	}
+
+	args := map[string]interface{}{"expr": expr}
+	return res.Success(NewCommandNode(CommandType_Sleep, args, &start, expr.EndPos()))
+}
+
+func (p *Parser) parseCompile() *ParseResult {
+
+	res := NewParseResult()
+	start := p.CurrentToken.Range.Start
 
 	res.RegisterAdvancement()
 	p.advance()
@@ -988,7 +1054,7 @@ func (p *Parser) parseCompile() *ParseResult {
 	}
 
 	args := map[string]interface{}{"skeleton": skeletonToken.Value}
-	return res.Success(NewCommandNode(CommandType_Compile, args, start, &skeletonToken.Range.End))
+	return res.Success(NewCommandNode(CommandType_Compile, args, &start, &skeletonToken.Range.End))
 
 }
 
@@ -1425,9 +1491,30 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 				return res
 			}
 
+		} else if p.CurrentToken.Value == "sleep" {
+
+			successNode = res.Register(p.parseSleep())
+			if res.Err != nil {
+				return res
+			}
+
 		} else if p.CurrentToken.Value == "compile" {
 
 			successNode = res.Register(p.parseCompile())
+			if res.Err != nil {
+				return res
+			}
+
+		} else if p.CurrentToken.Value == "alias" {
+
+			successNode = res.Register(p.parseAlias())
+			if res.Err != nil {
+				return res
+			}
+
+		} else if p.CurrentToken.Value == "eject" {
+
+			successNode = res.Register(p.parseEject())
 			if res.Err != nil {
 				return res
 			}
