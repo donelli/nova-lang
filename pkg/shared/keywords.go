@@ -5,7 +5,7 @@ import (
 	"recital_lsp/pkg/utils"
 )
 
-const KeywordCount = 643
+const KeywordCount = 644
 
 var KeywordsMap = make(map[string]string, KeywordCount)
 
@@ -154,6 +154,7 @@ func LoadKeywords() {
 	generateKeyword("language", true)
 	generateKeyword("label", false)
 	generateKeyword("ldcheck", true)
+	generateKeyword("like", false)
 	generateKeyword("local", true)
 	generateKeyword("locate", false)
 	generateKeyword("lock", false)

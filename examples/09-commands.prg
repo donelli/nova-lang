@@ -73,6 +73,18 @@ sleep 5
 nNum = 7
 sleep nNum * 2
 
+* STORE
+
+store 1 to nVar, nVar2, nVar3
+store "hello world" to cHello
+
+* RELEASE
+
+release nVar
+release all
+release all like nVar*
+release all except nVar*
+
 return to master
 return 420
 return to master 420

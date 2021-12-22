@@ -1182,6 +1182,155 @@ func (p *Parser) parseDialog() *ParseResult {
 
 }
 
+func (p *Parser) parseRelease() *ParseResult {
+
+	// RELEASE <memvar list> / ALL [LIKE / EXCEPT <skeleton>]
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+	endPos := p.CurrentToken.Range.End
+	args := map[string]interface{}{}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "all") {
+
+		args["all"] = true
+		endPos = p.CurrentToken.Range.End
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	} else {
+
+		if p.CurrentToken.Type != lexer.TokenType_Identifier {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable names after `release`"))
+		}
+
+		varNames := []string{}
+		varNames = append(varNames, p.CurrentToken.Value)
+		endPos = p.CurrentToken.Range.End
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		for p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+				return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable name after `,`"))
+			}
+
+			varNames = append(varNames, p.CurrentToken.Value)
+			endPos = p.CurrentToken.Range.End
+
+			res.RegisterAdvancement()
+			p.advance()
+
+		}
+
+		args["variables"] = varNames
+
+	}
+
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "like") {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_Skeleton) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected pattern after `like`"))
+		}
+
+		args["like"] = p.CurrentToken.Value
+		endPos = p.CurrentToken.Range.End
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "except") {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_Skeleton) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected pattern after `like`"))
+		}
+
+		args["except"] = p.CurrentToken.Value
+		endPos = p.CurrentToken.Range.End
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
+	}
+
+	return res.Success(NewCommandNode(CommandType_Release, args, &startPos, &endPos))
+}
+
+func (p *Parser) parseStore() *ParseResult {
+
+	// STORE <exp> TO <memvar>
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	expr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	if !p.CurrentToken.Match(lexer.TokenType_Keyword, "to") {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected `to` after expression"))
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.Type != lexer.TokenType_Identifier {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable name after `to`"))
+	}
+
+	varNames := []string{}
+	varNames = append(varNames, p.CurrentToken.Value)
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	for p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable name after `,`"))
+		}
+
+		varNames = append(varNames, p.CurrentToken.Value)
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after `store` variables"))
+	}
+
+	args := map[string]interface{}{"varNames": varNames, "value": expr}
+	return res.Success(NewCommandNode(CommandType_Store, args, &startPos, &p.CurrentToken.Range.End))
+}
+
 func (p *Parser) parseClose() *ParseResult {
 
 	// CLOSE [<alias> / ALL / DATABASES / FORMAT / INDEX / PROCEDURE / ALTERNATE [TO PRINT]]
@@ -1473,6 +1622,20 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		} else if p.CurrentToken.Value == "clear" {
 
 			successNode = res.Register(p.parseClear())
+			if res.Err != nil {
+				return res
+			}
+
+		} else if p.CurrentToken.Value == "store" {
+
+			successNode = res.Register(p.parseStore())
+			if res.Err != nil {
+				return res
+			}
+
+		} else if p.CurrentToken.Value == "release" {
+
+			successNode = res.Register(p.parseRelease())
 			if res.Err != nil {
 				return res
 			}

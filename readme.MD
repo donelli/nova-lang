@@ -211,7 +211,7 @@ LOCATE [<scope>] [FOR <condition>] [WHILE <condition>]
 
 READ [SAVE] [NOUPDATE] [NOREFRESH] [NOCLEAR] [CYCLE] [OBJECT <expN>] [MODAL]
 
-RELEASE <memvar list> / ALL [LIKE / EXCEPT <skeleton>]
+✔️ RELEASE <memvar list> / ALL [LIKE / EXCEPT <skeleton>]
 
 REPLACE [<scope>] <field1> WITH <exp1> [ADDITIVE]
    [,<field2> WITH <exp2> [ADDITIVE]...]
@@ -231,7 +231,7 @@ SKIP <expN> [IN <alias name | workarea number>]
 
 ✔️ SLEEP <expN>
 
-STORE <exp> TO <memvar>
+✔️ STORE <exp> TO <memvar>
 
 SUM [<scope>] <expN> [,<expN>] [TO <memvar list>] [FOR <condition>] [WHILE <condition>]
 

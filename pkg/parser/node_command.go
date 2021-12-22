@@ -17,6 +17,8 @@ const (
 	CommandType_Alias
 	CommandType_Eject
 	CommandType_Sleep
+	CommandType_Store
+	CommandType_Release
 )
 
 //go:generate stringer -type=CommandType -trimprefix=CommandType_
