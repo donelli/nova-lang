@@ -3,9 +3,9 @@ package shared
 import "fmt"
 
 type Error struct {
-	Message string
-	Range   *Range
-	Type    string
+	Message string `json:"message"`
+	Range   *Range `json:"range"`
+	Type    string `json:"type"`
 }
 
 func NewError(startPos Position, endPos Position, message string) *Error {

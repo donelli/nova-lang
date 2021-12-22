@@ -10,7 +10,7 @@ type LexerResult struct {
 	TokensCount uint32
 
 	Errors   []*shared.Error
-	Warnings []shared.Warning
+	Warnings []*shared.Warning
 }
 
 func (LexerResult *LexerResult) AddError(error *shared.Error) {
@@ -39,6 +39,6 @@ func NewLexerResult() *LexerResult {
 		Tokens:      make([]*LexerToken, 0, startTokenCount),
 		TokensCount: 0,
 		Errors:      make([]*shared.Error, 0),
-		Warnings:    make([]shared.Warning, 0),
+		Warnings:    make([]*shared.Warning, 0),
 	}
 }

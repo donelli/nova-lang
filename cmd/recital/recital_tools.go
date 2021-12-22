@@ -1,17 +1,17 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"recital_lsp/pkg/lexer"
 	"recital_lsp/pkg/parser"
+	"recital_lsp/pkg/shared"
 	"recital_lsp/pkg/utils"
-	"time"
 )
 
 func readFileContent(fileName string) string {
-
-	fileReadStart := time.Now()
 
 	dat, err := os.ReadFile(fileName)
 
@@ -22,93 +22,10 @@ func readFileContent(fileName string) string {
 
 	dat = utils.NormalizeNewlines(dat)
 
-	fmt.Printf("\n-> File read time: %d ms\n", (time.Since(fileReadStart)).Milliseconds())
-
 	return string(dat)
 }
 
-func execLexer(fileName string, fileContent string) *lexer.LexerResult {
-
-	lexerStartTime := time.Now()
-
-	lex := lexer.NewLexer(fileName, fileContent)
-
-	res, err := lex.Parse()
-
-	lexerEndTime := time.Now()
-
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("-> Lexer time: %d ms\n\n", (lexerEndTime.Sub(lexerStartTime)).Milliseconds())
-
-	if len(res.Errors) == 0 {
-		fmt.Printf("-> No errors\n")
-	} else {
-		fmt.Printf("-> Found %d errors\n", len(res.Errors))
-	}
-
-	if len(res.Warnings) == 0 {
-		fmt.Printf("-> No warnings\n")
-	} else {
-		fmt.Printf("-> Found %d warnings\n", len(res.Warnings))
-	}
-
-	fmt.Printf("\n-> Lexer result: %d tokens\n", res.TokensCount)
-
-	return res
-}
-
-func execParser(lexerRes *lexer.LexerResult, fileName string) *parser.ParseResult {
-
-	startTime := time.Now()
-
-	parser := parser.NewParser(lexerRes)
-
-	res := parser.Parse()
-
-	fmt.Printf("-> Parser time: %d ms\n\n", (time.Since(startTime)).Milliseconds())
-
-	if res.Err != nil {
-		fmt.Printf("%s\n", res.Err.StringWithProgram(fileName))
-	} else {
-		fmt.Printf("ok\n")
-	}
-
-	if len(res.Warnings) == 0 {
-		fmt.Printf("-> No warnings\n")
-	} else {
-		fmt.Printf("-> Found %d warnings\n", len(res.Warnings))
-
-		for i := range res.Warnings {
-			fmt.Printf("%s\n", res.Warnings[i].StringWithProgram(fileName))
-		}
-
-	}
-
-	return res
-
-	// if len(res.Errors) == 0 {
-	// 	fmt.Printf("-> No errors\n")
-	// } else {
-	// 	fmt.Printf("-> Found %d errors\n", len(res.Errors))
-	// }
-
-	// if len(res.Warnings) == 0 {
-	// 	fmt.Printf("-> No warnings\n")
-	// } else {
-	// 	fmt.Printf("-> Found %d warnings\n", len(res.Warnings))
-	// }
-
-	// fmt.Printf("\n-> Lexer result: %d tokens\n", res.TokensCount)
-
-}
-
 func main() {
-
-	start := time.Now()
 
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: rt <command>")
@@ -116,54 +33,116 @@ func main() {
 	}
 
 	command := os.Args[1]
-	endTime := start
 
-	if command == "lex" {
+	if command == "parse" {
 
-		if len(os.Args) < 4 {
-			fmt.Println("Usage: rt lex <filename> <html output filename>")
+		if len(os.Args) < 3 {
+			fmt.Println("Usage: rt parse <file>")
 			return
 		}
 
 		fileName := os.Args[2]
-		htmlOutputFileName := os.Args[3]
+
+		parseCmd := flag.NewFlagSet("rt.exe parse", flag.ExitOnError)
+		// outHtml := parseCmd.String("html", "", "File to print the result as HTML")
+		outJson := parseCmd.String("json", "", "File to print the result as JSON")
+
+		parseCmd.Parse(os.Args[3:])
 
 		fileContent := readFileContent(fileName)
 
-		res := execLexer(fileName, fileContent)
+		errors := []*shared.Error{}
+		warnings := []*shared.Warning{}
 
-		endTime = time.Now()
+		lex := lexer.NewLexer(fileName, fileContent)
+		res := lex.Parse()
 
-		lexer.PrintLexerResultToHTML(res, htmlOutputFileName)
+		errors = append(errors, res.Errors...)
+		warnings = append(warnings, res.Warnings...)
 
-	} else if command == "parse" {
+		if len(res.Errors) == 0 {
 
-		if len(os.Args) < 4 {
-			fmt.Println("Usage: rt parse <filename> <html output filename>")
-			return
+			parser := parser.NewParser(res)
+			parseRes := parser.Parse()
+
+			if parseRes.Err != nil {
+				errors = append(errors, parseRes.Err)
+			}
+
+			warnings = append(warnings, parseRes.Warnings...)
+
 		}
 
-		fileName := os.Args[2]
-		htmlOutputFileName := os.Args[3]
+		if *outJson != "" {
+			errorsJson, _ := json.Marshal(errors)
+			warningsJson, _ := json.Marshal(warnings)
 
-		fileContent := readFileContent(fileName)
+			fd, _ := os.Create(*outJson)
 
-		res := execLexer(fileName, fileContent)
+			fd.WriteString("{\"errors\":")
+			fd.Write(errorsJson)
+			fd.WriteString(",\"warnings\":")
+			fd.Write(warningsJson)
+			fd.WriteString("}")
 
-		if len(res.Errors) > 0 {
-			return
-		}
-
-		parseRes := execParser(res, fileName)
-
-		endTime = time.Now()
-
-		if parseRes.Err == nil {
-			parser.PrintParseResultToHTML(parseRes, htmlOutputFileName)
 		}
 
 	}
 
-	fmt.Printf("\n-> Total time: %d ms (+html: %d ms)\n", (endTime.Sub(start)).Milliseconds(), time.Since(start).Milliseconds())
+	/*
+		if len(os.Args) < 2 {
+			fmt.Println("Usage: rt <command>")
+			return
+		}
+
+		command := os.Args[1]
+
+		if command == "lex" {
+
+			if len(os.Args) < 4 {
+				fmt.Println("Usage: rt lex <filename> <html output filename>")
+				return
+			}
+
+			fileName := os.Args[2]
+			htmlOutputFileName := os.Args[3]
+
+			fileContent := readFileContent(fileName)
+
+			res, _ := execLexer(fileName, fileContent)
+
+			lexer.PrintLexerResultToHTML(res, htmlOutputFileName)
+
+		} else if command == "parse" {
+
+			if len(os.Args) < 3 {
+				// fmt.Println("Usage: rt parse <filename> [<html output filename>]")
+			}
+
+			htmlFile := ""
+			if len(os.Args) == 4 {
+				htmlFile := os.Args[3]
+			}
+
+			fileName := os.Args[2]
+			htmlFile := os.Args[3]
+
+			fileContent := readFileContent(fileName)
+
+			res, _ := execLexer(fileName, fileContent)
+
+			if len(res.Errors) > 0 {
+				return
+			}
+
+			parseRes := execParser(res, fileName)
+
+			if htmlFile != "" {
+				if parseRes.Err == nil {
+					parser.PrintParseResultToHTML(parseRes, htmlFile)
+				}
+			}
+
+		}*/
 
 }

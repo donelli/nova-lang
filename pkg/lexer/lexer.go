@@ -508,7 +508,7 @@ func (lexer *Lexer) makeCommentOrMacro() {
 
 }
 
-func (lexer *Lexer) Parse() (*LexerResult, error) {
+func (lexer *Lexer) Parse() *LexerResult {
 
 	result := NewLexerResult()
 	lexer.currentResult = result
@@ -656,7 +656,7 @@ func (lexer *Lexer) Parse() (*LexerResult, error) {
 
 	lexer.addToken(TokenType_EOF, "")
 
-	return lexer.currentResult, nil
+	return lexer.currentResult
 }
 
 func NewLexer(fileName string, fileContent string) *Lexer {

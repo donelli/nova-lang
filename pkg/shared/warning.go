@@ -3,8 +3,8 @@ package shared
 import "fmt"
 
 type Warning struct {
-	Message string
-	Range   *Range
+	Message string `json:"message"`
+	Range   *Range `json:"range"`
 }
 
 func NewWarning(startPos Position, endPos Position, message string) *Warning {

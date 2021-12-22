@@ -5,9 +5,9 @@ import (
 )
 
 type Position struct {
-	Row    int32
-	Column int32
-	Index  int32
+	Row    int32 `json:"row"`
+	Column int32 `json:"column"`
+	Index  int32 `json:"-"`
 }
 
 func (p *Position) String() string {
@@ -21,7 +21,7 @@ func (p *Position) Advance(char rune) {
 
 	if char == '\n' {
 		p.Row++
-		p.Column = 1
+		p.Column = 0
 	}
 
 }
@@ -36,8 +36,8 @@ func (p *Position) Copy() *Position {
 
 func NewPosition() *Position {
 	return &Position{
-		Row:    1,
-		Column: 1,
+		Row:    0,
+		Column: 0,
 		Index:  -1,
 	}
 }
