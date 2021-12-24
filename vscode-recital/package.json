@@ -2,6 +2,7 @@
 	"name": "donelli-recital",
 	"displayName": "recital",
 	"description": "",
+	"publisher": "donelli",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.63.0"
@@ -10,10 +11,25 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:donelli-recital.run"
+		"onLanguage:recital"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"languages": [
+			{
+			  "id": "recital",
+			  "aliases": [ "Recital" ],
+			  "extensions": [".prg", ".cls"],
+			  "configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+			  "language": "recital",
+			  "scopeName": "source.recital",
+			  "path": "./syntaxes/recital.tmGrammar.json"
+			}
+		],
 		"commands": [
 			{
 				"command": "donelli-recital.run",
