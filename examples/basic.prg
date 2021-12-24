@@ -25,12 +25,12 @@ read
 nIdade = int((date() - dBirthDate) / 365)
 
 @ 03, 14 say reverse(nIdade)
-@ 05, 01 say "Nicknames.:"
+@ 05, 01 say 'Nicknames.:'
 
 declare vcNicknames[4]
 afill(vcNicknames, space(15))
 
-fReadNicknames("vcNicknames")
+fReadNicknames([vcNicknames])
 
 return
 
