@@ -23,6 +23,7 @@ rt.exe parse <fileName> <htmlFile>
 
 ## New commands
 
+❌ Not implemented
 ✔️ Done
 🔨 In progress
 
@@ -211,7 +212,11 @@ CONTINUE
 ✔️ COUNT [<scope>] [WHILE <condition>] [FOR <condition>] [TITLE <expC>] [TO <memvar>]
 <scope>  ->  ALL/REST  (default: ALL)
 
-DO <.prg file>/<procedure name>/(<expC>) [WITH <parameter>[,<parameter>]...]
+✔️ DO
+✔️   <.prg file> / 
+✔️   <procedure name> /
+❌   (<expC>)
+✔️   [WITH <parameter>[,<parameter>]...]
 
 ✔️ EJECT
 

@@ -98,6 +98,12 @@ COUNT TITLE "Couting" TO nCount
 COUNT FOR !seek(categoryId, categDB)
 COUNT REST WHILE !eof() TO nCount
 
+* DO's
+
+do testfile.prg
+do test.prg with 1, 2, 3
+do split with "a string with spaces", " "
+
 * RETURNS
 
 return to master

@@ -283,7 +283,7 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 		lexer.addTokenWithPos(TokenType_Keyword, realKeyWord, startPos, *lexer.CurrentPosition)
 
-		if realKeyWord == "compile" || realKeyWord == "like" || realKeyWord == "except" {
+		if realKeyWord == "compile" || realKeyWord == "like" || realKeyWord == "except" || realKeyWord == "do" {
 			lexer.makeSkeleton()
 		}
 

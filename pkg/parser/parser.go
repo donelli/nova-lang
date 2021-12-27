@@ -664,29 +664,80 @@ func (p *Parser) parseDoStatement() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected something after 'do' keyword"))
 	}
 
-	if !nextToken.MatchMultiple(lexer.TokenType_Keyword, []string{"while", "case"}) {
-		res.RegisterAdvancement()
-		p.advance()
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'case' or 'while' after 'do' keyword"))
-	}
+	// if !nextToken.MatchMultiple(lexer.TokenType_Keyword, []string{"while", "case"}) {
+	// 	res.RegisterAdvancement()
+	// 	p.advance()
+	// 	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'case' or 'while' after 'do' keyword"))
+	// }
 
 	if nextToken.Match(lexer.TokenType_Keyword, "case") {
-
 		node = res.Register(p.parseDoCase())
-		if res.Err != nil {
-			return res
-		}
-
-	} else {
-
+	} else if nextToken.Match(lexer.TokenType_Keyword, "while") {
 		node = res.Register(p.parseDoWhile())
-		if res.Err != nil {
-			return res
-		}
+	} else {
+		node = res.Register(p.parseDoCommand())
+	}
 
+	if res.Err != nil {
+		return res
 	}
 
 	return res.Success(node)
+}
+
+func (p *Parser) parseDoCommand() *ParseResult {
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Skeleton) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected file/procedure name after 'do' keyword"))
+	}
+
+	args := map[string]interface{}{}
+
+	args["procedure"] = p.CurrentToken.Value
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "with") {
+
+		parameters := []Node{}
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		for {
+
+			expr := res.Register(p.parseExpression())
+			if res.Err != nil {
+				return res
+			}
+
+			parameters = append(parameters, expr)
+
+			if !p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+				break
+			}
+
+			res.RegisterAdvancement()
+			p.advance()
+
+		}
+
+		args["parameters"] = parameters
+
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression after 'do' command"))
+	}
+
+	return res.Success(NewCommandNode(CommandType_Do, args, &startPos, &p.CurrentToken.Range.End))
 }
 
 func (p *Parser) parseDoWhile() *ParseResult {
