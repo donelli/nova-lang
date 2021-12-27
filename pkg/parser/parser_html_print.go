@@ -1,6 +1,8 @@
 package parser
 
-import "os"
+import (
+	"os"
+)
 
 func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 
@@ -135,7 +137,9 @@ func PrintParseResultToHTML(parseRes *ParseResult, outputFile string) {
 	<body>
 	`)
 
-	fh.WriteString(parseRes.Node.ToHTML())
+	if parseRes.Node != nil {
+		fh.WriteString(parseRes.Node.ToHTML())
+	}
 
 	fh.WriteString("</body></html>")
 }

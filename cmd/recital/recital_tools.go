@@ -44,7 +44,7 @@ func main() {
 		fileName := os.Args[2]
 
 		parseCmd := flag.NewFlagSet("rt.exe parse", flag.ExitOnError)
-		// outHtml := parseCmd.String("html", "", "File to print the result as HTML")
+		outHtml := parseCmd.String("html", "", "File to print the result as HTML")
 		outJson := parseCmd.String("json", "", "File to print the result as JSON")
 
 		parseCmd.Parse(os.Args[3:])
@@ -60,10 +60,12 @@ func main() {
 		errors = append(errors, res.Errors...)
 		warnings = append(warnings, res.Warnings...)
 
+		var parseRes *parser.ParseResult
+
 		if len(res.Errors) == 0 {
 
 			parser := parser.NewParser(res)
-			parseRes := parser.Parse()
+			parseRes = parser.Parse()
 
 			if parseRes.Err != nil {
 				errors = append(errors, parseRes.Err)
@@ -85,6 +87,20 @@ func main() {
 			fd.Write(warningsJson)
 			fd.WriteString("}")
 
+		} else {
+
+			if len(errors) > 0 {
+				fmt.Printf("Errors: %v\n", errors)
+			}
+
+			if len(warnings) > 0 {
+				fmt.Printf("Warnings: %v\n", warnings)
+			}
+
+		}
+
+		if *outHtml != "" && parseRes != nil {
+			parser.PrintParseResultToHTML(parseRes, *outHtml)
 		}
 
 	}

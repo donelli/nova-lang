@@ -46,6 +46,11 @@ func GetRangeFromNode(node Node) *shared.Range {
 	return shared.NewRange(*node.StartPos(), *node.EndPos())
 }
 
+// func (p *Parser) reverse() {
+// 	p.CurrentTokenIndex--
+// 	p.updateCurrentToken()
+// }
+
 func (p *Parser) advance() {
 	p.CurrentTokenIndex++
 	p.updateCurrentToken()
@@ -61,11 +66,6 @@ func (p *Parser) getNextToken() (*lexer.LexerToken, bool) {
 
 	return nil, false
 }
-
-// func (p *Parser) reverseAmount(amount int) {
-// 	p.CurrentTokenIndex -= amount
-// 	p.updateCurrentToken()
-// }
 
 func (p *Parser) updateCurrentToken() {
 	if p.CurrentTokenIndex >= 0 && p.CurrentTokenIndex < len(p.LexerResult.Tokens) {
@@ -118,7 +118,22 @@ func (p *Parser) parseFactor() *ParseResult {
 
 	}
 
-	// TODO macro here
+	if p.CurrentToken.MatchType(lexer.TokenType_Macro) {
+
+		start := p.CurrentToken.Range.Start
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		factor := res.Register(p.parseFactor())
+
+		if res.Err != nil {
+			return res
+		}
+
+		return res.Success(NewMacroNode(factor, &start, factor.EndPos()))
+
+	}
 
 	return p.parsePower()
 }
@@ -1522,12 +1537,7 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 	if p.CurrentToken.MatchType(lexer.TokenType_QuestionMark) {
 
-		printRes := res.Register(p.parsePrintStdout())
-		if res.Err != nil {
-			return res
-		}
-
-		successNode = printRes
+		successNode = res.Register(p.parsePrintStdout())
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Comment) {
 
@@ -1542,14 +1552,7 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		nextToken, hasNextToken := p.getNextToken()
 
 		if hasNextToken && nextToken.MatchType(lexer.TokenType_Equals) {
-
-			varAssignRes := res.Register(p.parseVariableAssignment())
-			if res.Err != nil {
-				return res
-			}
-
-			successNode = varAssignRes
-
+			successNode = res.Register(p.parseVariableAssignment())
 		}
 
 	} else if p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
@@ -1559,131 +1562,81 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		if p.CurrentToken.Value == "if" {
 
 			successNode = res.Register(p.parseIfStatement())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "do" {
 
 			successNode = res.Register(p.parseDoStatement())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "exit" {
 
 			successNode = res.Register(p.parseExit())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "loop" {
 
 			successNode = res.Register(p.parseLoop())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "for" {
 
 			successNode = res.Register(p.parseForStatement())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "return" {
 
 			successNode = res.Register(p.parseReturn())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"function", "procedure"}) {
 
 			successNode = res.Register(p.parseFunction())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"private", "public", "local", "parameters"}) {
 
 			successNode = res.Register(p.parseVariableDeclaration())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "set" {
 
 			successNode = res.Register(p.parseSet())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "clear" {
 
 			successNode = res.Register(p.parseClear())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "store" {
 
 			successNode = res.Register(p.parseStore())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "release" {
 
 			successNode = res.Register(p.parseRelease())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "close" {
 
 			successNode = res.Register(p.parseClose())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "dialog" {
 
 			successNode = res.Register(p.parseDialog())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "sleep" {
 
 			successNode = res.Register(p.parseSleep())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "compile" {
 
 			successNode = res.Register(p.parseCompile())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "alias" {
 
 			successNode = res.Register(p.parseAlias())
-			if res.Err != nil {
-				return res
-			}
 
 		} else if p.CurrentToken.Value == "eject" {
 
 			successNode = res.Register(p.parseEject())
-			if res.Err != nil {
-				return res
-			}
 
 		}
 
+	}
+
+	if res.Err != nil {
+		return res
 	}
 
 	if successNode != nil {
@@ -1693,6 +1646,10 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 	expr := res.Register(p.parseExpression())
 	if res.Err != nil {
 		return res
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token"))
 	}
 
 	return res.Success(expr)

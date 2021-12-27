@@ -25,6 +25,7 @@ const (
 	Node_VarDeclar
 	Node_FuncCall
 	Node_Command
+	Node_Macro
 )
 
 type Node interface {
