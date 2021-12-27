@@ -273,6 +273,14 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 	identifierLower := strings.ToLower(identifier)
 
 	if realKeyWord, ok := shared.KeywordsMap[identifierLower]; ok {
+
+		if _, isFunctionName := shared.BuildInFunctionsMap[identifierLower]; isFunctionName {
+			if !lexer.isFirstTokenOfTheLine() {
+				lexer.addTokenWithPos(TokenType_Identifier, identifier, startPos, *lexer.CurrentPosition)
+				return
+			}
+		}
+
 		lexer.addTokenWithPos(TokenType_Keyword, realKeyWord, startPos, *lexer.CurrentPosition)
 
 		if realKeyWord == "compile" || realKeyWord == "like" || realKeyWord == "except" {

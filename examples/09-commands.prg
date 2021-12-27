@@ -85,6 +85,14 @@ release all
 release all like nVar*
 release all except nVar*
 
+* BROWSE
+
+BROW
+
+BROWSE FIELDS id, name, incDate, modDate FOR id > 50
+
+BROWSE for !seek(category, categDB)
+
 return to master
 return 420
 return to master 420

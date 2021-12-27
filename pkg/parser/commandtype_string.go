@@ -19,11 +19,12 @@ func _() {
 	_ = x[CommandType_Sleep-9]
 	_ = x[CommandType_Store-10]
 	_ = x[CommandType_Release-11]
+	_ = x[CommandType_Browse-12]
 }
 
-const _CommandType_name = "CloseClearExitLoopDialogCompileAliasEjectSleepStoreRelease"
+const _CommandType_name = "CloseClearExitLoopDialogCompileAliasEjectSleepStoreReleaseBrowse"
 
-var _CommandType_index = [...]uint8{0, 5, 10, 14, 18, 24, 31, 36, 41, 46, 51, 58}
+var _CommandType_index = [...]uint8{0, 5, 10, 14, 18, 24, 31, 36, 41, 46, 51, 58, 64}
 
 func (i CommandType) String() string {
 	i -= 1

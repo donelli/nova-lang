@@ -981,6 +981,84 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	return res.Success(NewPrintStdoutNode(expr))
 }
 
+func (p *Parser) parseBrowse() *ParseResult {
+
+	res := NewParseResult()
+	token := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Success(NewCommandNode(CommandType_Browse, nil, &token.Range.Start, &token.Range.End))
+	}
+
+	args := map[string]interface{}{}
+
+	for {
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "for") {
+
+			// TODO show error on multiple for's
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			expr := res.Register(p.parseExpression())
+			if res.Err != nil {
+				return res
+			}
+
+			args["forExpr"] = expr
+
+			continue
+		}
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "fields") {
+
+			// TODO show error on multiple fields
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			fields := []string{}
+
+			for {
+
+				if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+					return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected field name"))
+				}
+
+				fields = append(fields, p.CurrentToken.Value)
+
+				res.RegisterAdvancement()
+				p.advance()
+
+				if p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+					res.RegisterAdvancement()
+					p.advance()
+					continue
+				}
+
+				break
+
+			}
+
+			args["fields"] = fields
+
+			continue
+		}
+
+		break
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected end of command"))
+	}
+
+	return res.Success(NewCommandNode(CommandType_Browse, args, &token.Range.Start, &p.CurrentToken.Range.Start))
+}
+
 func (p *Parser) parseEject() *ParseResult {
 
 	res := NewParseResult()
@@ -1630,6 +1708,10 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		} else if p.CurrentToken.Value == "eject" {
 
 			successNode = res.Register(p.parseEject())
+
+		} else if p.CurrentToken.Value == "browse" {
+
+			successNode = res.Register(p.parseBrowse())
 
 		}
 

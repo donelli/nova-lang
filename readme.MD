@@ -21,13 +21,10 @@ Parses the file and save the nodes to a html file
 rt.exe parse <fileName> <htmlFile>
 ```
 
-## TODO
-
-```
-dates
-```
-
 ## New commands
+
+✔️ Done
+🔨 In progress
 
 ### Save command
 
@@ -182,16 +179,37 @@ DIALOG GET <memvar> [PICTURE <expC>] [HELP <expC>]
 ```
 ✔️ ALIAS <synonym> [<expC>]
 
-BROWSE [COMPRESS] [FIELDS <field> [,<field>]...] [FOR <condition>] [FREEZE <expC>]
-   [FORMAT] [KEY <exp>] [LAST] [LOCK <expN>] [NOAPPEND] [NOCLEAR] [NODELETE] [NOEDIT]
-   [NOFOLLOW] [NOINIT] [NOMENU] [NOMODIFY] [NORMAL] [NOORGANIZE] [NOWAIT] [OVERLAY]
-   [WIDTH <expN>] [WINDOW <window name>] [COLOR SCHEME <expN> / COLOR <colors>]
+✔️ BROWSE
+✔️   [FIELDS <field> [,<field>]...]
+✔️   [FOR <condition>]
+   [COMPRESS]
+   [FREEZE <expC>]
+   [FORMAT]
+   [KEY <exp>]
+   [LAST]
+   [LOCK <expN>]
+   [NOAPPEND]
+   [NOCLEAR]
+   [NODELETE]
+   [NOEDIT]
+   [NOFOLLOW]
+   [NOINIT]
+   [NOMENU]
+   [NOMODIFY]
+   [NORMAL]
+   [NOORGANIZE]
+   [NOWAIT]
+   [OVERLAY]
+   [WIDTH <expN>]
+   [WINDOW <window name>]
+   [COLOR SCHEME <expN> / COLOR <colors>]
 
 ✔️ COMPILE <skeleton>
 
 CONTINUE
 
 COUNT [<scope>] [WHILE <condition>] [FOR <condition>] [TITLE <expC>] [TO <memvar>]
+<scope>  ->  ALL/REST  (default: ALL)
 
 DO <.prg file>/<procedure name>/(<expC>) [WITH <parameter>[,<parameter>]...]
 
@@ -208,6 +226,7 @@ INDEX ON <key expression> TO <.ndx file> / TAG <tagname> [OF <.dbx file>] [FOR <
 KEYBOARD <expC> [CLEAR]
 
 LOCATE [<scope>] [FOR <condition>] [WHILE <condition>]
+<scope>  ->  ALL/REST  (default: ALL)
 
 READ [SAVE] [NOUPDATE] [NOREFRESH] [NOCLEAR] [CYCLE] [OBJECT <expN>] [MODAL]
 
@@ -219,6 +238,9 @@ REPLACE [<scope>] <field1> WITH <exp1> [ADDITIVE]
    [FROM ARRAY <array-name>] [REINDEX]
    [<memo-field> WITH <exp> ADDITIVE]
    [BLANK]
+// The default <scope> is the current record, unless
+// the FOR clause is present, in which case the scope is ALL
+// scope can be REST when used with WHILE
 
 ✔️ RETURN [TO MASTER] [<exp>]
 
@@ -234,9 +256,13 @@ SKIP <expN> [IN <alias name | workarea number>]
 ✔️ STORE <exp> TO <memvar>
 
 SUM [<scope>] <expN> [,<expN>] [TO <memvar list>] [FOR <condition>] [WHILE <condition>]
+// If <scope> is not specified, then ALL is used.
+// scope can be REST when used with WHILE
 
 TOTAL ON <key field> TO <.dbf file> [<scope>]
    [FIELDS <field list>] [FOR <condition>]  [WHILE <condition>] [SUMMARY]
+// If <scope> is not specified, then ALL is used.
+// scope can be REST when used with WHILE
 
 UNLOCK [ALL] [IN <alias>]
 
