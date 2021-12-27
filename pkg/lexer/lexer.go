@@ -261,6 +261,14 @@ func (lexer *Lexer) makeSkeleton() {
 
 }
 
+var skeletonPrefixKeywords = map[string]bool{
+	"compile": true,
+	"like":    true,
+	"except":  true,
+	"do":      true,
+	"erase":   true,
+}
+
 func (lexer *Lexer) makeIdentifierOrKeyword() {
 	startPos := *lexer.CurrentPosition
 	identifier := ""
@@ -283,7 +291,7 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 		lexer.addTokenWithPos(TokenType_Keyword, realKeyWord, startPos, *lexer.CurrentPosition)
 
-		if realKeyWord == "compile" || realKeyWord == "like" || realKeyWord == "except" || realKeyWord == "do" {
+		if _, found := skeletonPrefixKeywords[realKeyWord]; found {
 			lexer.makeSkeleton()
 		}
 
