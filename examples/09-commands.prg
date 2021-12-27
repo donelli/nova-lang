@@ -88,10 +88,17 @@ release all except nVar*
 * BROWSE
 
 BROW
-
 BROWSE FIELDS id, name, incDate, modDate FOR id > 50
+BROWSE for !seek(categoryId, categDB)
 
-BROWSE for !seek(category, categDB)
+* COUNT
+
+COUNT
+COUNT TITLE "Couting" TO nCount
+COUNT FOR !seek(categoryId, categDB)
+COUNT REST WHILE !eof() TO nCount
+
+* RETURNS
 
 return to master
 return 420

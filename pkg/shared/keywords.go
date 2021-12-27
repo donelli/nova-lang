@@ -242,6 +242,7 @@ func LoadKeywords() {
 	generateKeyword("replace", true)
 	generateKeyword("reprocess", true)
 	generateKeyword("restore", true)
+	generateKeyword("rest", false)
 	generateKeyword("retainmenu", true)
 	generateKeyword("return", true)
 	generateKeyword("rollback", true)

@@ -208,7 +208,7 @@ DIALOG GET <memvar> [PICTURE <expC>] [HELP <expC>]
 
 CONTINUE
 
-COUNT [<scope>] [WHILE <condition>] [FOR <condition>] [TITLE <expC>] [TO <memvar>]
+✔️ COUNT [<scope>] [WHILE <condition>] [FOR <condition>] [TITLE <expC>] [TO <memvar>]
 <scope>  ->  ALL/REST  (default: ALL)
 
 DO <.prg file>/<procedure name>/(<expC>) [WITH <parameter>[,<parameter>]...]

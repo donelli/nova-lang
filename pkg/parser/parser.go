@@ -981,6 +981,82 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	return res.Success(NewPrintStdoutNode(expr))
 }
 
+func (p *Parser) parseCount() *ParseResult {
+
+	res := NewParseResult()
+	token := p.CurrentToken
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Success(NewCommandNode(CommandType_Count, nil, &token.Range.Start, &token.Range.End))
+	}
+
+	args := map[string]interface{}{}
+
+	if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"all", "rest"}) {
+		args["scope"] = p.CurrentToken.Value
+		res.RegisterAdvancement()
+		p.advance()
+	}
+
+	for {
+
+		if p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, []string{"while", "for"}) {
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			whileExpr := res.Register(p.parseExpression())
+			if res.Err != nil {
+				return res
+			}
+
+			// forExpr / whileExpr
+			args[p.CurrentToken.Value+"Expr"] = whileExpr
+			continue
+
+		}
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "title") {
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			titleExpr := res.Register(p.parseExpression())
+			if res.Err != nil {
+				return res
+			}
+
+			args["titleExpr"] = titleExpr
+			continue
+
+		}
+
+		if p.CurrentToken.Match(lexer.TokenType_Keyword, "to") {
+
+			res.RegisterAdvancement()
+			p.advance()
+
+			if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+				return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable name"))
+			}
+
+			args["varName"] = p.CurrentToken.Value
+
+			res.RegisterAdvancement()
+			p.advance()
+			continue
+
+		}
+
+		break
+	}
+
+	return res.Success(NewCommandNode(CommandType_Count, args, &token.Range.Start, &p.CurrentToken.Range.Start))
+}
+
 func (p *Parser) parseBrowse() *ParseResult {
 
 	res := NewParseResult()
@@ -1712,6 +1788,10 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		} else if p.CurrentToken.Value == "browse" {
 
 			successNode = res.Register(p.parseBrowse())
+
+		} else if p.CurrentToken.Value == "count" {
+
+			successNode = res.Register(p.parseCount())
 
 		}
 

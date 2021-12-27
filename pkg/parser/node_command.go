@@ -20,6 +20,7 @@ const (
 	CommandType_Store
 	CommandType_Release
 	CommandType_Browse
+	CommandType_Count
 )
 
 //go:generate stringer -type=CommandType -trimprefix=CommandType_
