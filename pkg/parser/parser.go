@@ -664,12 +664,6 @@ func (p *Parser) parseDoStatement() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected something after 'do' keyword"))
 	}
 
-	// if !nextToken.MatchMultiple(lexer.TokenType_Keyword, []string{"while", "case"}) {
-	// 	res.RegisterAdvancement()
-	// 	p.advance()
-	// 	return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected 'case' or 'while' after 'do' keyword"))
-	// }
-
 	if nextToken.Match(lexer.TokenType_Keyword, "case") {
 		node = res.Register(p.parseDoCase())
 	} else if nextToken.Match(lexer.TokenType_Keyword, "while") {
@@ -1026,10 +1020,47 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected end of command"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
 	}
 
 	return res.Success(NewPrintStdoutNode(expr))
+}
+
+func (p *Parser) parseErase() *ParseResult {
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+	endPos := p.CurrentToken.Range.End
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	args := map[string]interface{}{}
+
+	if p.CurrentToken.MatchType(lexer.TokenType_Skeleton) {
+		args["file"] = p.CurrentToken.Value
+		endPos = p.CurrentToken.Range.End
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	} else {
+
+		expr := res.Register(p.parseExpression())
+		if res.Err != nil {
+			return res
+		}
+
+		args["expr"] = expr
+		endPos = *expr.EndPos()
+
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
+	}
+
+	return res.Success(NewCommandNode(CommandType_Erase, args, &startPos, &endPos))
 }
 
 func (p *Parser) parseCount() *ParseResult {
@@ -1180,7 +1211,7 @@ func (p *Parser) parseBrowse() *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected end of command"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
 	}
 
 	return res.Success(NewCommandNode(CommandType_Browse, args, &token.Range.Start, &p.CurrentToken.Range.Start))
@@ -1843,6 +1874,10 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		} else if p.CurrentToken.Value == "count" {
 
 			successNode = res.Register(p.parseCount())
+
+		} else if p.CurrentToken.Value == "erase" {
+
+			successNode = res.Register(p.parseErase())
 
 		}
 

@@ -219,16 +219,24 @@ func (lexer *Lexer) matchLastTokenType(tokenType LexerTokenType) bool {
 	return lastToken.Type == tokenType
 }
 
-// func (lexer *Lexer) matchLastTokenTypeAndValue(tokenType LexerTokenType, value string) bool {
+func (lexer *Lexer) tryToMakeSkeleton() {
 
-// 	if lexer.currentResult.TokensCount == 0 {
-// 		return false
-// 	}
+	str := ""
+	index := lexer.CurrentPosition.Index + 1
 
-// 	lastToken := lexer.currentResult.Tokens[lexer.currentResult.TokensCount-1]
+	for index < lexer.contentLen && lexer.FileContent[index] != '\n' {
 
-// 	return lastToken.Type == tokenType && lastToken.Value == value
-// }
+		if strings.Contains(shared.ExpressionChars, string(lexer.FileContent[index])) {
+			return
+		}
+
+		str += string(lexer.FileContent[index])
+		index++
+	}
+
+	lexer.makeSkeleton()
+
+}
 
 func (lexer *Lexer) makeSkeleton() {
 
@@ -266,7 +274,6 @@ var skeletonPrefixKeywords = map[string]bool{
 	"like":    true,
 	"except":  true,
 	"do":      true,
-	"erase":   true,
 }
 
 func (lexer *Lexer) makeIdentifierOrKeyword() {
@@ -293,6 +300,10 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 		if _, found := skeletonPrefixKeywords[realKeyWord]; found {
 			lexer.makeSkeleton()
+		}
+
+		if realKeyWord == "erase" {
+			lexer.tryToMakeSkeleton()
 		}
 
 		return

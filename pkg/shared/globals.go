@@ -10,4 +10,5 @@ const (
 	ValidPathChars      = LettersAndDigits + "/_."
 	WhitespaceChars     = " \t "
 	SkeletonChars       = LettersAndDigits + "_-.*?/"
+	ExpressionChars     = "&+(){}[]^$?"
 )

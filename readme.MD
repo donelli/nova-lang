@@ -220,7 +220,7 @@ CONTINUE
 
 ✔️ EJECT
 
-ERASE <filename>
+✔️ ERASE <filename>/<exprC>
 
 FIND <key>
 

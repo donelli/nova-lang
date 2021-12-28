@@ -104,6 +104,11 @@ do testfile.prg
 do test.prg with 1, 2, 3
 do split with "a string with spaces", " "
 
+* ERASE
+
+erase &cArqTmp
+erase arq.tmp
+
 * RETURNS
 
 return to master
