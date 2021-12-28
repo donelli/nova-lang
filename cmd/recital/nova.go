@@ -25,10 +25,19 @@ func readFileContent(fileName string) string {
 	return string(dat)
 }
 
+func printUsage() {
+	fmt.Println("Usage: nova <subcommand>")
+	fmt.Println("Subcommands:")
+	fmt.Println("   parse <file> [options]  	parse a file")
+	fmt.Println("   	 Options:")
+	fmt.Println("   	 	-json <file>   File to print the result as JSON")
+	fmt.Println("   	 	-html <file>   File to print the result as HTML")
+}
+
 func main() {
 
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: rt <command>")
+		printUsage()
 		return
 	}
 
@@ -37,15 +46,15 @@ func main() {
 	if command == "parse" {
 
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: rt parse <file>")
+			printUsage()
 			return
 		}
 
 		fileName := os.Args[2]
 
-		parseCmd := flag.NewFlagSet("rt.exe parse", flag.ExitOnError)
-		outHtml := parseCmd.String("html", "", "File to print the result as HTML")
-		outJson := parseCmd.String("json", "", "File to print the result as JSON")
+		parseCmd := flag.NewFlagSet("nova parse", flag.ExitOnError)
+		outHtml := parseCmd.String("html", "", "")
+		outJson := parseCmd.String("json", "", "")
 
 		parseCmd.Parse(os.Args[3:])
 
@@ -104,61 +113,5 @@ func main() {
 		}
 
 	}
-
-	/*
-		if len(os.Args) < 2 {
-			fmt.Println("Usage: rt <command>")
-			return
-		}
-
-		command := os.Args[1]
-
-		if command == "lex" {
-
-			if len(os.Args) < 4 {
-				fmt.Println("Usage: rt lex <filename> <html output filename>")
-				return
-			}
-
-			fileName := os.Args[2]
-			htmlOutputFileName := os.Args[3]
-
-			fileContent := readFileContent(fileName)
-
-			res, _ := execLexer(fileName, fileContent)
-
-			lexer.PrintLexerResultToHTML(res, htmlOutputFileName)
-
-		} else if command == "parse" {
-
-			if len(os.Args) < 3 {
-				// fmt.Println("Usage: rt parse <filename> [<html output filename>]")
-			}
-
-			htmlFile := ""
-			if len(os.Args) == 4 {
-				htmlFile := os.Args[3]
-			}
-
-			fileName := os.Args[2]
-			htmlFile := os.Args[3]
-
-			fileContent := readFileContent(fileName)
-
-			res, _ := execLexer(fileName, fileContent)
-
-			if len(res.Errors) > 0 {
-				return
-			}
-
-			parseRes := execParser(res, fileName)
-
-			if htmlFile != "" {
-				if parseRes.Err == nil {
-					parser.PrintParseResultToHTML(parseRes, htmlFile)
-				}
-			}
-
-		}*/
 
 }
