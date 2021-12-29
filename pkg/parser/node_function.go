@@ -9,8 +9,7 @@ type FunctionNode struct {
 	FuncName   string
 	Body       Node
 	Parameters []string
-	startPos   *shared.Position
-	endPos     *shared.Position
+	nodeRange  *shared.Range
 }
 
 func NewFunctionNode(funcName string, body Node, parameters []string, startPos shared.Position, endPos shared.Position) *FunctionNode {
@@ -18,17 +17,16 @@ func NewFunctionNode(funcName string, body Node, parameters []string, startPos s
 		FuncName:   funcName,
 		Body:       body,
 		Parameters: parameters,
-		startPos:   &startPos,
-		endPos:     &endPos,
+		nodeRange:  shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *FunctionNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *FunctionNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *FunctionNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *FunctionNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *FunctionNode) Type() ParserNodeType {
@@ -52,5 +50,9 @@ func (l *FunctionNode) ToHTML() string {
 }
 
 func (l *FunctionNode) String() string {
-	return fmt.Sprintf("Func{name: %v, params: %v, body %v, startPos: %v, endPos: %v}", l.FuncName, l.Parameters, l.Body, l.startPos, l.endPos)
+	return fmt.Sprintf("Func{name: %v, params: %v, body %v, Range: %v}", l.FuncName, l.Parameters, l.Body, l.nodeRange)
+}
+
+func (l *FunctionNode) Range() *shared.Range {
+	return l.nodeRange
 }

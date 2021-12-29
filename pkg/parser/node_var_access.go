@@ -7,25 +7,23 @@ import (
 )
 
 type VarAccessNode struct {
-	VarName  string
-	startPos *shared.Position
-	endPos   *shared.Position
+	VarName   string
+	nodeRange *shared.Range
 }
 
 func NewVarAccessNode(lexerToken *lexer.LexerToken) *VarAccessNode {
 	return &VarAccessNode{
-		VarName:  lexerToken.Value,
-		startPos: &lexerToken.Range.Start,
-		endPos:   &lexerToken.Range.End,
+		VarName:   lexerToken.Value,
+		nodeRange: lexerToken.Range,
 	}
 }
 
-func (l *VarAccessNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *VarAccessNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *VarAccessNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *VarAccessNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *VarAccessNode) Type() ParserNodeType {
@@ -37,5 +35,9 @@ func (l *VarAccessNode) ToHTML() string {
 }
 
 func (l *VarAccessNode) String() string {
-	return fmt.Sprintf("VarAccess{Var: %v, startPos: %v, endPos: %v}", l.VarName, l.startPos, l.endPos)
+	return fmt.Sprintf("VarAccess{Var: %v, Range: %v}", l.VarName, l.nodeRange)
+}
+
+func (l *VarAccessNode) Range() *shared.Range {
+	return l.nodeRange
 }

@@ -6,38 +6,40 @@ import (
 	"recital_lsp/pkg/shared"
 )
 
-type UnaryOperation struct {
+type UnaryOperationNode struct {
 	operationToken *lexer.LexerToken
 	node           Node
-	startPos       *shared.Position
-	endPos         *shared.Position
+	nodeRange      *shared.Range
 }
 
-func NewUnaryOperationNode(operationToken *lexer.LexerToken, node Node) *UnaryOperation {
-	return &UnaryOperation{
+func NewUnaryOperationNode(operationToken *lexer.LexerToken, node Node) *UnaryOperationNode {
+	return &UnaryOperationNode{
 		node:           node,
 		operationToken: operationToken,
-		startPos:       &operationToken.Range.Start,
-		endPos:         node.EndPos(),
+		nodeRange:      shared.NewRange(operationToken.Range.Start, node.EndPos()),
 	}
 }
 
-func (l *UnaryOperation) StartPos() *shared.Position {
-	return l.startPos
+func (l *UnaryOperationNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *UnaryOperation) EndPos() *shared.Position {
-	return l.endPos
+func (l *UnaryOperationNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
-func (l *UnaryOperation) Type() ParserNodeType {
+func (l *UnaryOperationNode) Type() ParserNodeType {
 	return Node_UnaryOp
 }
 
-func (l *UnaryOperation) ToHTML() string {
+func (l *UnaryOperationNode) ToHTML() string {
 	return BuildNodeBoxHTML("", "bin-op-node", l.operationToken.Value, l.node.ToHTML())
 }
 
-func (l *UnaryOperation) String() string {
-	return fmt.Sprintf("UnaryNode{Oper: %v, Node: %v, startPos: %v, endPos: %v}", l.operationToken, l.node, l.startPos, l.endPos)
+func (l *UnaryOperationNode) String() string {
+	return fmt.Sprintf("UnaryNode{Oper: %v, Node: %v, Range: %v}", l.operationToken, l.node, l.nodeRange)
+}
+
+func (l *UnaryOperationNode) Range() *shared.Range {
+	return l.nodeRange
 }

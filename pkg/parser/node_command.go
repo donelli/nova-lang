@@ -30,16 +30,14 @@ const (
 type CommandNode struct {
 	CommandType CommandType
 	Args        map[string]interface{}
-	startPos    *shared.Position
-	endPos      *shared.Position
+	nodeRange   *shared.Range
 }
 
-func NewCommandNode(commandType CommandType, args map[string]interface{}, startPos *shared.Position, endPos *shared.Position) *CommandNode {
+func NewCommandNode(commandType CommandType, args map[string]interface{}, startPos shared.Position, endPos shared.Position) *CommandNode {
 	return &CommandNode{
 		CommandType: commandType,
 		Args:        args,
-		startPos:    startPos,
-		endPos:      endPos,
+		nodeRange:   shared.NewRange(startPos, endPos),
 	}
 }
 
@@ -47,17 +45,16 @@ func NewCommandNodeRange(commandType CommandType, args map[string]interface{}, c
 	return &CommandNode{
 		CommandType: commandType,
 		Args:        args,
-		startPos:    &commandRange.Start,
-		endPos:      &commandRange.End,
+		nodeRange:   commandRange,
 	}
 }
 
-func (l *CommandNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *CommandNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *CommandNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *CommandNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *CommandNode) Type() ParserNodeType {
@@ -69,5 +66,9 @@ func (l *CommandNode) ToHTML() string {
 }
 
 func (l *CommandNode) String() string {
-	return fmt.Sprintf("Command{Args: %v, startPos: %v, endPos: %v}", l.Args, l.startPos, l.endPos)
+	return fmt.Sprintf("Command{Args: %v, Range: %v}", l.Args, l.nodeRange)
+}
+
+func (l *CommandNode) Range() *shared.Range {
+	return l.nodeRange
 }

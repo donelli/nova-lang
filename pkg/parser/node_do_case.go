@@ -13,8 +13,7 @@ type DoCaseCase struct {
 type CaseNode struct {
 	Cases         []DoCaseCase
 	OtherwiseCase Node
-	startPos      *shared.Position
-	endPos        *shared.Position
+	nodeRange     *shared.Range
 }
 
 func NewDoCaseCase(condition Node, body Node) DoCaseCase {
@@ -28,21 +27,20 @@ func (l *DoCaseCase) String() string {
 	return fmt.Sprintf("DoCaseCase{CaseExpr: %v, Body: %v}", l.CaseExpr, l.Body)
 }
 
-func NewCaseNode(DoCaseCases []DoCaseCase, otherwiseCase Node, startPos *shared.Position, endPos *shared.Position) *CaseNode {
+func NewCaseNode(DoCaseCases []DoCaseCase, otherwiseCase Node, startPos shared.Position, endPos shared.Position) *CaseNode {
 	return &CaseNode{
 		Cases:         DoCaseCases,
 		OtherwiseCase: otherwiseCase,
-		startPos:      startPos,
-		endPos:        endPos,
+		nodeRange:     shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *CaseNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *CaseNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *CaseNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *CaseNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *CaseNode) Type() ParserNodeType {
@@ -77,5 +75,9 @@ func (l *CaseNode) ToHTML() string {
 }
 
 func (l *CaseNode) String() string {
-	return fmt.Sprintf("CaseNode{Cases: %v, OtherwiseCase: %v, start: %v, end: %v}", l.Cases, l.OtherwiseCase, l.startPos, l.endPos)
+	return fmt.Sprintf("CaseNode{Cases: %v, OtherwiseCase: %v, range: %v}", l.Cases, l.OtherwiseCase, l.nodeRange)
+}
+
+func (l *CaseNode) Range() *shared.Range {
+	return l.nodeRange
 }

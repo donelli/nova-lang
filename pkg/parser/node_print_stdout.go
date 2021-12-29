@@ -6,25 +6,23 @@ import (
 )
 
 type PrintStdoutNode struct {
-	expr     Node
-	startPos *shared.Position
-	endPos   *shared.Position
+	expr      Node
+	nodeRange *shared.Range
 }
 
 func NewPrintStdoutNode(expr Node) *PrintStdoutNode {
 	return &PrintStdoutNode{
-		expr:     expr,
-		startPos: expr.StartPos(),
-		endPos:   expr.EndPos(),
+		expr:      expr,
+		nodeRange: expr.Range(),
 	}
 }
 
-func (l *PrintStdoutNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *PrintStdoutNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *PrintStdoutNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *PrintStdoutNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *PrintStdoutNode) Type() ParserNodeType {
@@ -36,5 +34,9 @@ func (l *PrintStdoutNode) ToHTML() string {
 }
 
 func (l *PrintStdoutNode) String() string {
-	return fmt.Sprintf("Print{Expr: %v, startPos: %v, endPos: %v}", l.expr, l.startPos, l.endPos)
+	return fmt.Sprintf("Print{Expr: %v, Range: %v}", l.expr, l.nodeRange)
+}
+
+func (l *PrintStdoutNode) Range() *shared.Range {
+	return l.nodeRange
 }

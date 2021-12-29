@@ -6,25 +6,23 @@ import (
 )
 
 type ListNode struct {
-	Nodes    []Node
-	startPos *shared.Position
-	endPos   *shared.Position
+	Nodes     []Node
+	nodeRange *shared.Range
 }
 
-func NewListNode(Nodes []Node, startPos *shared.Position, endPos *shared.Position) *ListNode {
+func NewListNode(Nodes []Node, startPos shared.Position, endPos shared.Position) *ListNode {
 	return &ListNode{
-		Nodes:    Nodes,
-		startPos: startPos,
-		endPos:   endPos,
+		Nodes:     Nodes,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *ListNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *ListNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *ListNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *ListNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *ListNode) Type() ParserNodeType {
@@ -52,5 +50,9 @@ func (l *ListNode) String() string {
 		str += fmt.Sprintf("\n%s", l.Nodes[i])
 	}
 
-	return fmt.Sprintf("ListNode{Nodes: %v\n, startPos: %v, endPos: %v}", str, l.startPos, l.endPos)
+	return fmt.Sprintf("ListNode{Nodes: %v\n, Range: %v}", str, l.nodeRange)
+}
+
+func (l *ListNode) Range() *shared.Range {
+	return l.nodeRange
 }

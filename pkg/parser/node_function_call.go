@@ -8,25 +8,23 @@ import (
 type FunctionCallNode struct {
 	FunctionName Node
 	Args         []Node
-	startPos     *shared.Position
-	endPos       *shared.Position
+	nodeRange    *shared.Range
 }
 
 func NewFunctionCallNode(funcName Node, args []Node, startPos shared.Position, endPos shared.Position) *FunctionCallNode {
 	return &FunctionCallNode{
 		FunctionName: funcName,
 		Args:         args,
-		startPos:     &startPos,
-		endPos:       &endPos,
+		nodeRange:    shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *FunctionCallNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *FunctionCallNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *FunctionCallNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *FunctionCallNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *FunctionCallNode) Type() ParserNodeType {
@@ -55,5 +53,9 @@ func (l *FunctionCallNode) String() string {
 		argsStr += fmt.Sprintf("%s", l.Args[i])
 	}
 
-	return fmt.Sprintf("Call{func: %v, args: %s, startPos: %v, endPos: %v}", l.FunctionName, argsStr, l.startPos, l.endPos)
+	return fmt.Sprintf("Call{func: %v, args: %s, Range: %v}", l.FunctionName, argsStr, l.nodeRange)
+}
+
+func (l *FunctionCallNode) Range() *shared.Range {
+	return l.nodeRange
 }

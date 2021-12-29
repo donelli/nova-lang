@@ -29,8 +29,9 @@ const (
 )
 
 type Node interface {
-	StartPos() *shared.Position
-	EndPos() *shared.Position
+	StartPos() shared.Position
+	EndPos() shared.Position
 	ToHTML() string
 	Type() ParserNodeType
+	Range() *shared.Range
 }

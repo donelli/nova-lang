@@ -7,25 +7,23 @@ import (
 )
 
 type StringNode struct {
-	Value    string
-	startPos *shared.Position
-	endPos   *shared.Position
+	Value     string
+	nodeRange *shared.Range
 }
 
 func NewStringNode(token *lexer.LexerToken) *StringNode {
 	return &StringNode{
-		Value:    token.Value,
-		startPos: &token.Range.Start,
-		endPos:   &token.Range.End,
+		Value:     token.Value,
+		nodeRange: token.Range,
 	}
 }
 
-func (l *StringNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *StringNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *StringNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *StringNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *StringNode) Type() ParserNodeType {
@@ -37,5 +35,9 @@ func (l *StringNode) ToHTML() string {
 }
 
 func (l *StringNode) String() string {
-	return fmt.Sprintf("String{Value: %v, startPos: %v, endPos: %v}", l.Value, l.startPos, l.endPos)
+	return fmt.Sprintf("String{Value: %v, Range: %v}", l.Value, l.nodeRange)
+}
+
+func (l *StringNode) Range() *shared.Range {
+	return l.nodeRange
 }

@@ -7,25 +7,23 @@ import (
 )
 
 type NumberNode struct {
-	Value    float64
-	startPos *shared.Position
-	endPos   *shared.Position
+	Value     float64
+	nodeRange *shared.Range
 }
 
 func NewNumberNode(value float64, token *lexer.LexerToken) *NumberNode {
 	return &NumberNode{
-		Value:    value,
-		startPos: &token.Range.Start,
-		endPos:   &token.Range.End,
+		Value:     value,
+		nodeRange: token.Range,
 	}
 }
 
-func (l *NumberNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *NumberNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *NumberNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *NumberNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *NumberNode) Type() ParserNodeType {
@@ -37,5 +35,9 @@ func (l *NumberNode) ToHTML() string {
 }
 
 func (l *NumberNode) String() string {
-	return fmt.Sprintf("Number{Value: %v, startPos: %v, endPos: %v}", l.Value, l.startPos, l.endPos)
+	return fmt.Sprintf("Number{Value: %v, Range: %v}", l.Value, l.nodeRange)
+}
+
+func (l *NumberNode) Range() *shared.Range {
+	return l.nodeRange
 }

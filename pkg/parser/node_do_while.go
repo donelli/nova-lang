@@ -8,25 +8,23 @@ import (
 type DoWhileNode struct {
 	Condition Node
 	Body      Node
-	startPos  *shared.Position
-	endPos    *shared.Position
+	nodeRange *shared.Range
 }
 
-func NewDoWhileNode(condition Node, body Node, startPos *shared.Position, endPos *shared.Position) *DoWhileNode {
+func NewDoWhileNode(condition Node, body Node, startPos shared.Position, endPos shared.Position) *DoWhileNode {
 	return &DoWhileNode{
 		Condition: condition,
 		Body:      body,
-		startPos:  startPos,
-		endPos:    endPos,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *DoWhileNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *DoWhileNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *DoWhileNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *DoWhileNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *DoWhileNode) Type() ParserNodeType {
@@ -38,5 +36,9 @@ func (l *DoWhileNode) ToHTML() string {
 }
 
 func (l *DoWhileNode) String() string {
-	return fmt.Sprintf("DoWhileNode{Cond: %v, Body: %v, startPos: %v, endPos: %v}", l.Condition, l.Body, l.startPos, l.endPos)
+	return fmt.Sprintf("DoWhileNode{Cond: %v, Body: %v, Range: %v}", l.Condition, l.Body, l.nodeRange)
+}
+
+func (l *DoWhileNode) Range() *shared.Range {
+	return l.nodeRange
 }

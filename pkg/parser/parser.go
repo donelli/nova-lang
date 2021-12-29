@@ -43,7 +43,7 @@ func NewParser(lexerResult *lexer.LexerResult) *Parser {
 }
 
 func GetRangeFromNode(node Node) *shared.Range {
-	return shared.NewRange(*node.StartPos(), *node.EndPos())
+	return shared.NewRange(node.StartPos(), node.EndPos())
 }
 
 // func (p *Parser) reverse() {
@@ -131,7 +131,7 @@ func (p *Parser) parseFactor() *ParseResult {
 			return res
 		}
 
-		return res.Success(NewMacroNode(factor, &start, factor.EndPos()))
+		return res.Success(NewMacroNode(factor, start, factor.EndPos()))
 
 	}
 
@@ -151,7 +151,7 @@ func (p *Parser) parseCall() *ParseResult {
 	if p.CurrentToken.MatchType(lexer.TokenType_LeftParenthesis) {
 
 		if atom.Type() != Node_VarAccess {
-			return res.Failure(shared.NewInvalidSyntaxError(*atom.StartPos(), *atom.EndPos(), "Function name expected"))
+			return res.Failure(shared.NewInvalidSyntaxError(atom.StartPos(), atom.EndPos(), "Function name expected"))
 		}
 
 		endPos := p.CurrentToken.Range.End
@@ -195,7 +195,7 @@ func (p *Parser) parseCall() *ParseResult {
 
 		}
 
-		return res.Success(NewFunctionCallNode(atom, argNodes, *atom.StartPos(), endPos))
+		return res.Success(NewFunctionCallNode(atom, argNodes, atom.StartPos(), endPos))
 	}
 
 	// TODO Add here array acess `[`, `]`
@@ -560,7 +560,7 @@ func (p *Parser) parseFunction() *ParseResult {
 		if statements.Nodes[i].Type() == Node_VarDeclar {
 
 			if paramNode != nil {
-				return res.Failure(shared.NewInvalidSyntaxError(*statements.Nodes[i].StartPos(), *statements.Nodes[i].EndPos(), "Multiple parameters definitions in function"))
+				return res.Failure(shared.NewInvalidSyntaxError(statements.Nodes[i].StartPos(), statements.Nodes[i].EndPos(), "Multiple parameters definitions in function"))
 			}
 
 			paramNode = statements.Nodes[i]
@@ -570,11 +570,11 @@ func (p *Parser) parseFunction() *ParseResult {
 
 	if paramNode != nil {
 		if statements.Nodes[0] != paramNode {
-			res.Warning(shared.NewWarning(*paramNode.StartPos(), *paramNode.EndPos(), "Function parameters should be defined in the first line of the function"))
+			res.Warning(shared.NewWarning(paramNode.StartPos(), paramNode.EndPos(), "Function parameters should be defined in the first line of the function"))
 		}
 	}
 
-	return res.Success(NewFunctionNode(funcName, statements, params, funcKeywordToken.Range.Start, *returnToken.EndPos()))
+	return res.Success(NewFunctionNode(funcName, statements, params, funcKeywordToken.Range.Start, returnToken.EndPos()))
 }
 
 func (p *Parser) parseForStatement() *ParseResult {
@@ -651,7 +651,7 @@ func (p *Parser) parseForStatement() *ParseResult {
 	res.RegisterAdvancement()
 	p.advance()
 
-	return res.Success(NewForNode(varName, startExpr, endExpr, stepExpr, body, &forKeywordToken.Range.Start, &endPos))
+	return res.Success(NewForNode(varName, startExpr, endExpr, stepExpr, body, forKeywordToken.Range.Start, endPos))
 }
 
 func (p *Parser) parseDoStatement() *ParseResult {
@@ -731,7 +731,7 @@ func (p *Parser) parseDoCommand() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression after 'do' command"))
 	}
 
-	return res.Success(NewCommandNode(CommandType_Do, args, &startPos, &p.CurrentToken.Range.End))
+	return res.Success(NewCommandNode(CommandType_Do, args, startPos, p.CurrentToken.Range.End))
 }
 
 func (p *Parser) parseDoWhile() *ParseResult {
@@ -769,7 +769,7 @@ func (p *Parser) parseDoWhile() *ParseResult {
 	res.RegisterAdvancement()
 	p.advance()
 
-	return res.Success(NewDoWhileNode(condition, statements, &startPos, &endPos))
+	return res.Success(NewDoWhileNode(condition, statements, startPos, endPos))
 }
 
 func (p *Parser) parseDoCase() *ParseResult {
@@ -848,7 +848,7 @@ func (p *Parser) parseDoCase() *ParseResult {
 			}
 
 			if statements == nil {
-				res.Warning(shared.NewWarning(caseToken.Range.Start, *condition.EndPos(), "Empty case body"))
+				res.Warning(shared.NewWarning(caseToken.Range.Start, condition.EndPos(), "Empty case body"))
 			}
 
 			doCase := NewDoCaseCase(condition, statements)
@@ -873,7 +873,7 @@ func (p *Parser) parseDoCase() *ParseResult {
 	res.RegisterAdvancement()
 	p.advance()
 
-	return res.Success(NewCaseNode(cases, otherwiseCase, &startPos, &endPos))
+	return res.Success(NewCaseNode(cases, otherwiseCase, startPos, endPos))
 }
 
 func (p *Parser) parseIfStatement() *ParseResult {
@@ -893,7 +893,7 @@ func (p *Parser) parseIfStatement() *ParseResult {
 	res.RegisterAdvancement()
 	p.advance()
 
-	return res.Success(NewIfNode(ifCases, elseCase, &startPos, &endifToken.Range.End))
+	return res.Success(NewIfNode(ifCases, elseCase, startPos, endifToken.Range.End))
 }
 
 func (p *Parser) parseVariableDeclaration() *ParseResult {
@@ -932,7 +932,7 @@ func (p *Parser) parseVariableDeclaration() *ParseResult {
 
 	}
 
-	return res.Success(NewVarDeclarationNode(modifier, varNames, &startPos, &endPos))
+	return res.Success(NewVarDeclarationNode(modifier, varNames, startPos, endPos))
 }
 
 func (p *Parser) parseVariableAssignment() *ParseResult {
@@ -959,7 +959,7 @@ func (p *Parser) parseVariableAssignment() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after variable assignment"))
 	}
 
-	return res.Success(NewVarAssignmentNode(token.Value, expr, &token.Range.Start, expr.EndPos()))
+	return res.Success(NewVarAssignmentNode(token.Value, expr, token.Range.Start, expr.EndPos()))
 }
 
 func (p *Parser) parseReturn() *ParseResult {
@@ -988,7 +988,7 @@ func (p *Parser) parseReturn() *ParseResult {
 	}
 
 	if p.CurrentToken.Type == lexer.TokenType_NewLine || p.CurrentToken.Type == lexer.TokenType_EOF {
-		return res.Success(NewReturnNode(nil, toMaster, &token.Range.Start, &token.Range.End))
+		return res.Success(NewReturnNode(nil, toMaster, token.Range.Start, token.Range.End))
 	}
 
 	expr := res.Register(p.parseExpression())
@@ -1001,7 +1001,7 @@ func (p *Parser) parseReturn() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after return expression"))
 	}
 
-	return res.Success(NewReturnNode(expr, toMaster, &token.Range.Start, expr.EndPos()))
+	return res.Success(NewReturnNode(expr, toMaster, token.Range.Start, expr.EndPos()))
 }
 
 func (p *Parser) parsePrintStdout() *ParseResult {
@@ -1052,7 +1052,7 @@ func (p *Parser) parseErase() *ParseResult {
 		}
 
 		args["expr"] = expr
-		endPos = *expr.EndPos()
+		endPos = expr.EndPos()
 
 	}
 
@@ -1060,7 +1060,7 @@ func (p *Parser) parseErase() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
 	}
 
-	return res.Success(NewCommandNode(CommandType_Erase, args, &startPos, &endPos))
+	return res.Success(NewCommandNode(CommandType_Erase, args, startPos, endPos))
 }
 
 func (p *Parser) parseCount() *ParseResult {
@@ -1072,7 +1072,7 @@ func (p *Parser) parseCount() *ParseResult {
 	p.advance()
 
 	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Success(NewCommandNode(CommandType_Count, nil, &token.Range.Start, &token.Range.End))
+		return res.Success(NewCommandNode(CommandType_Count, nil, token.Range.Start, token.Range.End))
 	}
 
 	args := map[string]interface{}{}
@@ -1136,7 +1136,7 @@ func (p *Parser) parseCount() *ParseResult {
 		break
 	}
 
-	return res.Success(NewCommandNode(CommandType_Count, args, &token.Range.Start, &p.CurrentToken.Range.Start))
+	return res.Success(NewCommandNode(CommandType_Count, args, token.Range.Start, p.CurrentToken.Range.Start))
 }
 
 func (p *Parser) parseBrowse() *ParseResult {
@@ -1148,7 +1148,7 @@ func (p *Parser) parseBrowse() *ParseResult {
 	p.advance()
 
 	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Success(NewCommandNode(CommandType_Browse, nil, &token.Range.Start, &token.Range.End))
+		return res.Success(NewCommandNode(CommandType_Browse, nil, token.Range.Start, token.Range.End))
 	}
 
 	args := map[string]interface{}{}
@@ -1214,7 +1214,7 @@ func (p *Parser) parseBrowse() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
 	}
 
-	return res.Success(NewCommandNode(CommandType_Browse, args, &token.Range.Start, &p.CurrentToken.Range.Start))
+	return res.Success(NewCommandNode(CommandType_Browse, args, token.Range.Start, p.CurrentToken.Range.Start))
 }
 
 func (p *Parser) parseEject() *ParseResult {
@@ -1229,13 +1229,13 @@ func (p *Parser) parseEject() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
 	}
 
-	return res.Success(NewCommandNode(CommandType_Eject, nil, &token.Range.Start, &token.Range.End))
+	return res.Success(NewCommandNode(CommandType_Eject, nil, token.Range.Start, token.Range.End))
 }
 
 func (p *Parser) parseAlias() *ParseResult {
 
 	res := NewParseResult()
-	start := p.CurrentToken.Range.Start.Copy()
+	start := p.CurrentToken.Range.Start
 
 	res.RegisterAdvancement()
 	p.advance()
@@ -1280,7 +1280,7 @@ func (p *Parser) parseSleep() *ParseResult {
 	}
 
 	args := map[string]interface{}{"expr": expr}
-	return res.Success(NewCommandNode(CommandType_Sleep, args, &start, expr.EndPos()))
+	return res.Success(NewCommandNode(CommandType_Sleep, args, start, expr.EndPos()))
 }
 
 func (p *Parser) parseCompile() *ParseResult {
@@ -1305,7 +1305,7 @@ func (p *Parser) parseCompile() *ParseResult {
 	}
 
 	args := map[string]interface{}{"skeleton": skeletonToken.Value}
-	return res.Success(NewCommandNode(CommandType_Compile, args, &start, &skeletonToken.Range.End))
+	return res.Success(NewCommandNode(CommandType_Compile, args, start, skeletonToken.Range.End))
 
 }
 
@@ -1356,7 +1356,7 @@ func (p *Parser) parseDialog() *ParseResult {
 		}
 
 		args := map[string]interface{}{"subcommand": "box", "message": expr, "label": label}
-		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, endPos))
+		return res.Success(NewCommandNode(CommandType_Dialog, args, startPos, endPos))
 
 	} else if p.CurrentToken.Value == "fields" {
 		// DIALOG FIELDS [LABEL <expC>]
@@ -1385,7 +1385,7 @@ func (p *Parser) parseDialog() *ParseResult {
 		}
 
 		args := map[string]interface{}{"subcommand": "message", "message": expr}
-		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, expr.EndPos()))
+		return res.Success(NewCommandNode(CommandType_Dialog, args, startPos, expr.EndPos()))
 
 	} else if p.CurrentToken.Value == "query" {
 
@@ -1409,7 +1409,7 @@ func (p *Parser) parseDialog() *ParseResult {
 		}
 
 		args := map[string]interface{}{"subcommand": "query", "lock": lock}
-		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, &endPos))
+		return res.Success(NewCommandNode(CommandType_Dialog, args, startPos, endPos))
 
 	} else if p.CurrentToken.Value == "scope" {
 
@@ -1425,7 +1425,7 @@ func (p *Parser) parseDialog() *ParseResult {
 		}
 
 		args := map[string]interface{}{"subcommand": "scope"}
-		return res.Success(NewCommandNode(CommandType_Dialog, args, &startPos, &endPos))
+		return res.Success(NewCommandNode(CommandType_Dialog, args, startPos, endPos))
 
 	} else {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid dialog command"))
@@ -1523,7 +1523,7 @@ func (p *Parser) parseRelease() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Invalid token after command"))
 	}
 
-	return res.Success(NewCommandNode(CommandType_Release, args, &startPos, &endPos))
+	return res.Success(NewCommandNode(CommandType_Release, args, startPos, endPos))
 }
 
 func (p *Parser) parseStore() *ParseResult {
@@ -1579,7 +1579,7 @@ func (p *Parser) parseStore() *ParseResult {
 	}
 
 	args := map[string]interface{}{"varNames": varNames, "value": expr}
-	return res.Success(NewCommandNode(CommandType_Store, args, &startPos, &p.CurrentToken.Range.End))
+	return res.Success(NewCommandNode(CommandType_Store, args, startPos, p.CurrentToken.Range.End))
 }
 
 func (p *Parser) parseClose() *ParseResult {
@@ -1593,7 +1593,7 @@ func (p *Parser) parseClose() *ParseResult {
 	p.advance()
 
 	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Success(NewCommandNode(CommandType_Close, nil, &startPos, &p.CurrentToken.Range.End))
+		return res.Success(NewCommandNode(CommandType_Close, nil, startPos, p.CurrentToken.Range.End))
 	}
 
 	args := map[string]interface{}{}
@@ -1651,7 +1651,7 @@ func (p *Parser) parseClose() *ParseResult {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unrecognized token after close argument"))
 	}
 
-	return res.Success(NewCommandNode(CommandType_Close, args, &startPos, &p.CurrentToken.Range.End))
+	return res.Success(NewCommandNode(CommandType_Close, args, startPos, p.CurrentToken.Range.End))
 }
 
 func (p *Parser) parseClear() *ParseResult {
@@ -1665,7 +1665,7 @@ func (p *Parser) parseClear() *ParseResult {
 	p.advance()
 
 	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Success(NewCommandNode(CommandType_Clear, nil, &startPos, &p.CurrentToken.Range.End))
+		return res.Success(NewCommandNode(CommandType_Clear, nil, startPos, p.CurrentToken.Range.End))
 	}
 
 	if !p.CurrentToken.MatchMultiple(lexer.TokenType_Keyword, possibleClearArgs) {
@@ -1679,7 +1679,7 @@ func (p *Parser) parseClear() *ParseResult {
 
 	args := map[string]interface{}{arg: true}
 
-	return res.Success(NewCommandNode(CommandType_Clear, args, &startPos, &p.CurrentToken.Range.End))
+	return res.Success(NewCommandNode(CommandType_Clear, args, startPos, p.CurrentToken.Range.End))
 }
 
 func (p *Parser) parseSet() *ParseResult {
@@ -1689,13 +1689,13 @@ func (p *Parser) parseSet() *ParseResult {
 	// - set <keyword> <value> ?
 
 	res := NewParseResult()
-	startPos := p.CurrentToken.Range.Start.Copy()
+	startPos := p.CurrentToken.Range.Start
 
 	res.RegisterAdvancement()
 	p.advance()
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_Keyword) {
-		return res.Failure(shared.NewInvalidSyntaxError(*startPos, p.CurrentToken.Range.End, "Expected valid configuration name (keyword)"))
+		return res.Failure(shared.NewInvalidSyntaxError(startPos, p.CurrentToken.Range.End, "Expected valid configuration name (keyword)"))
 	}
 
 	configName := p.CurrentToken.Value
@@ -1709,7 +1709,7 @@ func (p *Parser) parseSet() *ParseResult {
 
 		if p.CurrentToken.MatchType(lexer.TokenType_NewLine) || p.CurrentToken.MatchType(lexer.TokenType_Comment) {
 			fmt.Println("set to empty")
-			return res.Success(NewEmptySetNode(configName, startPos, &p.CurrentToken.Range.End))
+			return res.Success(NewEmptySetNode(configName, startPos, p.CurrentToken.Range.End))
 		}
 
 		// TODO expect file names and paths depending on the config name
@@ -1727,13 +1727,13 @@ func (p *Parser) parseSet() *ParseResult {
 
 		if p.CurrentToken.MatchType(lexer.TokenType_NewLine) || p.CurrentToken.MatchType(lexer.TokenType_Comment) {
 			fmt.Println("set empty")
-			return res.Success(NewEmptySetNode(configName, startPos, &p.CurrentToken.Range.End))
+			return res.Success(NewEmptySetNode(configName, startPos, p.CurrentToken.Range.End))
 		}
 
 		if p.CurrentToken.Match(lexer.TokenType_Keyword, "on") {
 			fmt.Println("set On")
 
-			endPos := p.CurrentToken.Range.End.Copy()
+			endPos := p.CurrentToken.Range.End
 			res.RegisterAdvancement()
 			p.advance()
 
@@ -1743,7 +1743,7 @@ func (p *Parser) parseSet() *ParseResult {
 		if p.CurrentToken.Match(lexer.TokenType_Keyword, "off") {
 			fmt.Println("set off")
 
-			endPos := p.CurrentToken.Range.End.Copy()
+			endPos := p.CurrentToken.Range.End
 			res.RegisterAdvancement()
 			p.advance()
 
@@ -1906,7 +1906,7 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 func (p *Parser) parseStatements(keywordsToIgnore []string) *ParseResult {
 
 	res := NewParseResult()
-	startPos := p.CurrentToken.Range.Start.Copy()
+	startPos := p.CurrentToken.Range.Start
 	statements := make([]Node, 0, 10)
 
 	for p.CurrentToken.Type == lexer.TokenType_NewLine {
@@ -1917,7 +1917,7 @@ func (p *Parser) parseStatements(keywordsToIgnore []string) *ParseResult {
 	statement := res.Register(p.parseStatement(keywordsToIgnore))
 
 	if statement == nil {
-		return res.Success(NewListNode(statements, startPos, &p.CurrentToken.Range.End))
+		return res.Success(NewListNode(statements, startPos, p.CurrentToken.Range.End))
 	}
 
 	if res.Err != nil {
@@ -1962,5 +1962,5 @@ func (p *Parser) parseStatements(keywordsToIgnore []string) *ParseResult {
 
 	}
 
-	return res.Success(NewListNode(statements, startPos, &p.CurrentToken.Range.End))
+	return res.Success(NewListNode(statements, startPos, p.CurrentToken.Range.End))
 }

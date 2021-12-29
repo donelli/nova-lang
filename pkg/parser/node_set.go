@@ -9,42 +9,38 @@ type SetNode struct {
 	configName string
 	ValueNode  Node
 	BoolValue  string
-	startPos   *shared.Position
-	endPos     *shared.Position
+	nodeRange  *shared.Range
 }
 
-func NewEmptySetNode(configName string, startPos *shared.Position, endPos *shared.Position) *SetNode {
+func NewEmptySetNode(configName string, startPos shared.Position, endPos shared.Position) *SetNode {
 	return &SetNode{
 		configName: configName,
-		startPos:   startPos,
-		endPos:     endPos,
+		nodeRange:  shared.NewRange(startPos, endPos),
 	}
 }
 
-func NewSetNode(configName string, valueNode Node, startPos *shared.Position, endPos *shared.Position) *SetNode {
+func NewSetNode(configName string, valueNode Node, startPos shared.Position, endPos shared.Position) *SetNode {
 	return &SetNode{
 		configName: configName,
-		startPos:   startPos,
-		endPos:     endPos,
+		nodeRange:  shared.NewRange(startPos, endPos),
 		ValueNode:  valueNode,
 	}
 }
 
-func NewBoolSetNode(configName string, boolValue string, startPos *shared.Position, endPos *shared.Position) *SetNode {
+func NewBoolSetNode(configName string, boolValue string, startPos shared.Position, endPos shared.Position) *SetNode {
 	return &SetNode{
 		configName: configName,
-		startPos:   startPos,
-		endPos:     endPos,
+		nodeRange:  shared.NewRange(startPos, endPos),
 		BoolValue:  boolValue,
 	}
 }
 
-func (l *SetNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *SetNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *SetNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *SetNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *SetNode) Type() ParserNodeType {
@@ -58,13 +54,17 @@ func (l *SetNode) ToHTML() string {
 func (l *SetNode) String() string {
 
 	if l.BoolValue != "" {
-		return fmt.Sprintf("SetBoolNode{Config: %v, Bool: %v, startPos: %v, endPos: %v}", l.configName, l.BoolValue, l.startPos, l.endPos)
+		return fmt.Sprintf("SetBoolNode{Config: %v, Bool: %v, Range: %v}", l.configName, l.BoolValue, l.nodeRange)
 	}
 
 	if l.ValueNode != nil {
-		return fmt.Sprintf("SetNode{Config: %v, Expr: %v, startPos: %v, endPos: %v}", l.configName, l.BoolValue, l.startPos, l.endPos)
+		return fmt.Sprintf("SetNode{Config: %v, Expr: %v, Range: %v}", l.configName, l.BoolValue, l.nodeRange)
 	}
 
-	return fmt.Sprintf("SetEmptyNode{Config: %v, startPos: %v, endPos: %v}", l.configName, l.startPos, l.endPos)
+	return fmt.Sprintf("SetEmptyNode{Config: %v, Range: %v}", l.configName, l.nodeRange)
 
+}
+
+func (l *SetNode) Range() *shared.Range {
+	return l.nodeRange
 }

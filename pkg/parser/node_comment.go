@@ -7,25 +7,23 @@ import (
 )
 
 type CommentNode struct {
-	Value    string
-	startPos *shared.Position
-	endPos   *shared.Position
+	Value     string
+	nodeRange *shared.Range
 }
 
 func NewCommentNode(token *lexer.LexerToken) *CommentNode {
 	return &CommentNode{
-		Value:    token.Value,
-		startPos: &token.Range.Start,
-		endPos:   &token.Range.End,
+		Value:     token.Value,
+		nodeRange: token.Range,
 	}
 }
 
-func (l *CommentNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *CommentNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *CommentNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *CommentNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *CommentNode) Type() ParserNodeType {
@@ -37,5 +35,9 @@ func (l *CommentNode) ToHTML() string {
 }
 
 func (l *CommentNode) String() string {
-	return fmt.Sprintf("CommentNode{Val: %v, startPos: %v, endPos: %v}", l.Value, l.startPos, l.endPos)
+	return fmt.Sprintf("CommentNode{Val: %v, Range: %v}", l.Value, l.nodeRange)
+}
+
+func (l *CommentNode) Range() *shared.Range {
+	return l.nodeRange
 }

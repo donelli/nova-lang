@@ -11,10 +11,9 @@ type IfCase struct {
 }
 
 type IfNode struct {
-	IfCases  []IfCase
-	ElseCase Node
-	startPos *shared.Position
-	endPos   *shared.Position
+	IfCases   []IfCase
+	ElseCase  Node
+	nodeRange *shared.Range
 }
 
 func NewIfCase(condition Node, body Node) IfCase {
@@ -28,21 +27,20 @@ func (l *IfCase) String() string {
 	return fmt.Sprintf("IfCase{CaseExpr: %v, Body: %v}", l.CaseExpr, l.Body)
 }
 
-func NewIfNode(ifCases []IfCase, elseCase Node, startPos *shared.Position, endPos *shared.Position) *IfNode {
+func NewIfNode(ifCases []IfCase, elseCase Node, startPos shared.Position, endPos shared.Position) *IfNode {
 	return &IfNode{
-		IfCases:  ifCases,
-		ElseCase: elseCase,
-		startPos: startPos,
-		endPos:   endPos,
+		IfCases:   ifCases,
+		ElseCase:  elseCase,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *IfNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *IfNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *IfNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *IfNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *IfNode) Type() ParserNodeType {
@@ -71,5 +69,9 @@ func (l *IfNode) ToHTML() string {
 }
 
 func (l *IfNode) String() string {
-	return fmt.Sprintf("If{cases: %v, else: %v, start: %v, end: %v}", l.IfCases, l.ElseCase, l.startPos, l.endPos)
+	return fmt.Sprintf("If{Cases: %v, Else: %v, Range: %v}", l.IfCases, l.ElseCase, l.nodeRange)
+}
+
+func (l *IfNode) Range() *shared.Range {
+	return l.nodeRange
 }

@@ -6,25 +6,23 @@ import (
 )
 
 type MacroNode struct {
-	Expr     Node
-	startPos *shared.Position
-	endPos   *shared.Position
+	Expr      Node
+	nodeRange *shared.Range
 }
 
-func NewMacroNode(expr Node, startPos *shared.Position, endPos *shared.Position) *MacroNode {
+func NewMacroNode(expr Node, startPos shared.Position, endPos shared.Position) *MacroNode {
 	return &MacroNode{
-		Expr:     expr,
-		startPos: startPos,
-		endPos:   endPos,
+		Expr:      expr,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *MacroNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *MacroNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *MacroNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *MacroNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *MacroNode) Type() ParserNodeType {
@@ -36,5 +34,9 @@ func (l *MacroNode) ToHTML() string {
 }
 
 func (l *MacroNode) String() string {
-	return fmt.Sprintf("MacroNode{Expr: %v, startPos: %v, endPos: %v}", l.Expr, l.startPos, l.endPos)
+	return fmt.Sprintf("MacroNode{Expr: %v, Range: %v}", l.Expr, l.nodeRange)
+}
+
+func (l *MacroNode) Range() *shared.Range {
+	return l.nodeRange
 }

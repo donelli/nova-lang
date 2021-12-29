@@ -6,27 +6,25 @@ import (
 )
 
 type ReturnNode struct {
-	Expr     Node
-	ToMaster bool
-	startPos *shared.Position
-	endPos   *shared.Position
+	Expr      Node
+	ToMaster  bool
+	nodeRange *shared.Range
 }
 
-func NewReturnNode(expr Node, toMaster bool, startPos *shared.Position, endPos *shared.Position) *ReturnNode {
+func NewReturnNode(expr Node, toMaster bool, startPos shared.Position, endPos shared.Position) *ReturnNode {
 	return &ReturnNode{
-		Expr:     expr,
-		ToMaster: toMaster,
-		startPos: startPos,
-		endPos:   endPos,
+		Expr:      expr,
+		ToMaster:  toMaster,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *ReturnNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *ReturnNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *ReturnNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *ReturnNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *ReturnNode) Type() ParserNodeType {
@@ -43,5 +41,9 @@ func (l *ReturnNode) ToHTML() string {
 }
 
 func (l *ReturnNode) String() string {
-	return fmt.Sprintf("Return{Expr: %v, toMaster: %v, startPos: %v, endPos: %v}", l.Expr, l.ToMaster, l.startPos, l.endPos)
+	return fmt.Sprintf("Return{Expr: %v, ToMaster: %v, Range: %v}", l.Expr, l.ToMaster, l.nodeRange)
+}
+
+func (l *ReturnNode) Range() *shared.Range {
+	return l.nodeRange
 }

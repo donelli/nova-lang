@@ -6,27 +6,25 @@ import (
 )
 
 type VarDeclarationNode struct {
-	Modifier string
-	VarNames []string
-	startPos *shared.Position
-	endPos   *shared.Position
+	Modifier  string
+	VarNames  []string
+	nodeRange *shared.Range
 }
 
-func NewVarDeclarationNode(modifier string, varNames []string, startPos *shared.Position, endPos *shared.Position) *VarDeclarationNode {
+func NewVarDeclarationNode(modifier string, varNames []string, startPos shared.Position, endPos shared.Position) *VarDeclarationNode {
 	return &VarDeclarationNode{
-		Modifier: modifier,
-		VarNames: varNames,
-		startPos: startPos,
-		endPos:   endPos,
+		Modifier:  modifier,
+		VarNames:  varNames,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *VarDeclarationNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *VarDeclarationNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *VarDeclarationNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *VarDeclarationNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *VarDeclarationNode) Type() ParserNodeType {
@@ -38,8 +36,9 @@ func (l *VarDeclarationNode) ToHTML() string {
 }
 
 func (l *VarDeclarationNode) String() string {
+	return fmt.Sprintf("VarDeclar{Modifier: %v, VarNames: %v, Range: %v}", l.Modifier, l.VarNames, l.nodeRange)
+}
 
-	return fmt.Sprintf("VarDeclar{modifier: %v, varNames: %v, startPos: %v, endPos: %v}", l.Modifier, l.VarNames, l.startPos, l.endPos)
-
-	// return fmt.Sprintf("VarDeclarationNode{Nodes: %v, startPos: %v, endPos: %v}", l.Nodes, l.startPos, l.endPos)
+func (l *VarDeclarationNode) Range() *shared.Range {
+	return l.nodeRange
 }

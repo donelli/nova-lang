@@ -6,27 +6,25 @@ import (
 )
 
 type VarAssignmentNode struct {
-	VarName  string
-	Expr     Node
-	startPos *shared.Position
-	endPos   *shared.Position
+	VarName   string
+	Expr      Node
+	nodeRange *shared.Range
 }
 
-func NewVarAssignmentNode(varName string, expr Node, startPos *shared.Position, endPos *shared.Position) *VarAssignmentNode {
+func NewVarAssignmentNode(varName string, expr Node, startPos shared.Position, endPos shared.Position) *VarAssignmentNode {
 	return &VarAssignmentNode{
-		VarName:  varName,
-		Expr:     expr,
-		startPos: startPos,
-		endPos:   endPos,
+		VarName:   varName,
+		Expr:      expr,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *VarAssignmentNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *VarAssignmentNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *VarAssignmentNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *VarAssignmentNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *VarAssignmentNode) Type() ParserNodeType {
@@ -38,5 +36,9 @@ func (l *VarAssignmentNode) ToHTML() string {
 }
 
 func (l *VarAssignmentNode) String() string {
-	return fmt.Sprintf("VarAssign{Var: %v, Expr: %v, startPos: %v, endPos: %v}", l.VarName, l.Expr, l.startPos, l.endPos)
+	return fmt.Sprintf("VarAssign{Var: %v, Expr: %v, Range: %v}", l.VarName, l.Expr, l.nodeRange)
+}
+
+func (l *VarAssignmentNode) Range() *shared.Range {
+	return l.nodeRange
 }

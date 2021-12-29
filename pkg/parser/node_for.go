@@ -11,28 +11,26 @@ type ForNode struct {
 	EndNode   Node
 	StepNode  Node
 	BodyNode  Node
-	startPos  *shared.Position
-	endPos    *shared.Position
+	nodeRange *shared.Range
 }
 
-func NewForNode(varName string, startNode Node, endNode Node, stepNode Node, bodyNode Node, startPos *shared.Position, endPos *shared.Position) *ForNode {
+func NewForNode(varName string, startNode Node, endNode Node, stepNode Node, bodyNode Node, startPos shared.Position, endPos shared.Position) *ForNode {
 	return &ForNode{
 		VarName:   varName,
 		StartNode: startNode,
 		EndNode:   endNode,
 		StepNode:  stepNode,
 		BodyNode:  bodyNode,
-		startPos:  startPos,
-		endPos:    endPos,
+		nodeRange: shared.NewRange(startPos, endPos),
 	}
 }
 
-func (l *ForNode) StartPos() *shared.Position {
-	return l.startPos
+func (l *ForNode) StartPos() shared.Position {
+	return l.nodeRange.Start
 }
 
-func (l *ForNode) EndPos() *shared.Position {
-	return l.endPos
+func (l *ForNode) EndPos() shared.Position {
+	return l.nodeRange.End
 }
 
 func (l *ForNode) Type() ParserNodeType {
@@ -61,5 +59,9 @@ func (l *ForNode) String() string {
 		step = fmt.Sprintf("%v", l.StepNode)
 	}
 
-	return fmt.Sprintf("ForNode{Var: %v, Start: %v, End: %v, Step: %v, startPos: %v, endPos: %v}", l.VarName, l.StartNode, l.EndNode, step, l.startPos, l.endPos)
+	return fmt.Sprintf("ForNode{Var: %v, Start: %v, End: %v, Step: %v, Range: %v}", l.VarName, l.StartNode, l.EndNode, step, l.nodeRange)
+}
+
+func (l *ForNode) Range() *shared.Range {
+	return l.nodeRange
 }
