@@ -22,4 +22,13 @@ type Value interface {
 	Divide(Value) (Value, *shared.Error)
 	Exponential(Value) (Value, *shared.Error)
 	Remainder(Value) (Value, *shared.Error)
+	Equals(Value) (Value, *shared.Error)
+	EqualsEquals(Value) (Value, *shared.Error)
+	NotEquals(Value) (Value, *shared.Error)
+	IsGreater(Value) (Value, *shared.Error)
+	IsGreaterEquals(Value) (Value, *shared.Error)
+	IsLess(Value) (Value, *shared.Error)
+	IsLessEquals(Value) (Value, *shared.Error)
+	And(Value) (Value, *shared.Error)
+	Or(Value) (Value, *shared.Error)
 }

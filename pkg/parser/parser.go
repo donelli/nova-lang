@@ -25,6 +25,7 @@ const (
 	optCall
 	optArithExpr
 	optCompareExpr
+	optOrExpr
 )
 
 type Parser struct {
@@ -324,6 +325,8 @@ func (p *Parser) invokeFunction(funcName ParseOption) *ParseResult {
 		return p.parseCall()
 	} else if funcName == optFactor {
 		return p.parseFactor()
+	} else if funcName == optOrExpr {
+		return p.parseExpressionOr()
 	}
 
 	panic(fmt.Sprintf("'%d' is not a valid function", funcName))
@@ -386,11 +389,14 @@ func (p *Parser) parseBinaryOperation(leftFuncName ParseOption, rightFuncName Pa
 	return res.Success(leftRes)
 }
 
+// I had to split the 'parseExpression' into two functions
+// The 'AND' operator has more priority than the 'OR' operator
+
 func (p *Parser) parseExpression() *ParseResult {
 
 	res := NewParseResult()
 
-	node := res.Register(p.parseBinaryOperation(optCompareExpr, optCompareExpr, []string{andTokenString, orTokenString}, []lexer.LexerTokenType{}))
+	node := res.Register(p.parseBinaryOperation(optOrExpr, optOrExpr, []string{andTokenString}, []lexer.LexerTokenType{}))
 
 	if res.Err != nil {
 		return res
@@ -399,6 +405,18 @@ func (p *Parser) parseExpression() *ParseResult {
 	return res.Success(node)
 }
 
+func (p *Parser) parseExpressionOr() *ParseResult {
+
+	res := NewParseResult()
+
+	node := res.Register(p.parseBinaryOperation(optCompareExpr, optCompareExpr, []string{orTokenString}, []lexer.LexerTokenType{}))
+
+	if res.Err != nil {
+		return res
+	}
+
+	return res.Success(node)
+}
 func (p *Parser) parseIfCase(caseWord string) (*ParseResult, []IfCase, Node) {
 
 	res := NewParseResult()

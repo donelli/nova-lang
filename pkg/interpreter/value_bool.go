@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	"recital_lsp/pkg/shared"
 )
 
@@ -19,9 +20,9 @@ func (b *Boolean) Copy() Value {
 func (b *Boolean) PrintRepresentation() string {
 
 	if b.Value {
-		return ".t."
+		return ".T."
 	} else {
-		return ".f."
+		return ".F."
 	}
 
 }
@@ -54,14 +55,74 @@ func (b *Boolean) Remainder(value Value) (Value, *shared.Error) {
 	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform remainer operation with a boolean/logic value")
 }
 
+func (b *Boolean) Equals(value Value) (Value, *shared.Error) {
+
+	if value.Type() != ValueType_Boolean {
+		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
+	}
+
+	return NewBoolean(b.Value == value.(*Boolean).Value), nil
+}
+
+func (b *Boolean) NotEquals(value Value) (Value, *shared.Error) {
+
+	if value.Type() != ValueType_Boolean {
+		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
+	}
+
+	return NewBoolean(b.Value != value.(*Boolean).Value), nil
+}
+
+func (b *Boolean) And(value Value) (Value, *shared.Error) {
+
+	if value.Type() != ValueType_Boolean {
+		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
+	}
+
+	fmt.Printf("%v && %v -> %v\n", b.Value, value.(*Boolean).Value, b.Value && value.(*Boolean).Value)
+
+	return NewBoolean(b.Value && value.(*Boolean).Value), nil
+}
+
+func (b *Boolean) Or(value Value) (Value, *shared.Error) {
+
+	if value.Type() != ValueType_Boolean {
+		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
+	}
+
+	fmt.Printf("%v || %v -> %v\n", b.Value, value.(*Boolean).Value, b.Value || value.(*Boolean).Value)
+
+	return NewBoolean(b.Value || value.(*Boolean).Value), nil
+}
+
+func (b *Boolean) EqualsEquals(value Value) (Value, *shared.Error) {
+	return b.Equals(value)
+}
+
+func (b *Boolean) IsGreater(value Value) (Value, *shared.Error) {
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `>` operation with a boolean/logic value")
+}
+
+func (b *Boolean) IsGreaterEquals(value Value) (Value, *shared.Error) {
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `>=` operation with a boolean/logic value")
+}
+
+func (b *Boolean) IsLess(value Value) (Value, *shared.Error) {
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `<` operation with a boolean/logic value")
+}
+
+func (b *Boolean) IsLessEquals(value Value) (Value, *shared.Error) {
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `<=` operation with a boolean/logic value")
+}
+
 func (b *Boolean) UpdateRange(valueRange *shared.Range) Value {
 	b.Range = valueRange
 	return b
 }
 
-func NewBoolean(value bool, BooleanRange *shared.Range) *Boolean {
+func NewBoolean(value bool) *Boolean {
 	return &Boolean{
 		Value: value,
-		Range: BooleanRange,
+		Range: nil,
 	}
 }

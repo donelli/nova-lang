@@ -1,24 +1,22 @@
 
-x = 420
-
 * Equals
-? x = 7
+? 420 = 7
 
 * Not equals
-? x != 25
-? x <> 420
+? 420 != 25
+? 420 <> 420
 
 * strict equals
-? x == 25
+? 420 == 25
 
 * And
-? x > 400 and x < 500
+? 420 > 400 and 420 < 500
 
 * Or
-? x < 100 or x > 500
+? 420 < 100 or 420 > 500
 
 * 'And' and 'Or'
-? x = 420 or (x > 0 and x < 100)
+? 420 = 420 or (420 > 0 and 420 < 100)
 
 return
 

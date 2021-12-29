@@ -25,10 +25,17 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitBinaryOperationNode(node)
 	} else if node.Type() == parser.Node_Return {
 		return interpreter.visitReturnNode(node)
+	} else if node.Type() == parser.Node_Bool {
+		return interpreter.visitBoolNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitBoolNode(node parser.Node) *RuntimeResult {
+	boolNode := node.(*parser.BooleanNode)
+	return NewRuntimeResult().Success(NewBoolean(boolNode.Value).UpdateRange(node.Range()))
 }
 
 func (interpreter *Interpreter) visitReturnNode(node parser.Node) *RuntimeResult {
@@ -40,7 +47,7 @@ func (interpreter *Interpreter) visitReturnNode(node parser.Node) *RuntimeResult
 
 	if returnNode.Expr == nil {
 		// TODO Recital returns .f. in this cases, but i think it should return null or undefined
-		returnValue = NewBoolean(false, node.Range())
+		returnValue = NewBoolean(false).UpdateRange(node.Range())
 	} else {
 		returnValue = res.Register(interpreter.Visit(returnNode.Expr))
 		if res.ShouldReturn() {
@@ -81,6 +88,28 @@ func (interpreter *Interpreter) visitBinaryOperationNode(node parser.Node) *Runt
 		value, err = leftValue.Exponential(rightValue)
 	} else if binOpNode.OperationToken.Type == lexer.TokenType_Percent {
 		value, err = leftValue.Remainder(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_Equals {
+		value, err = leftValue.Equals(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_NotEqual {
+		value, err = leftValue.NotEquals(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_EqualsEquals {
+		value, err = leftValue.EqualsEquals(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_LessThan {
+		value, err = leftValue.IsLess(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_LessThanEqual {
+		value, err = leftValue.IsLessEquals(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_GreaterThan {
+		value, err = leftValue.IsGreater(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_GreaterThanEqual {
+		value, err = leftValue.IsGreaterEquals(rightValue)
+	} else if binOpNode.OperationToken.Type == lexer.TokenType_Keyword {
+
+		if binOpNode.OperationToken.Value == "and" {
+			value, err = leftValue.And(rightValue)
+		} else if binOpNode.OperationToken.Value == "or" {
+			value, err = leftValue.Or(rightValue)
+		}
+
 	} else {
 		panic("binary operation not implemented yet for " + fmt.Sprint(binOpNode.OperationToken.Type))
 	}
@@ -128,7 +157,7 @@ func (interpreter *Interpreter) visitNumberNode(node parser.Node) *RuntimeResult
 
 	numberNode := node.(*parser.NumberNode)
 
-	numberValue := NewNumber(numberNode.Value, node.Range())
+	numberValue := NewNumber(numberNode.Value).UpdateRange(node.Range())
 
 	return NewRuntimeResult().Success(numberValue)
 
