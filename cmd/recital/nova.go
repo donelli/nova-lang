@@ -28,6 +28,7 @@ func readFileContent(fileName string) string {
 func printUsage() {
 	fmt.Println("Usage: nova <subcommand>")
 	fmt.Println("Subcommands:")
+	fmt.Println("   run <file>          	   run a program")
 	fmt.Println("   parse <file> [options]  	parse a file")
 	fmt.Println("   	 Options:")
 	fmt.Println("   	 	-json <file>   File to print the result as JSON")
