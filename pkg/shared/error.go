@@ -16,6 +16,11 @@ func NewError(startPos Position, endPos Position, message string) *Error {
 	}
 }
 
+func (e *Error) UpdateRange(errorRange *Range) *Error {
+	e.Range = errorRange
+	return e
+}
+
 func (e Error) String() string {
 	errorType := ""
 	if e.Type != "" {
@@ -42,4 +47,16 @@ func NewInvalidSyntaxError(startPos Position, endPos Position, message string) *
 		Type:    "Invalid Syntax Error",
 		Range:   NewRange(startPos, endPos),
 	}
+}
+
+func NewRuntimeError(startPos Position, endPos Position, message string) *Error {
+	return &Error{
+		Message: message,
+		Type:    "Runtime Error",
+		Range:   NewRange(startPos, endPos),
+	}
+}
+
+func NewRuntimeErrorRange(errRange *Range, message string) *Error {
+	return NewRuntimeError(errRange.Start, errRange.End, message)
 }
