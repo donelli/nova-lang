@@ -7,17 +7,17 @@ import (
 )
 
 type BinaryOperationNode struct {
-	leftNode       Node
-	operationToken *lexer.LexerToken
-	rightNode      Node
+	LeftNode       Node
+	OperationToken *lexer.LexerToken
+	RightNode      Node
 	nodeRange      *shared.Range
 }
 
 func NewBinaryOperationNode(leftNode Node, operationToken *lexer.LexerToken, rightNode Node) *BinaryOperationNode {
 	return &BinaryOperationNode{
-		leftNode:       leftNode,
-		operationToken: operationToken,
-		rightNode:      rightNode,
+		LeftNode:       leftNode,
+		OperationToken: operationToken,
+		RightNode:      rightNode,
 		nodeRange:      shared.NewRange(leftNode.StartPos(), rightNode.EndPos()),
 	}
 }
@@ -35,11 +35,11 @@ func (l *BinaryOperationNode) Type() ParserNodeType {
 }
 
 func (l *BinaryOperationNode) ToHTML() string {
-	return BuildNodeBoxHTML("", "bin-op-node", l.leftNode.ToHTML(), l.operationToken.Value, l.rightNode.ToHTML())
+	return BuildNodeBoxHTML("", "bin-op-node", l.LeftNode.ToHTML(), l.OperationToken.Value, l.RightNode.ToHTML())
 }
 
 func (l *BinaryOperationNode) String() string {
-	return fmt.Sprintf("BinOp{Left: %v, Op: %v, Right: %v, Range: %v}", l.leftNode, l.operationToken, l.rightNode, l.nodeRange)
+	return fmt.Sprintf("BinOp{Left: %v, Op: %v, Right: %v, Range: %v}", l.LeftNode, l.OperationToken, l.RightNode, l.nodeRange)
 }
 
 func (l *BinaryOperationNode) Range() *shared.Range {

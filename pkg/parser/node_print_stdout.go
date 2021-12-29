@@ -6,13 +6,13 @@ import (
 )
 
 type PrintStdoutNode struct {
-	expr      Node
+	Expr      Node
 	nodeRange *shared.Range
 }
 
 func NewPrintStdoutNode(expr Node) *PrintStdoutNode {
 	return &PrintStdoutNode{
-		expr:      expr,
+		Expr:      expr,
 		nodeRange: expr.Range(),
 	}
 }
@@ -30,11 +30,11 @@ func (l *PrintStdoutNode) Type() ParserNodeType {
 }
 
 func (l *PrintStdoutNode) ToHTML() string {
-	return BuildNodeBoxHTML("print", "print-stdout-node", l.expr.ToHTML())
+	return BuildNodeBoxHTML("print", "print-stdout-node", l.Expr.ToHTML())
 }
 
 func (l *PrintStdoutNode) String() string {
-	return fmt.Sprintf("Print{Expr: %v, Range: %v}", l.expr, l.nodeRange)
+	return fmt.Sprintf("Print{Expr: %v, Range: %v}", l.Expr, l.nodeRange)
 }
 
 func (l *PrintStdoutNode) Range() *shared.Range {

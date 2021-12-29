@@ -28,6 +28,8 @@ const (
 	Node_Macro
 )
 
+//go:generate stringer -type=ParserNodeType -trimprefix=ParserNodeType_
+
 type Node interface {
 	StartPos() shared.Position
 	EndPos() shared.Position
