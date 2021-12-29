@@ -443,7 +443,7 @@ func (lexer *Lexer) makeBoolOrDotToken() {
 	if nextChars[0:2] == "t." || nextChars[0:2] == "f." {
 
 		startPos := *lexer.CurrentPosition
-		boolValue := lexer.CurrentChar + nextChars
+		boolValue := lexer.CurrentChar + nextChars[0:2]
 		lexer.AdvanceMultiple(3)
 		lexer.addTokenWithPos(TokenType_Boolean, boolValue, startPos, *lexer.CurrentPosition)
 
