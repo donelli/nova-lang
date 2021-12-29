@@ -1,7 +1,6 @@
 package interpreter
 
 import (
-	"fmt"
 	"recital_lsp/pkg/shared"
 )
 
@@ -32,27 +31,27 @@ func (b *Boolean) Type() ValueType {
 }
 
 func (b *Boolean) Add(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot add a boolean/logic value", value.Type()))
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot add a boolean/logic value")
 }
 
 func (b *Boolean) Subtract(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot subtract a boolean/logic value", value.Type()))
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot subtract a boolean/logic value")
 }
 
 func (b *Boolean) Multiply(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot multiply a boolean/logic value", value.Type()))
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot multiply a boolean/logic value")
 }
 
 func (b *Boolean) Divide(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot divide a boolean/logic value", value.Type()))
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot divide a boolean/logic value")
 }
 
 func (b *Boolean) Exponential(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot perform exponentialization with a boolean/logic value", value.Type()))
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform exponentialization with a boolean/logic value")
 }
 
 func (b *Boolean) Remainder(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot perform remainer operation with a boolean/logic value", value.Type()))
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform remainer operation with a boolean/logic value")
 }
 
 func (b *Boolean) UpdateRange(valueRange *shared.Range) Value {
