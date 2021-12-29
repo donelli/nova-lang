@@ -143,6 +143,14 @@ func (lexer *Lexer) isFirstTokenOfTheLine() bool {
 	return lastToken.Range.End.Row != lexer.CurrentPosition.Row
 }
 
+func (lexer *Lexer) ignoreComment() {
+
+	for lexer.hasCurrentChar && lexer.CurrentRune != '\n' {
+		lexer.Advance()
+	}
+
+}
+
 func (lexer *Lexer) makeComment() {
 
 	startPos := *lexer.CurrentPosition
@@ -513,7 +521,7 @@ func (lexer *Lexer) makeDividerOrCommentToken() {
 	nextChar, hasChar := lexer.PeekNextChar()
 
 	if hasChar && nextChar == '/' {
-		lexer.makeComment()
+		lexer.ignoreComment()
 		return
 	}
 
@@ -527,7 +535,7 @@ func (lexer *Lexer) makeCommentOrMacro() {
 	nextRune, hasNextRune := lexer.PeekNextChar()
 
 	if hasNextRune && lexer.CurrentRune == nextRune {
-		lexer.makeComment()
+		lexer.ignoreComment()
 	} else {
 		lexer.addToken(TokenType_Macro, "&")
 		lexer.Advance()
