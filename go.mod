@@ -1,4 +1,4 @@
-module recital_lsp
+module nova-lang
 
 go 1.17
 

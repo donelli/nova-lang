@@ -1,6 +1,6 @@
 package parser
 
-import "recital_lsp/pkg/shared"
+import "nova-lang/pkg/shared"
 
 type ParserNodeType uint8
 

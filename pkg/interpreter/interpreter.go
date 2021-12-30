@@ -2,9 +2,9 @@ package interpreter
 
 import (
 	"fmt"
-	"recital_lsp/pkg/lexer"
-	"recital_lsp/pkg/parser"
-	"recital_lsp/pkg/shared"
+	"nova-lang/pkg/lexer"
+	"nova-lang/pkg/parser"
+	"nova-lang/pkg/shared"
 )
 
 type Interpreter struct {

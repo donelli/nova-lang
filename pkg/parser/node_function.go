@@ -2,7 +2,7 @@ package parser
 
 import (
 	"fmt"
-	"recital_lsp/pkg/shared"
+	"nova-lang/pkg/shared"
 )
 
 type FunctionNode struct {

@@ -1,6 +1,6 @@
 package interpreter
 
-import "recital_lsp/pkg/shared"
+import "nova-lang/pkg/shared"
 
 type ValueType uint8
 

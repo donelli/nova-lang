@@ -1,7 +1,7 @@
 package shared_test
 
 import (
-	"recital_lsp/pkg/shared"
+	"nova-lang/pkg/shared"
 	"testing"
 )
 

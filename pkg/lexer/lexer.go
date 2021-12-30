@@ -2,7 +2,7 @@ package lexer
 
 import (
 	"fmt"
-	"recital_lsp/pkg/shared"
+	"nova-lang/pkg/shared"
 	"regexp"
 	"strings"
 )

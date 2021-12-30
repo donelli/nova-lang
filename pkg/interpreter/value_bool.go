@@ -2,7 +2,7 @@ package interpreter
 
 import (
 	"fmt"
-	"recital_lsp/pkg/shared"
+	"nova-lang/pkg/shared"
 )
 
 type Boolean struct {

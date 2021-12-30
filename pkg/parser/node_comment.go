@@ -2,8 +2,8 @@ package parser
 
 import (
 	"fmt"
-	"recital_lsp/pkg/lexer"
-	"recital_lsp/pkg/shared"
+	"nova-lang/pkg/lexer"
+	"nova-lang/pkg/shared"
 )
 
 type CommentNode struct {

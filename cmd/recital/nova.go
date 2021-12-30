@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"nova-lang/pkg/interpreter"
+	"nova-lang/pkg/lexer"
+	"nova-lang/pkg/parser"
+	"nova-lang/pkg/shared"
+	"nova-lang/pkg/utils"
 	"os"
-	"recital_lsp/pkg/interpreter"
-	"recital_lsp/pkg/lexer"
-	"recital_lsp/pkg/parser"
-	"recital_lsp/pkg/shared"
-	"recital_lsp/pkg/utils"
 )
 
 func readFileContent(fileName string) string {

@@ -3,7 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"math"
-	"recital_lsp/pkg/shared"
+	"nova-lang/pkg/shared"
 )
 
 type Number struct {

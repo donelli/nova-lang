@@ -2,7 +2,7 @@ package shared
 
 import (
 	"fmt"
-	"recital_lsp/pkg/utils"
+	"nova-lang/pkg/utils"
 )
 
 const KeywordCount = 644
