@@ -10,11 +10,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[ValueType_Number-1]
 	_ = x[ValueType_Boolean-2]
+	_ = x[ValueType_String-3]
 }
 
-const _ValueType_name = "NumberBoolean"
+const _ValueType_name = "NumberBooleanString"
 
-var _ValueType_index = [...]uint8{0, 6, 13}
+var _ValueType_index = [...]uint8{0, 6, 13, 19}
 
 func (i ValueType) String() string {
 	i -= 1

@@ -37,10 +37,20 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitUnaryOperationNode(node)
 	} else if node.Type() == parser.Node_If {
 		return interpreter.visitIfNode(node)
+	} else if node.Type() == parser.Node_String {
+		return interpreter.visitStringNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitStringNode(node parser.Node) *RuntimeResult {
+
+	strNode := node.(*parser.StringNode)
+	res := NewRuntimeResult()
+
+	return res.Success(NewString(strNode.Value).UpdateRange(node.Range()))
 }
 
 func (interpreter *Interpreter) visitIfNode(node parser.Node) *RuntimeResult {

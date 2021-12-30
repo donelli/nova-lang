@@ -7,6 +7,7 @@ type ValueType uint8
 const (
 	ValueType_Number ValueType = iota + 1
 	ValueType_Boolean
+	ValueType_String
 )
 
 //go:generate stringer -type=ValueType -trimprefix=ValueType_
