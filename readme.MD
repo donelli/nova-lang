@@ -13,24 +13,39 @@ After the basic implementation, I will include new commands and features that I 
 go build -o nova.exe cmd/recital/nova.go
 ```
 
-## Commands / Blocks
-
-### Legend
+## Legend
 ```
 ❌ Not implemented and probably will not be
 ✔️ Parsing process OK
+⭐ Interpreted
 🔨 Planned / In progress
 ```
 
+## Basics
+
+```
+⭐ Strings
+⭐ Numbers
+⭐ Boolean/logic
+⭐ Variables
+⭐ Logical operations (and, or, equals, ...)
+⭐ Mathematic operations (plus, minus, ...)
+Arrays
+✔️ Functions
+✔️ Macros
+```
+
+## Commands / Blocks
+
 ### If statement
 ```
-✔️ IF <condition>
-✔️      <statements>
-✔️ [ELSEIF <condition>
-✔️      <statements>]
-✔️ [ELSE
-✔️      <statements>]
-✔️ ENDIF
+⭐ IF <condition>
+⭐      <statements>
+⭐ [ELSEIF <condition>
+⭐      <statements>]
+⭐ [ELSE
+⭐      <statements>]
+⭐ ENDIF
 ```
 
 ### Do case statement (like switch/case)
