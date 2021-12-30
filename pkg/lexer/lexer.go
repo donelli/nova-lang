@@ -281,7 +281,6 @@ var skeletonPrefixKeywords = map[string]bool{
 	"compile": true,
 	"like":    true,
 	"except":  true,
-	"do":      true,
 }
 
 func (lexer *Lexer) makeIdentifierOrKeyword() {
@@ -308,6 +307,16 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 		if _, found := skeletonPrefixKeywords[realKeyWord]; found {
 			lexer.makeSkeleton()
+		}
+
+		if realKeyWord == "do" {
+
+			nextChars := string(lexer.getNextBytes(4))
+
+			if nextChars != "case" && nextChars != "whil" {
+				lexer.makeSkeleton()
+			}
+
 		}
 
 		if realKeyWord == "erase" {
