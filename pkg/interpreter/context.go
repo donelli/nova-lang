@@ -5,6 +5,7 @@ import "nova-lang/pkg/shared"
 type Context struct {
 	CurrentLevel      int
 	VariablesPerLevel []map[string]*Variable
+	LoopCountPerLevel []int
 }
 
 func (context *Context) GetVariable(name string) (*Variable, int) {
@@ -50,11 +51,24 @@ func (context *Context) DeclareVariable(variableName string, visibility Visibili
 
 }
 
+func (context *Context) IsInsideLoop() bool {
+	return context.LoopCountPerLevel[context.CurrentLevel] > 0
+}
+
+func (context *Context) RegisterLoopEnter() {
+	context.LoopCountPerLevel[context.CurrentLevel]++
+}
+
+func (context *Context) RegisterLoopExit() {
+	context.LoopCountPerLevel[context.CurrentLevel]--
+}
+
 func NewContext() *Context {
 
 	context := &Context{
 		CurrentLevel:      1,
 		VariablesPerLevel: []map[string]*Variable{},
+		LoopCountPerLevel: []int{0, 0},
 	}
 
 	// context.VariablesPerLevel[0] = Public variables

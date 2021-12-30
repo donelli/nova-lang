@@ -41,10 +41,67 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitStringNode(node)
 	} else if node.Type() == parser.Node_DoCase {
 		return interpreter.visitDoCaseNode(node)
+	} else if node.Type() == parser.Node_DoWhile {
+		return interpreter.visitDoWhileNode(node)
+	} else if node.Type() == parser.Node_Command {
+		return interpreter.visitCommandNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitCommandNode(node parser.Node) *RuntimeResult {
+
+	commandNode := node.(*parser.CommandNode)
+	res := NewRuntimeResult()
+
+	if commandNode.CommandType == parser.CommandType_Exit {
+		return res.SuccessExit()
+	} else if commandNode.CommandType == parser.CommandType_Loop {
+		return res.SuccessLoop()
+	}
+
+	panic("not implemented yet for " + fmt.Sprint(commandNode.CommandType))
+}
+
+func (interpreter *Interpreter) visitDoWhileNode(node parser.Node) *RuntimeResult {
+
+	doWhileNode := node.(*parser.DoWhileNode)
+	res := NewRuntimeResult()
+
+	interpreter.context.RegisterLoopEnter()
+
+	for {
+
+		loopConditionValue := res.Register(interpreter.Visit(doWhileNode.Condition))
+		if res.ShouldReturn() {
+			break
+		}
+
+		isTrue, err := loopConditionValue.IsTrue()
+		if err != nil {
+			interpreter.context.RegisterLoopExit()
+			return res.Failure(err)
+		}
+
+		if !isTrue {
+			break
+		}
+
+		res.Register(interpreter.Visit(doWhileNode.Body))
+		if res.Error != nil || res.FunctionReturnValue != nil || res.LoopShouldExit {
+			break
+		}
+
+	}
+
+	interpreter.context.RegisterLoopExit()
+
+	res.LoopShouldExit = false
+	res.LoopShouldLoop = false
+
+	return res
 }
 
 func (interpreter *Interpreter) visitDoCaseNode(node parser.Node) *RuntimeResult {
@@ -329,8 +386,17 @@ func (interpreter *Interpreter) visitListNode(node parser.Node) *RuntimeResult {
 	for _, node := range listNode.Nodes {
 
 		res.Register(interpreter.Visit(node))
-		if res.ShouldReturn() {
+		if res.Error != nil || res.FunctionReturnValue != nil {
 			return res
+		}
+
+		if res.LoopShouldExit || res.LoopShouldLoop {
+
+			if !interpreter.context.IsInsideLoop() {
+				return res.Failure(shared.NewRuntimeErrorRange(node.Range(), "Cannot use break/loop outside of loop"))
+			}
+
+			break
 		}
 
 	}
