@@ -116,7 +116,7 @@ func (p *Parser) ParseFactor() *ParseResult {
 	res := NewParseResult()
 	currentToken := p.CurrentToken
 
-	if currentToken.MatchType(lexer.TokenType_Plus) || currentToken.MatchType(lexer.TokenType_Minus) {
+	if currentToken.MatchType(lexer.TokenType_Minus) {
 
 		res.RegisterAdvancement()
 		p.advance()
