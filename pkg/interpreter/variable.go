@@ -8,17 +8,15 @@ const (
 )
 
 type Variable struct {
-	Name  string
-	Value Value
-	// Level      int
+	Name       string
+	Value      Value
 	Visibility Visibility
 }
 
 func NewVariable(name string, value Value, visibility Visibility) *Variable {
 	return &Variable{
-		Name:  name,
-		Value: value,
-		// Level:      level,
+		Name:       name,
+		Value:      value,
 		Visibility: visibility,
 	}
 }
