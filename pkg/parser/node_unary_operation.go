@@ -7,15 +7,15 @@ import (
 )
 
 type UnaryOperationNode struct {
-	operationToken *lexer.LexerToken
-	node           Node
+	OperationToken *lexer.LexerToken
+	Node           Node
 	nodeRange      *shared.Range
 }
 
 func NewUnaryOperationNode(operationToken *lexer.LexerToken, node Node) *UnaryOperationNode {
 	return &UnaryOperationNode{
-		node:           node,
-		operationToken: operationToken,
+		Node:           node,
+		OperationToken: operationToken,
 		nodeRange:      shared.NewRange(operationToken.Range.Start, node.EndPos()),
 	}
 }
@@ -33,11 +33,11 @@ func (l *UnaryOperationNode) Type() ParserNodeType {
 }
 
 func (l *UnaryOperationNode) ToHTML() string {
-	return BuildNodeBoxHTML("", "bin-op-node", l.operationToken.Value, l.node.ToHTML())
+	return BuildNodeBoxHTML("", "bin-op-node", l.OperationToken.Value, l.Node.ToHTML())
 }
 
 func (l *UnaryOperationNode) String() string {
-	return fmt.Sprintf("UnaryNode{Oper: %v, Node: %v, Range: %v}", l.operationToken, l.node, l.nodeRange)
+	return fmt.Sprintf("UnaryNode{Oper: %v, Node: %v, Range: %v}", l.OperationToken, l.Node, l.nodeRange)
 }
 
 func (l *UnaryOperationNode) Range() *shared.Range {
