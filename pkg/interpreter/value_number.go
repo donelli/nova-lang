@@ -165,6 +165,10 @@ func (n *Number) EqualsEquals(value Value) (Value, *shared.Error) {
 	return n.Equals(value)
 }
 
+func (n *Number) IsTrue() (bool, *shared.Error) {
+	return false, shared.NewRuntimeErrorRange(n.Range, "Numbers cannot be used as boolean")
+}
+
 func (n *Number) UpdateRange(valueRange *shared.Range) Value {
 	n.Range = valueRange
 	return n

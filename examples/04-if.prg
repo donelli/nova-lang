@@ -6,7 +6,7 @@ if x = 1
 elseif x = 2
    ? 2
 elseif x = 3
-   ? 2
+   ? 3
 else
    
    if x > 10

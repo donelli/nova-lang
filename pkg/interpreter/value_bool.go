@@ -111,6 +111,10 @@ func (b *Boolean) IsLessEquals(value Value) (Value, *shared.Error) {
 	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `<=` operation with a boolean/logic value")
 }
 
+func (b *Boolean) IsTrue() (bool, *shared.Error) {
+	return b.Value, nil
+}
+
 func (b *Boolean) UpdateRange(valueRange *shared.Range) Value {
 	b.Range = valueRange
 	return b

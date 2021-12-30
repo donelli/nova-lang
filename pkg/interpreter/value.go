@@ -31,4 +31,5 @@ type Value interface {
 	IsLessEquals(Value) (Value, *shared.Error)
 	And(Value) (Value, *shared.Error)
 	Or(Value) (Value, *shared.Error)
+	IsTrue() (bool, *shared.Error)
 }

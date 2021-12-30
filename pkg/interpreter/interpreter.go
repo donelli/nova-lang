@@ -35,10 +35,50 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitVarAcessNode(node)
 	} else if node.Type() == parser.Node_UnaryOp {
 		return interpreter.visitUnaryOperationNode(node)
+	} else if node.Type() == parser.Node_If {
+		return interpreter.visitIfNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitIfNode(node parser.Node) *RuntimeResult {
+
+	ifNode := node.(*parser.IfNode)
+	res := NewRuntimeResult()
+
+	for _, ifCase := range ifNode.IfCases {
+
+		conditionValue := res.Register(interpreter.Visit(ifCase.CaseExpr))
+		if res.ShouldReturn() {
+			return res
+		}
+
+		isTrue, err := conditionValue.IsTrue()
+		if err != nil {
+			return res.Failure(err)
+		}
+
+		if isTrue {
+			res.Register(interpreter.Visit(ifCase.Body))
+			if res.ShouldReturn() {
+				return res
+			}
+			return res.Success(nil)
+		}
+
+	}
+
+	if ifNode.ElseCase != nil {
+		res.Register(interpreter.Visit(ifNode.ElseCase))
+		if res.ShouldReturn() {
+			return res
+		}
+		return res.Success(nil)
+	}
+
+	return res.Success(nil)
 }
 
 func (interpreter *Interpreter) visitUnaryOperationNode(node parser.Node) *RuntimeResult {
