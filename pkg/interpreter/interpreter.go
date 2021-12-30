@@ -27,10 +27,64 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitReturnNode(node)
 	} else if node.Type() == parser.Node_Bool {
 		return interpreter.visitBoolNode(node)
+	} else if node.Type() == parser.Node_VarDeclar {
+		return interpreter.visitVarDeclarationNode(node)
+	} else if node.Type() == parser.Node_VarAssign {
+		return interpreter.visitVarAssignNode(node)
+	} else if node.Type() == parser.Node_VarAccess {
+		return interpreter.visitVarAcessNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitVarAcessNode(node parser.Node) *RuntimeResult {
+
+	varAcessNode := node.(*parser.VarAccessNode)
+	res := NewRuntimeResult()
+
+	variable, _ := interpreter.context.GetVariable(varAcessNode.VarName)
+
+	if variable == nil {
+		return res.Failure(shared.NewRuntimeErrorRange(varAcessNode.Range(), "Variable '"+varAcessNode.VarName+"' is not defined"))
+	}
+
+	return res.Success(variable.Value)
+}
+
+func (interpreter *Interpreter) visitVarAssignNode(node parser.Node) *RuntimeResult {
+
+	varAssignNode := node.(*parser.VarAssignmentNode)
+	res := NewRuntimeResult()
+
+	variableName := varAssignNode.VarName
+	value := res.Register(interpreter.Visit(varAssignNode.Expr))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	interpreter.context.AssignValueToVariable(variableName, value, varAssignNode.Range())
+
+	return res
+}
+
+func (interpreter *Interpreter) visitVarDeclarationNode(node parser.Node) *RuntimeResult {
+
+	varDeclNode := node.(*parser.VarDeclarationNode)
+	res := NewRuntimeResult()
+
+	for _, variableName := range varDeclNode.VarNames {
+
+		if varDeclNode.Modifier == "public" {
+			interpreter.context.DeclareVariable(variableName, Visibility_Public, node.Range())
+		} else {
+			interpreter.context.DeclareVariable(variableName, Visibility_Private, node.Range())
+		}
+
+	}
+
+	return res.Success(nil)
 }
 
 func (interpreter *Interpreter) visitBoolNode(node parser.Node) *RuntimeResult {

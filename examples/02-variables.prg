@@ -7,6 +7,8 @@ local   var3
 var = 1
 var2 = 5 * 3
 
+var4 = .f.
+
 var3 = (var + var2) * 2
 
 ? var3
