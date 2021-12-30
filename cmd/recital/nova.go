@@ -182,7 +182,7 @@ func main() {
 				interpStart := time.Now()
 
 				interp := interpreter.NewInterpreter()
-				res := interp.Visit(parseRes.Node)
+				res := interp.Start(parseRes.Node)
 
 				if res.Error != nil {
 					errors = append(errors, res.Error)

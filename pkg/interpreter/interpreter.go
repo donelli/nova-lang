@@ -11,7 +11,29 @@ type Interpreter struct {
 	context *Context
 }
 
-func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
+func (interpreter *Interpreter) Start(node parser.Node) *RuntimeResult {
+
+	if node.Type() == parser.Node_List {
+
+		listNode := node.(*parser.ListNode)
+
+		for _, node := range listNode.Nodes {
+
+			if node.Type() == parser.Node_Function {
+				err := interpreter.context.DeclareFunction(node.(*parser.FunctionNode))
+				if err != nil {
+					return NewRuntimeResult().Failure(err)
+				}
+			}
+
+		}
+
+	}
+
+	return interpreter.visit(node)
+}
+
+func (interpreter *Interpreter) visit(node parser.Node) *RuntimeResult {
 
 	if node.Type() == parser.Node_List {
 		return interpreter.visitListNode(node)
@@ -47,10 +69,68 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitCommandNode(node)
 	} else if node.Type() == parser.Node_ForLoop {
 		return interpreter.visitForLoopNode(node)
+	} else if node.Type() == parser.Node_Function {
+		return NewRuntimeResult()
+	} else if node.Type() == parser.Node_FuncCall {
+		return interpreter.visitFunctionCallNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitFunctionCallNode(node parser.Node) *RuntimeResult {
+
+	funcCallNode := node.(*parser.FunctionCallNode)
+	res := NewRuntimeResult()
+
+	if funcCallNode.FunctionName.Type() != parser.Node_VarAccess {
+		return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.FunctionName.Range(), "Expected function name"))
+	}
+
+	funcName := funcCallNode.FunctionName.(*parser.VarAccessNode).VarName
+
+	function := interpreter.context.GetFunction(funcName)
+
+	if function == nil {
+		return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.FunctionName.Range(), fmt.Sprintf("Function `%s` not declared", funcName)))
+	}
+
+	interpreter.context.IncreaseLevel(function)
+
+	for i, paramName := range function.Parameters {
+
+		// TODO create parameters with the correct range
+
+		if i >= len(funcCallNode.Args) {
+			interpreter.context.AssignValueToVariable(paramName, NewBoolean(false), function.Range())
+		} else {
+
+			value := res.Register(interpreter.visit(funcCallNode.Args[i]))
+			if res.ShouldReturn() {
+				return res
+			}
+
+			interpreter.context.AssignValueToVariable(paramName, value, function.Range())
+
+		}
+
+	}
+
+	res.Register(interpreter.visit(function.Body))
+
+	if res.Error != nil {
+		interpreter.context.DecreaseLevel()
+		return res
+	}
+
+	if res.FunctionReturnValue == nil {
+		return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.Range(), fmt.Sprintf("Function `%s` should return a value", funcName)))
+	}
+
+	interpreter.context.DecreaseLevel()
+
+	return res.Success(res.FunctionReturnValue)
 }
 
 func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResult {
@@ -58,7 +138,7 @@ func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResul
 	forLoopNode := node.(*parser.ForNode)
 	res := NewRuntimeResult()
 
-	startValue := res.Register(interpreter.Visit(forLoopNode.StartNode))
+	startValue := res.Register(interpreter.visit(forLoopNode.StartNode))
 	if res.ShouldReturn() {
 		return res
 	}
@@ -67,7 +147,7 @@ func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResul
 		return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid start value for for loop. Expected number got `%v`", startValue.Type())))
 	}
 
-	endValue := res.Register(interpreter.Visit(forLoopNode.EndNode))
+	endValue := res.Register(interpreter.visit(forLoopNode.EndNode))
 	if res.ShouldReturn() {
 		return res
 	}
@@ -79,7 +159,7 @@ func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResul
 	var stepValue Value = NewNumber(1)
 	if forLoopNode.StepNode != nil {
 
-		stepValue = res.Register(interpreter.Visit(forLoopNode.StepNode))
+		stepValue = res.Register(interpreter.visit(forLoopNode.StepNode))
 		if res.ShouldReturn() {
 			return res
 		}
@@ -96,7 +176,7 @@ func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResul
 
 	for {
 
-		res.Register(interpreter.Visit(forLoopNode.BodyNode))
+		res.Register(interpreter.visit(forLoopNode.BodyNode))
 		if res.Error != nil || res.FunctionReturnValue != nil || res.LoopShouldExit {
 			break
 		}
@@ -149,7 +229,7 @@ func (interpreter *Interpreter) visitDoWhileNode(node parser.Node) *RuntimeResul
 
 	for {
 
-		loopConditionValue := res.Register(interpreter.Visit(doWhileNode.Condition))
+		loopConditionValue := res.Register(interpreter.visit(doWhileNode.Condition))
 		if res.ShouldReturn() {
 			break
 		}
@@ -164,7 +244,7 @@ func (interpreter *Interpreter) visitDoWhileNode(node parser.Node) *RuntimeResul
 			break
 		}
 
-		res.Register(interpreter.Visit(doWhileNode.Body))
+		res.Register(interpreter.visit(doWhileNode.Body))
 		if res.Error != nil || res.FunctionReturnValue != nil || res.LoopShouldExit {
 			break
 		}
@@ -186,7 +266,7 @@ func (interpreter *Interpreter) visitDoCaseNode(node parser.Node) *RuntimeResult
 
 	for _, caseCase := range doCaseNode.Cases {
 
-		conditionValue := res.Register(interpreter.Visit(caseCase.CaseExpr))
+		conditionValue := res.Register(interpreter.visit(caseCase.CaseExpr))
 		if res.ShouldReturn() {
 			return res
 		}
@@ -197,7 +277,7 @@ func (interpreter *Interpreter) visitDoCaseNode(node parser.Node) *RuntimeResult
 		}
 
 		if isTrue {
-			res.Register(interpreter.Visit(caseCase.Body))
+			res.Register(interpreter.visit(caseCase.Body))
 			if res.ShouldReturn() {
 				return res
 			}
@@ -207,7 +287,7 @@ func (interpreter *Interpreter) visitDoCaseNode(node parser.Node) *RuntimeResult
 	}
 
 	if doCaseNode.OtherwiseCase != nil {
-		res.Register(interpreter.Visit(doCaseNode.OtherwiseCase))
+		res.Register(interpreter.visit(doCaseNode.OtherwiseCase))
 		if res.ShouldReturn() {
 			return res
 		}
@@ -232,7 +312,7 @@ func (interpreter *Interpreter) visitIfNode(node parser.Node) *RuntimeResult {
 
 	for _, ifCase := range ifNode.IfCases {
 
-		conditionValue := res.Register(interpreter.Visit(ifCase.CaseExpr))
+		conditionValue := res.Register(interpreter.visit(ifCase.CaseExpr))
 		if res.ShouldReturn() {
 			return res
 		}
@@ -243,7 +323,7 @@ func (interpreter *Interpreter) visitIfNode(node parser.Node) *RuntimeResult {
 		}
 
 		if isTrue {
-			res.Register(interpreter.Visit(ifCase.Body))
+			res.Register(interpreter.visit(ifCase.Body))
 			if res.ShouldReturn() {
 				return res
 			}
@@ -253,7 +333,7 @@ func (interpreter *Interpreter) visitIfNode(node parser.Node) *RuntimeResult {
 	}
 
 	if ifNode.ElseCase != nil {
-		res.Register(interpreter.Visit(ifNode.ElseCase))
+		res.Register(interpreter.visit(ifNode.ElseCase))
 		if res.ShouldReturn() {
 			return res
 		}
@@ -268,7 +348,7 @@ func (interpreter *Interpreter) visitUnaryOperationNode(node parser.Node) *Runti
 	unaryOperNode := node.(*parser.UnaryOperationNode)
 	res := NewRuntimeResult()
 
-	value := res.Register(interpreter.Visit(unaryOperNode.Node))
+	value := res.Register(interpreter.visit(unaryOperNode.Node))
 	if res.ShouldReturn() {
 		return res
 	}
@@ -322,7 +402,7 @@ func (interpreter *Interpreter) visitVarAssignNode(node parser.Node) *RuntimeRes
 	res := NewRuntimeResult()
 
 	variableName := varAssignNode.VarName
-	value := res.Register(interpreter.Visit(varAssignNode.Expr))
+	value := res.Register(interpreter.visit(varAssignNode.Expr))
 	if res.ShouldReturn() {
 		return res
 	}
@@ -366,7 +446,7 @@ func (interpreter *Interpreter) visitReturnNode(node parser.Node) *RuntimeResult
 		// TODO Recital returns .f. in this cases, but i think it should return null or undefined
 		returnValue = NewBoolean(false).UpdateRange(node.Range())
 	} else {
-		returnValue = res.Register(interpreter.Visit(returnNode.Expr))
+		returnValue = res.Register(interpreter.visit(returnNode.Expr))
 		if res.ShouldReturn() {
 			return res
 		}
@@ -380,12 +460,12 @@ func (interpreter *Interpreter) visitBinaryOperationNode(node parser.Node) *Runt
 	binOpNode := node.(*parser.BinaryOperationNode)
 	res := NewRuntimeResult()
 
-	leftValue := res.Register(interpreter.Visit(binOpNode.LeftNode))
+	leftValue := res.Register(interpreter.visit(binOpNode.LeftNode))
 	if res.ShouldReturn() {
 		return res
 	}
 
-	rightValue := res.Register(interpreter.Visit(binOpNode.RightNode))
+	rightValue := res.Register(interpreter.visit(binOpNode.RightNode))
 	if res.ShouldReturn() {
 		return res
 	}
@@ -443,7 +523,7 @@ func (interpreter *Interpreter) visitPrintStdoutNode(node parser.Node) *RuntimeR
 	printNode := node.(*parser.PrintStdoutNode)
 	res := NewRuntimeResult()
 
-	value := res.Register(interpreter.Visit(printNode.Expr))
+	value := res.Register(interpreter.visit(printNode.Expr))
 	if res.ShouldReturn() {
 		return res
 	}
@@ -460,7 +540,7 @@ func (interpreter *Interpreter) visitListNode(node parser.Node) *RuntimeResult {
 
 	for _, node := range listNode.Nodes {
 
-		res.Register(interpreter.Visit(node))
+		res.Register(interpreter.visit(node))
 		if res.Error != nil || res.FunctionReturnValue != nil {
 			return res
 		}

@@ -1,11 +1,54 @@
 package interpreter
 
-import "nova-lang/pkg/shared"
+import (
+	"nova-lang/pkg/parser"
+	"nova-lang/pkg/shared"
+)
 
 type Context struct {
+	Stack             []parser.Node
 	CurrentLevel      int
 	VariablesPerLevel []map[string]*Variable
 	LoopCountPerLevel []int
+	Functions         map[string]*parser.FunctionNode
+}
+
+func (context *Context) IncreaseLevel(node parser.Node) {
+
+	context.CurrentLevel++
+
+	context.LoopCountPerLevel = append(context.LoopCountPerLevel, 0)
+	context.VariablesPerLevel = append(context.VariablesPerLevel, make(map[string]*Variable))
+
+	context.Stack = append(context.Stack, node)
+
+}
+
+func (context *Context) DecreaseLevel() {
+	context.CurrentLevel--
+	context.Stack = context.Stack[:len(context.Stack)-1]
+	context.LoopCountPerLevel = context.LoopCountPerLevel[:len(context.LoopCountPerLevel)-1]
+	context.VariablesPerLevel = context.VariablesPerLevel[:len(context.VariablesPerLevel)-1]
+}
+
+func (context *Context) GetFunction(funcName string) *parser.FunctionNode {
+
+	if function, ok := context.Functions[funcName]; ok {
+		return function
+	}
+
+	return nil
+}
+
+func (context *Context) DeclareFunction(function *parser.FunctionNode) *shared.Error {
+
+	if _, ok := context.Functions[function.FuncName]; ok {
+		return shared.NewRuntimeErrorRange(function.Range(), "Function already declared")
+	}
+
+	context.Functions[function.FuncName] = function
+
+	return nil
 }
 
 func (context *Context) GetVariable(name string) (*Variable, int) {
@@ -18,6 +61,14 @@ func (context *Context) GetVariable(name string) (*Variable, int) {
 	return nil, -1
 }
 
+func (context *Context) AssignValueToVariablePointer(variable *Variable, value Value) {
+	variable.Value = value
+
+	if variable.ReferenceVar != nil {
+		context.AssignValueToVariablePointer(variable.ReferenceVar, value)
+	}
+}
+
 func (context *Context) AssignValueToVariable(variableName string, value Value, nodeRange *shared.Range) {
 
 	variable, _ := context.GetVariable(variableName)
@@ -28,6 +79,10 @@ func (context *Context) AssignValueToVariable(variableName string, value Value, 
 	}
 
 	variable.Value = value
+
+	if variable.ReferenceVar != nil {
+		context.AssignValueToVariablePointer(variable.ReferenceVar, value)
+	}
 
 }
 
@@ -69,6 +124,7 @@ func NewContext() *Context {
 		CurrentLevel:      1,
 		VariablesPerLevel: []map[string]*Variable{},
 		LoopCountPerLevel: []int{0, 0},
+		Functions:         map[string]*parser.FunctionNode{},
 	}
 
 	// context.VariablesPerLevel[0] = Public variables
