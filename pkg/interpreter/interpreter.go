@@ -33,10 +33,51 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitVarAssignNode(node)
 	} else if node.Type() == parser.Node_VarAccess {
 		return interpreter.visitVarAcessNode(node)
+	} else if node.Type() == parser.Node_UnaryOp {
+		return interpreter.visitUnaryOperationNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitUnaryOperationNode(node parser.Node) *RuntimeResult {
+
+	unaryOperNode := node.(*parser.UnaryOperationNode)
+	res := NewRuntimeResult()
+
+	value := res.Register(interpreter.Visit(unaryOperNode.Node))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if unaryOperNode.OperationToken.Type == lexer.TokenType_Minus {
+
+		if value.Type() != ValueType_Number {
+			return res.Failure(shared.NewRuntimeErrorRange(unaryOperNode.Range(), "Operand must be a number"))
+		}
+
+		number := value.(*Number)
+		number.Value = -number.Value
+		number.UpdateRange(unaryOperNode.Range())
+
+		return res.Success(number)
+
+	} else if unaryOperNode.OperationToken.Type == lexer.TokenType_Not {
+
+		if value.Type() != ValueType_Boolean {
+			return res.Failure(shared.NewRuntimeErrorRange(unaryOperNode.Range(), "Operand must be a boolean/logic"))
+		}
+
+		boolean := value.(*Boolean)
+		boolean.Value = !boolean.Value
+		boolean.UpdateRange(unaryOperNode.Range())
+
+		return res.Success(boolean)
+
+	}
+
+	panic("unreachable")
 }
 
 func (interpreter *Interpreter) visitVarAcessNode(node parser.Node) *RuntimeResult {
