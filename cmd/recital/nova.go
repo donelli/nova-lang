@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"nova-lang/pkg/shared"
 	"nova-lang/pkg/utils"
 	"os"
+	"time"
 )
 
 func readFileContent(fileName string) string {
@@ -29,20 +31,29 @@ func readFileContent(fileName string) string {
 func printUsage() {
 	fmt.Println("Usage: nova <subcommand>")
 	fmt.Println("Subcommands:")
-	fmt.Println("   run <file>          	   run a program")
-	fmt.Println("   parse <file> [options]  	parse a file")
-	fmt.Println("   	 Options:")
-	fmt.Println("   	 	-json <file>   File to print the result as JSON")
-	fmt.Println("   	 	-html <file>   File to print the result as HTML")
+	fmt.Println("  help                    Print help")
+	fmt.Println()
+	fmt.Println("  run <file> [options]    Run a program")
+	fmt.Println("    Options:")
+	fmt.Println("      --time			 Show time taken to run the program")
+	fmt.Println()
+	fmt.Println("  parse <file> [options]  Parse a file")
+	fmt.Println("    Options:")
+	fmt.Println("      --json <file>   File to print the result as JSON")
+	fmt.Println("      --html <file>   File to print the result as HTML")
+	fmt.Println()
 }
 
 func main() {
 
-	if len(os.Args) < 2 {
+	start := time.Now()
+
+	if len(os.Args) < 2 || os.Args[1] == "help" {
 		printUsage()
 		return
 	}
 
+	buf := bytes.NewBuffer([]byte{})
 	command := os.Args[1]
 
 	if command == "parse" {
@@ -54,11 +65,17 @@ func main() {
 
 		fileName := os.Args[2]
 
-		parseCmd := flag.NewFlagSet("nova parse", flag.ExitOnError)
+		parseCmd := flag.NewFlagSet("nova parse", flag.ContinueOnError)
+		parseCmd.SetOutput(buf)
 		outHtml := parseCmd.String("html", "", "")
 		outJson := parseCmd.String("json", "", "")
 
-		parseCmd.Parse(os.Args[3:])
+		flagErr := parseCmd.Parse(os.Args[3:])
+
+		if flagErr != nil {
+			printUsage()
+			fmt.Println("Error: " + flagErr.Error())
+		}
 
 		fileContent := readFileContent(fileName)
 
@@ -123,6 +140,19 @@ func main() {
 
 		fileName := os.Args[2]
 
+		runFlagSet := flag.NewFlagSet("nova run", flag.ContinueOnError)
+		runFlagSet.SetOutput(buf)
+		showTime := runFlagSet.Bool("time", false, "")
+
+		flagErr := runFlagSet.Parse(os.Args[3:])
+
+		if flagErr != nil {
+			fmt.Println("Error: " + flagErr.Error())
+			fmt.Println()
+			printUsage()
+			return
+		}
+
 		fileContent := readFileContent(fileName)
 
 		errors := []*shared.Error{}
@@ -149,11 +179,17 @@ func main() {
 
 			if len(res.Errors) == 0 {
 
+				interpStart := time.Now()
+
 				interp := interpreter.NewInterpreter()
 				res := interp.Visit(parseRes.Node)
 
 				if res.Error != nil {
 					errors = append(errors, res.Error)
+				}
+
+				if *showTime {
+					fmt.Printf("\nProgram interpreted in %.2f ms\n", float32(time.Since(interpStart).Microseconds()/1000))
 				}
 
 			}
@@ -164,7 +200,13 @@ func main() {
 			fmt.Printf("Errors: %v\n", errors)
 		}
 
-		// TODO print errors and warnings
+		if len(warnings) > 0 {
+			fmt.Printf("Warnings: %v\n", warnings)
+		}
+
+		if *showTime {
+			fmt.Printf("\nTotal time: %.2f ms\n", float32(time.Since(start).Microseconds()/1000))
+		}
 
 	}
 
