@@ -45,10 +45,85 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitDoWhileNode(node)
 	} else if node.Type() == parser.Node_Command {
 		return interpreter.visitCommandNode(node)
+	} else if node.Type() == parser.Node_ForLoop {
+		return interpreter.visitForLoopNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResult {
+
+	forLoopNode := node.(*parser.ForNode)
+	res := NewRuntimeResult()
+
+	startValue := res.Register(interpreter.Visit(forLoopNode.StartNode))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if startValue.Type() != ValueType_Number {
+		return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid start value for for loop. Expected number got `%v`", startValue.Type())))
+	}
+
+	endValue := res.Register(interpreter.Visit(forLoopNode.EndNode))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if endValue.Type() != ValueType_Number {
+		return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid end value for for loop. Expected number got `%v`", endValue.Type())))
+	}
+
+	var stepValue Value = NewNumber(1)
+	if forLoopNode.StepNode != nil {
+
+		stepValue = res.Register(interpreter.Visit(forLoopNode.StepNode))
+		if res.ShouldReturn() {
+			return res
+		}
+
+		if stepValue.Type() != ValueType_Number {
+			return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid step value for for loop. Expected number got `%v`", stepValue.Type())))
+		}
+
+	}
+
+	interpreter.context.AssignValueToVariable(forLoopNode.VarName, startValue, forLoopNode.StartNode.Range())
+
+	interpreter.context.RegisterLoopEnter()
+
+	for {
+
+		res.Register(interpreter.Visit(forLoopNode.BodyNode))
+		if res.Error != nil || res.FunctionReturnValue != nil || res.LoopShouldExit {
+			break
+		}
+
+		variable, _ := interpreter.context.GetVariable(forLoopNode.VarName)
+		newValue, _ := variable.Value.Add(stepValue)
+
+		interpreter.context.AssignValueToVariable(forLoopNode.VarName, newValue, forLoopNode.StartNode.Range())
+
+		if stepValue.(*Number).Value > 0 {
+			if newValue.(*Number).Value > endValue.(*Number).Value {
+				break
+			}
+		} else if stepValue.(*Number).Value < 0 {
+			if newValue.(*Number).Value < endValue.(*Number).Value {
+				break
+			}
+		}
+
+	}
+
+	res.LoopShouldExit = false
+	res.LoopShouldLoop = false
+
+	interpreter.context.RegisterLoopExit()
+
+	return res
 }
 
 func (interpreter *Interpreter) visitCommandNode(node parser.Node) *RuntimeResult {
