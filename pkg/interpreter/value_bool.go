@@ -79,8 +79,6 @@ func (b *Boolean) And(value Value) (Value, *shared.Error) {
 		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
 	}
 
-	fmt.Printf("%v && %v -> %v\n", b.Value, value.(*Boolean).Value, b.Value && value.(*Boolean).Value)
-
 	return NewBoolean(b.Value && value.(*Boolean).Value), nil
 }
 
@@ -89,8 +87,6 @@ func (b *Boolean) Or(value Value) (Value, *shared.Error) {
 	if value.Type() != ValueType_Boolean {
 		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
 	}
-
-	fmt.Printf("%v || %v -> %v\n", b.Value, value.(*Boolean).Value, b.Value || value.(*Boolean).Value)
 
 	return NewBoolean(b.Value || value.(*Boolean).Value), nil
 }
