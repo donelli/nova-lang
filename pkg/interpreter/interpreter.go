@@ -39,10 +39,50 @@ func (interpreter *Interpreter) Visit(node parser.Node) *RuntimeResult {
 		return interpreter.visitIfNode(node)
 	} else if node.Type() == parser.Node_String {
 		return interpreter.visitStringNode(node)
+	} else if node.Type() == parser.Node_DoCase {
+		return interpreter.visitDoCaseNode(node)
 	}
 
 	panic("not implemented yet for " + fmt.Sprint(node.Type()))
 
+}
+
+func (interpreter *Interpreter) visitDoCaseNode(node parser.Node) *RuntimeResult {
+
+	doCaseNode := node.(*parser.CaseNode)
+	res := NewRuntimeResult()
+
+	for _, caseCase := range doCaseNode.Cases {
+
+		conditionValue := res.Register(interpreter.Visit(caseCase.CaseExpr))
+		if res.ShouldReturn() {
+			return res
+		}
+
+		isTrue, err := conditionValue.IsTrue()
+		if err != nil {
+			return res.Failure(err)
+		}
+
+		if isTrue {
+			res.Register(interpreter.Visit(caseCase.Body))
+			if res.ShouldReturn() {
+				return res
+			}
+			return res.Success(nil)
+		}
+
+	}
+
+	if doCaseNode.OtherwiseCase != nil {
+		res.Register(interpreter.Visit(doCaseNode.OtherwiseCase))
+		if res.ShouldReturn() {
+			return res
+		}
+		return res.Success(nil)
+	}
+
+	return res.Success(nil)
 }
 
 func (interpreter *Interpreter) visitStringNode(node parser.Node) *RuntimeResult {

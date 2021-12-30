@@ -166,7 +166,7 @@ func main() {
 
 		var parseRes *parser.ParseResult
 
-		if len(res.Errors) == 0 {
+		if len(errors) == 0 {
 
 			parser := parser.NewParser(res)
 			parseRes = parser.Parse()
@@ -177,7 +177,7 @@ func main() {
 
 			warnings = append(warnings, parseRes.Warnings...)
 
-			if len(res.Errors) == 0 {
+			if len(errors) == 0 {
 
 				interpStart := time.Now()
 
