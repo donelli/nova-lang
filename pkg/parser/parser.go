@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"recital_lsp/pkg/lexer"
 	"recital_lsp/pkg/shared"
+	"reflect"
 	"strconv"
 )
 
@@ -32,14 +33,25 @@ type Parser struct {
 	LexerResult       *lexer.LexerResult
 	CurrentTokenIndex int
 	CurrentToken      *lexer.LexerToken
+
+	optToFunctionName map[ParseOption]reflect.Value
 }
 
 func NewParser(lexerResult *lexer.LexerResult) *Parser {
 	parser := &Parser{
 		LexerResult:       lexerResult,
 		CurrentTokenIndex: -1,
+		optToFunctionName: make(map[ParseOption]reflect.Value, 6),
 	}
 	parser.advance()
+
+	parser.optToFunctionName[optTerm] = reflect.ValueOf(parser).MethodByName("ParseTerm")
+	parser.optToFunctionName[optFactor] = reflect.ValueOf(parser).MethodByName("ParseFactor")
+	parser.optToFunctionName[optCall] = reflect.ValueOf(parser).MethodByName("ParseCall")
+	parser.optToFunctionName[optArithExpr] = reflect.ValueOf(parser).MethodByName("ParseArithmeticExpr")
+	parser.optToFunctionName[optCompareExpr] = reflect.ValueOf(parser).MethodByName("ParseCompareExpr")
+	parser.optToFunctionName[optOrExpr] = reflect.ValueOf(parser).MethodByName("ParseExpressionOr")
+
 	return parser
 }
 
@@ -84,14 +96,14 @@ func (p *Parser) Parse() *ParseResult {
 	return res
 }
 
-func (p *Parser) parseArithmeticExpr() *ParseResult {
+func (p *Parser) ParseArithmeticExpr() *ParseResult {
 	return p.parseBinaryOperation(optTerm, optTerm, nil, []lexer.LexerTokenType{
 		lexer.TokenType_Plus,
 		lexer.TokenType_Minus,
 	})
 }
 
-func (p *Parser) parseTerm() *ParseResult {
+func (p *Parser) ParseTerm() *ParseResult {
 	return p.parseBinaryOperation(optFactor, optFactor, nil, []lexer.LexerTokenType{
 		lexer.TokenType_Star,
 		lexer.TokenType_Slash,
@@ -99,7 +111,7 @@ func (p *Parser) parseTerm() *ParseResult {
 	})
 }
 
-func (p *Parser) parseFactor() *ParseResult {
+func (p *Parser) ParseFactor() *ParseResult {
 
 	res := NewParseResult()
 	currentToken := p.CurrentToken
@@ -109,7 +121,7 @@ func (p *Parser) parseFactor() *ParseResult {
 		res.RegisterAdvancement()
 		p.advance()
 
-		factor := res.Register(p.parseFactor())
+		factor := res.Register(p.ParseFactor())
 
 		if res.Err != nil {
 			return res
@@ -126,7 +138,7 @@ func (p *Parser) parseFactor() *ParseResult {
 		res.RegisterAdvancement()
 		p.advance()
 
-		factor := res.Register(p.parseFactor())
+		factor := res.Register(p.ParseFactor())
 
 		if res.Err != nil {
 			return res
@@ -139,7 +151,7 @@ func (p *Parser) parseFactor() *ParseResult {
 	return p.parsePower()
 }
 
-func (p *Parser) parseCall() *ParseResult {
+func (p *Parser) ParseCall() *ParseResult {
 
 	res := NewParseResult()
 
@@ -276,7 +288,7 @@ func (p *Parser) parsePower() *ParseResult {
 	})
 }
 
-func (p *Parser) parseCompareExpr() *ParseResult {
+func (p *Parser) ParseCompareExpr() *ParseResult {
 
 	res := NewParseResult()
 
@@ -286,7 +298,7 @@ func (p *Parser) parseCompareExpr() *ParseResult {
 		res.RegisterAdvancement()
 		p.advance()
 
-		node := res.Register(p.parseCompareExpr())
+		node := res.Register(p.ParseCompareExpr())
 
 		if res.Err != nil {
 			return res
@@ -315,21 +327,26 @@ func (p *Parser) parseCompareExpr() *ParseResult {
 
 func (p *Parser) invokeFunction(funcName ParseOption) *ParseResult {
 
-	if funcName == optCompareExpr {
-		return p.parseCompareExpr()
-	} else if funcName == optArithExpr {
-		return p.parseArithmeticExpr()
-	} else if funcName == optTerm {
-		return p.parseTerm()
-	} else if funcName == optCall {
-		return p.parseCall()
-	} else if funcName == optFactor {
-		return p.parseFactor()
-	} else if funcName == optOrExpr {
-		return p.parseExpressionOr()
-	}
+	// TODO test the performace of this method
 
-	panic(fmt.Sprintf("'%d' is not a valid function", funcName))
+	result := p.optToFunctionName[funcName].Call(nil)
+
+	return result[0].Interface().(*ParseResult)
+
+	// if funcName == optCompareExpr {
+	// 	return p.parseCompareExpr()
+	// } else if funcName == optArithExpr {
+	// 	return p.parseArithmeticExpr()
+	// } else if funcName == optTerm {
+	// 	return p.parseTerm()
+	// } else if funcName == optCall {
+	// 	return p.parseCall()
+	// } else if funcName == optFactor {
+	// 	return p.parseFactor()
+	// } else if funcName == optOrExpr {
+	// 	return p.parseExpressionOr()
+	// }
+
 }
 
 func (p *Parser) parseBinaryOperation(leftFuncName ParseOption, rightFuncName ParseOption, typeValueOptions []string, typeOptions []lexer.LexerTokenType) *ParseResult {
@@ -405,7 +422,7 @@ func (p *Parser) parseExpression() *ParseResult {
 	return res.Success(node)
 }
 
-func (p *Parser) parseExpressionOr() *ParseResult {
+func (p *Parser) ParseExpressionOr() *ParseResult {
 
 	res := NewParseResult()
 
