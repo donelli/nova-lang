@@ -592,7 +592,7 @@ func (p *Parser) parseFunction() *ParseResult {
 	var paramNode Node = nil
 
 	for i := range statements.Nodes {
-		if statements.Nodes[i].Type() == Node_VarDeclar {
+		if statements.Nodes[i].Type() == Node_VarDeclar && statements.Nodes[i].(*VarDeclarationNode).Modifier == "parameters" {
 
 			if paramNode != nil {
 				return res.Failure(shared.NewInvalidSyntaxError(statements.Nodes[i].StartPos(), statements.Nodes[i].EndPos(), "Multiple parameters definitions in function"))

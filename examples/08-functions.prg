@@ -1,6 +1,8 @@
 
 ? f3Equals(fDouble(1), 2, 1 * 2)
 
+fPublic()
+
 ? pub
 
 return
@@ -24,7 +26,13 @@ return pnVal * fGetNumber()
 
 
 function fGetNumber
-public pub
-pub = "teste"
 return 2
 
+
+function fPublic
+
+public pub
+
+pub = 123
+
+return 
