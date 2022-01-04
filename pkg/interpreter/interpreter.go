@@ -90,47 +90,84 @@ func (interpreter *Interpreter) visitFunctionCallNode(node parser.Node) *Runtime
 
 	funcName := funcCallNode.FunctionName.(*parser.VarAccessNode).VarName
 
-	function := interpreter.context.GetFunction(funcName)
+	builtInFunction, found := BuiltInFunctions[funcName]
 
-	if function == nil {
-		return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.FunctionName.Range(), fmt.Sprintf("Function `%s` not declared", funcName)))
-	}
+	if found {
 
-	interpreter.context.IncreaseLevel(function)
+		parametersValues := []Value{}
 
-	for i, paramName := range function.Parameters {
-
-		// TODO create parameters with the correct range
-
-		if i >= len(funcCallNode.Args) {
-			interpreter.context.AssignValueToVariable(paramName, NewBoolean(false), function.Range())
-		} else {
+		for i := range funcCallNode.Args {
 
 			value := res.Register(interpreter.visit(funcCallNode.Args[i]))
 			if res.ShouldReturn() {
 				return res
 			}
 
-			interpreter.context.AssignValueToVariable(paramName, value, function.Range())
+			parametersValues = append(parametersValues, value)
 
 		}
 
+		res.Register(builtInFunction(interpreter.context, funcCallNode.Range(), parametersValues))
+		if res.Error != nil {
+			return res
+		}
+
+		if res.FunctionReturnValue == nil {
+			return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.Range(), fmt.Sprintf("Builtin function `%s` should return a value", funcName)))
+		}
+
+		return res.Success(res.FunctionReturnValue)
 	}
 
-	res.Register(interpreter.visit(function.Body))
+	function := interpreter.context.GetFunction(funcName)
 
-	if res.Error != nil {
+	if function != nil {
+
+		parametersValues := []Value{}
+
+		for i := range function.Parameters {
+
+			if i >= len(funcCallNode.Args) {
+				parametersValues = append(parametersValues, NewBoolean(false))
+			} else {
+
+				value := res.Register(interpreter.visit(funcCallNode.Args[i]))
+				if res.ShouldReturn() {
+					return res
+				}
+
+				parametersValues = append(parametersValues, value)
+
+			}
+
+		}
+
+		interpreter.context.IncreaseLevel(function)
+
+		// TODO create parameters with the correct range
+		for i, paramName := range function.Parameters {
+			interpreter.context.AssignValueToVariable(paramName, parametersValues[i], function.Range())
+		}
+
+		res.Register(interpreter.visit(function.Body))
+
+		if res.Error != nil {
+			interpreter.context.DecreaseLevel()
+			return res
+		}
+
+		if res.FunctionReturnValue == nil {
+			return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.Range(), fmt.Sprintf("Function `%s` should return a value", funcName)))
+		}
+
 		interpreter.context.DecreaseLevel()
-		return res
+
+		return res.Success(res.FunctionReturnValue)
+
 	}
 
-	if res.FunctionReturnValue == nil {
-		return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.Range(), fmt.Sprintf("Function `%s` should return a value", funcName)))
-	}
+	return res.Failure(shared.NewRuntimeErrorRange(funcCallNode.FunctionName.Range(), fmt.Sprintf("Function `%s` not declared", funcName)))
 
-	interpreter.context.DecreaseLevel()
-
-	return res.Success(res.FunctionReturnValue)
 }
 
 func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResult {

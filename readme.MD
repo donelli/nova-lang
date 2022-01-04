@@ -31,8 +31,15 @@ go build -o nova.exe cmd/recital/nova.go
 ⭐ Logical operations (and, or, equals, ...)
 ⭐ Mathematic operations (plus, minus, ...)
 Arrays
-✔️ Functions
+⭐ Functions
+⭐ Base for built-in functions
 ✔️ Macros
+```
+
+## Ideas
+```
+Assert (Tests)
+Sql
 ```
 
 ## Commands / Blocks
