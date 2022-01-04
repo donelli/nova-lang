@@ -189,7 +189,7 @@ func main() {
 				}
 
 				if *showTime {
-					fmt.Printf("\nProgram interpreted in %.2f ms", float32(time.Since(interpStart).Microseconds()/1000))
+					fmt.Printf("\nProgram interpreted in %d ms", time.Since(interpStart).Milliseconds())
 				}
 
 			}
@@ -205,7 +205,7 @@ func main() {
 		}
 
 		if *showTime {
-			fmt.Printf("\nTotal time: %.2f ms\n", float32(time.Since(start).Microseconds()/1000))
+			fmt.Printf("\nTotal time: %d ms\n", time.Since(start).Milliseconds())
 		}
 
 	}
