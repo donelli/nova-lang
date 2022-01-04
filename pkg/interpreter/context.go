@@ -93,14 +93,25 @@ func (context *Context) DeclareVariable(variableName string, visibility Visibili
 		levelToAdd = 0
 	}
 
-	_, level := context.GetVariable(variableName)
+	oldVar, level := context.GetVariable(variableName)
 
 	if level == levelToAdd {
 		// Already declared at the current level
 	} else {
 
-		variable := NewVariable(variableName, NewBoolean(false).UpdateRange(nodeRange), visibility)
-		context.VariablesPerLevel[levelToAdd][variableName] = variable
+		if oldVar != nil && visibility == Visibility_Public {
+
+			delete(context.VariablesPerLevel[level], variableName)
+
+			variable := NewVariable(variableName, oldVar.Value, oldVar.Visibility)
+			context.VariablesPerLevel[levelToAdd][variableName] = variable
+
+		} else {
+
+			variable := NewVariable(variableName, NewBoolean(false).UpdateRange(nodeRange), visibility)
+			context.VariablesPerLevel[levelToAdd][variableName] = variable
+
+		}
 
 	}
 

@@ -32,7 +32,11 @@ return 2
 function fPublic
 
 public pub
-
 pub = 123
+
+private pub
+pub = 420
+
+? pub
 
 return 
