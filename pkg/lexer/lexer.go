@@ -296,11 +296,16 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 	if realKeyWord, ok := shared.KeywordsMap[identifierLower]; ok {
 
-		if _, isFunctionName := shared.BuildInFunctionsMap[identifierLower]; isFunctionName {
-			if !lexer.isFirstTokenOfTheLine() {
+		// TODO better way to define keywords that also are built-in functions
+
+		if identifierLower == "seek" {
+
+			nextChar, hasNextChar := lexer.PeekNextNonEmptyChar()
+
+			if hasNextChar && nextChar == '(' {
 				lexer.addTokenWithPos(TokenType_Identifier, identifier, startPos, *lexer.CurrentPosition)
-				return
 			}
+
 		}
 
 		lexer.addTokenWithPos(TokenType_Keyword, realKeyWord, startPos, *lexer.CurrentPosition)
