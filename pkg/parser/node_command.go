@@ -7,6 +7,8 @@ import (
 
 type CommandType int8
 
+// TODO transform each command to its own node
+
 const (
 	CommandType_Close CommandType = iota + 1
 	CommandType_Clear
@@ -23,6 +25,7 @@ const (
 	CommandType_Count
 	CommandType_Do
 	CommandType_Erase
+	CommandType_Assert
 )
 
 //go:generate stringer -type=CommandType -trimprefix=CommandType_

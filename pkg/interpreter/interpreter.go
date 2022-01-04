@@ -252,9 +252,40 @@ func (interpreter *Interpreter) visitCommandNode(node parser.Node) *RuntimeResul
 		return res.SuccessExit()
 	} else if commandNode.CommandType == parser.CommandType_Loop {
 		return res.SuccessLoop()
+	} else if commandNode.CommandType == parser.CommandType_Assert {
+		return interpreter.visitAssertNode(commandNode)
 	}
 
-	panic("not implemented yet for " + fmt.Sprint(commandNode.CommandType))
+	panic("command interpretation not implemented yet for " + fmt.Sprint(commandNode.CommandType))
+}
+
+func (interpreter *Interpreter) visitAssertNode(commandNode *parser.CommandNode) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	expr := commandNode.Args["expr"].(parser.Node)
+	exprResult := res.Register(interpreter.visit(expr))
+
+	if res.Error != nil {
+		return res
+	}
+
+	if exprResult.Type() != ValueType_Boolean {
+		return res.Failure(shared.NewRuntimeErrorRange(expr.Range(), fmt.Sprintf("Expected expression to return a boolean. Got `%v`", exprResult.Type())))
+	}
+
+	boolVal := exprResult.(*Boolean)
+
+	if !boolVal.Value {
+
+		if commandNode.Args["message"] != nil {
+			return res.Failure(shared.NewAssertError(commandNode.Range(), fmt.Sprintf("Assertion failed: `%s`", commandNode.Args["message"])))
+		}
+
+		return res.Failure(shared.NewAssertError(commandNode.Range(), "Assertion failed"))
+	}
+
+	return res.Success(nil)
 }
 
 func (interpreter *Interpreter) visitDoWhileNode(node parser.Node) *RuntimeResult {

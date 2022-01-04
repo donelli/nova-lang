@@ -60,3 +60,11 @@ func NewRuntimeError(startPos Position, endPos Position, message string) *Error 
 func NewRuntimeErrorRange(errRange *Range, message string) *Error {
 	return NewRuntimeError(errRange.Start, errRange.End, message)
 }
+
+func NewAssertError(errRange *Range, message string) *Error {
+	return &Error{
+		Message: message,
+		Type:    "Assert error",
+		Range:   errRange,
+	}
+}

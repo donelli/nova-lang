@@ -5,7 +5,7 @@ import (
 	"nova-lang/pkg/utils"
 )
 
-const KeywordCount = 644
+const KeywordCount = 645
 
 var KeywordsMap = make(map[string]string, KeywordCount)
 
@@ -31,6 +31,7 @@ func LoadKeywords() {
 	generateKeyword("alternate", false)
 	generateKeyword("and", false)
 	generateKeyword("append", true)
+	generateKeyword("assert", false)
 	generateKeyword("autojoin", false)
 	generateKeyword("autorepair", false)
 	generateKeyword("autosave", false)

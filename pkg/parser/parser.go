@@ -1055,10 +1055,54 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of `?` command"))
 	}
 
 	return res.Success(NewPrintStdoutNode(expr))
+}
+
+func (p *Parser) parseAssert() *ParseResult {
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	expr := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	endPos := expr.EndPos()
+	assertionMessage := ""
+
+	if p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_String) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected string after ',' in assert"))
+		}
+
+		assertionMessage = p.CurrentToken.Value
+
+		res.RegisterAdvancement()
+		p.advance()
+
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of `assert` command"))
+	}
+
+	args := map[string]interface{}{
+		"expr":    expr,
+		"message": assertionMessage,
+	}
+
+	return res.Success(NewCommandNode(CommandType_Assert, args, startPos, endPos))
 }
 
 func (p *Parser) parseErase() *ParseResult {
@@ -1092,7 +1136,7 @@ func (p *Parser) parseErase() *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of `erase` command"))
 	}
 
 	return res.Success(NewCommandNode(CommandType_Erase, args, startPos, endPos))
@@ -1246,7 +1290,7 @@ func (p *Parser) parseBrowse() *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of command"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of `browse` command"))
 	}
 
 	return res.Success(NewCommandNode(CommandType_Browse, args, token.Range.Start, p.CurrentToken.Range.Start))
@@ -1914,6 +1958,10 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 
 			successNode = res.Register(p.parseErase())
 
+		} else if p.CurrentToken.Value == "assert" {
+
+			successNode = res.Register(p.parseAssert())
+
 		}
 
 	}
@@ -1932,7 +1980,7 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 	}
 
 	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
-		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token"))
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after expression"))
 	}
 
 	return res.Success(expr)
