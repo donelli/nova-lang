@@ -1,0 +1,18 @@
+{
+   "functions": [
+      
+      {
+         "name": "alltrim",
+         "description": "Removes all leading and trailing spaces from a string.",
+         "parameters": [ "pcStr:str" ],
+         "returns": "string"
+      },
+      {
+         "name": "str",
+         "description": "Converts the numeric expression to a string with `${2}` characters and `${3}` decimal places.\nIf `${3}` is not specified then `${1}` is treated as an integer",
+         "parameters": [ "pnNumber:number", "pcWidth:int", "pcDecPlaces:int" ],
+         "returns": "string"
+      }
+      
+   ]
+}
