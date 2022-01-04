@@ -35,12 +35,12 @@ func printUsage() {
 	fmt.Println()
 	fmt.Println("  run <file> [options]    Run a program")
 	fmt.Println("    Options:")
-	fmt.Println("      --time			 Show time taken to run the program")
+	fmt.Println("      --time           Show time taken to run the program")
 	fmt.Println()
 	fmt.Println("  parse <file> [options]  Parse a file")
 	fmt.Println("    Options:")
-	fmt.Println("      --json <file>   File to print the result as JSON")
-	fmt.Println("      --html <file>   File to print the result as HTML")
+	fmt.Println("      --json <file>    File to print the result as JSON")
+	fmt.Println("      --html <file>    File to print the result as HTML")
 	fmt.Println()
 }
 
