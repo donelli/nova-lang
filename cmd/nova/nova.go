@@ -9,6 +9,7 @@ import (
 	"nova-lang/pkg/lexer"
 	"nova-lang/pkg/parser"
 	"nova-lang/pkg/shared"
+	"nova-lang/pkg/testing"
 	"nova-lang/pkg/utils"
 	"os"
 	"time"
@@ -19,7 +20,7 @@ func readFileContent(fileName string) string {
 	dat, err := os.ReadFile(fileName)
 
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -29,19 +30,27 @@ func readFileContent(fileName string) string {
 }
 
 func printUsage() {
-	fmt.Println("Usage: nova <subcommand>")
-	fmt.Println("Subcommands:")
-	fmt.Println("  help                    Print help")
-	fmt.Println()
-	fmt.Println("  run <file> [options]    Run a program")
-	fmt.Println("    Options:")
-	fmt.Println("      --time           Show time taken to run the program")
-	fmt.Println()
-	fmt.Println("  parse <file> [options]  Parse a file")
-	fmt.Println("    Options:")
-	fmt.Println("      --json <file>    File to print the result as JSON")
-	fmt.Println("      --html <file>    File to print the result as HTML")
-	fmt.Println()
+	fmt.Fprintln(os.Stderr, "Usage: nova <subcommand>")
+	fmt.Fprintln(os.Stderr, "Subcommands:")
+	fmt.Fprintln(os.Stderr, "  help                    Print help")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "  run <file> [options]    Run a program")
+	fmt.Fprintln(os.Stderr, "    Options:")
+	fmt.Fprintln(os.Stderr, "      --time              Show time taken to run the program")
+	fmt.Fprintln(os.Stderr, "      --simulation        Run the program in simulation mode (no screen writing)")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "  parse <file> [options]  Parse a file")
+	fmt.Fprintln(os.Stderr, "    Options:")
+	fmt.Fprintln(os.Stderr, "      --json <file>       File to print the result as JSON")
+	fmt.Fprintln(os.Stderr, "      --html <file>       File to print the result as HTML")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "  test <command>          Testing tool for the development of the language")
+	fmt.Fprintln(os.Stderr, "    Commands:")
+	fmt.Fprintln(os.Stderr, "      new <.prg file>     Creates a new test file for that program")
+	fmt.Fprintln(os.Stderr, "      update <test_name>  Updates the test expected output")
+	fmt.Fprintln(os.Stderr, "      run <test_name>     Run that test and compares with the expected output")
+	fmt.Fprintln(os.Stderr, "      all                 Run all tests and compares each one with the expected output")
+	fmt.Fprintln(os.Stderr)
 }
 
 func main() {
@@ -74,7 +83,7 @@ func main() {
 
 		if flagErr != nil {
 			printUsage()
-			fmt.Println("Error: " + flagErr.Error())
+			fmt.Fprintf(os.Stderr, "Error: "+flagErr.Error())
 		}
 
 		fileContent := readFileContent(fileName)
@@ -143,6 +152,7 @@ func main() {
 		runFlagSet := flag.NewFlagSet("nova run", flag.ContinueOnError)
 		runFlagSet.SetOutput(buf)
 		showTime := runFlagSet.Bool("time", false, "")
+		simulationMode := runFlagSet.Bool("simulation", false, "")
 
 		flagErr := runFlagSet.Parse(os.Args[3:])
 
@@ -182,7 +192,7 @@ func main() {
 				interpStart := time.Now()
 
 				interp := interpreter.NewInterpreter()
-				res := interp.Start(parseRes.Node)
+				res := interp.Start(parseRes.Node, *simulationMode)
 
 				if res.Error != nil {
 					errors = append(errors, res.Error)
@@ -197,7 +207,11 @@ func main() {
 		}
 
 		if len(errors) > 0 {
-			fmt.Printf("Errors: %v\n", errors)
+
+			for _, err := range errors {
+				fmt.Fprintf(os.Stderr, "%s\n", err.Message)
+			}
+
 		}
 
 		if len(warnings) > 0 {
@@ -207,6 +221,18 @@ func main() {
 		if *showTime {
 			fmt.Printf("\nTotal time: %d ms\n", time.Since(start).Milliseconds())
 		}
+
+	} else if command == "test" {
+
+		err := testing.ParseAndExecTests()
+		if err != "" {
+			printUsage()
+			fmt.Fprintf(os.Stderr, "[ERROR] %s", err)
+		}
+
+	} else {
+
+		fmt.Fprintf(os.Stderr, "[ERROR] Unknown command '%s'\n", command)
 
 	}
 
