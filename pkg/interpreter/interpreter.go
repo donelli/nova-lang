@@ -31,17 +31,15 @@ func (interpreter *Interpreter) Start(node parser.Node, simulationMode bool) *Ru
 
 	}
 
-	interpreter.screen = NewConsoleScreen()
-
 	if simulationMode {
-		interpreter.screen.InitSimulation()
+		interpreter.screen = NewSimulationScreen()
 	} else {
+		interpreter.screen = NewConsoleScreen()
+	}
 
-		err := interpreter.screen.Init()
-		if err != nil {
-			panic(err.Error())
-		}
-
+	err := interpreter.screen.Init()
+	if err != nil {
+		panic(err.Error())
 	}
 
 	defer func() {

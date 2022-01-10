@@ -59,7 +59,7 @@ func main() {
 
 	if len(os.Args) < 2 || os.Args[1] == "help" {
 		printUsage()
-		return
+		os.Exit(1)
 	}
 
 	buf := bytes.NewBuffer([]byte{})
@@ -69,7 +69,7 @@ func main() {
 
 		if len(os.Args) < 3 {
 			printUsage()
-			return
+			os.Exit(1)
 		}
 
 		fileName := os.Args[2]
@@ -84,6 +84,7 @@ func main() {
 		if flagErr != nil {
 			printUsage()
 			fmt.Fprintf(os.Stderr, "Error: "+flagErr.Error())
+			os.Exit(1)
 		}
 
 		fileContent := readFileContent(fileName)
@@ -140,11 +141,15 @@ func main() {
 			parser.PrintParseResultToHTML(parseRes, *outHtml)
 		}
 
+		if len(errors) > 0 {
+			os.Exit(1)
+		}
+
 	} else if command == "run" {
 
 		if len(os.Args) < 3 {
 			printUsage()
-			return
+			os.Exit(1)
 		}
 
 		fileName := os.Args[2]
@@ -158,9 +163,8 @@ func main() {
 
 		if flagErr != nil {
 			fmt.Println("Error: " + flagErr.Error())
-			fmt.Println()
 			printUsage()
-			return
+			os.Exit(1)
 		}
 
 		fileContent := readFileContent(fileName)
@@ -222,17 +226,22 @@ func main() {
 			fmt.Printf("\nTotal time: %d ms\n", time.Since(start).Milliseconds())
 		}
 
+		if len(errors) > 0 {
+			os.Exit(1)
+		}
+
 	} else if command == "test" {
 
 		err := testing.ParseAndExecTests()
 		if err != "" {
-			printUsage()
 			fmt.Fprintf(os.Stderr, "[ERROR] %s", err)
+			os.Exit(1)
 		}
 
 	} else {
 
 		fmt.Fprintf(os.Stderr, "[ERROR] Unknown command '%s'\n", command)
+		os.Exit(1)
 
 	}
 

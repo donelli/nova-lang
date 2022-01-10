@@ -19,7 +19,16 @@
 ? 55555 / 5
 ? 5 / 2
 
-sleep(5)
+* Parentheses
+? 7 * (2 + 1) / 2
+? 7 * 7 * 7 + 1
+
+* exponentiation
+? 2 ** 6
+? 2 ^ 20
+
+* Modulus/Remainder
+? 32 % 3
 
 return
 
