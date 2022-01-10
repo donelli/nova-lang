@@ -5,13 +5,25 @@
          "name": "alltrim",
          "description": "Removes all leading and trailing spaces from a string.",
          "parameters": [ "pcStr:str" ],
-         "returns": "string"
+         "returns": "str"
       },
       {
          "name": "str",
          "description": "Converts the numeric expression to a string with `${2}` characters and `${3}` decimal places.\nIf `${3}` is not specified then `${1}` is treated as an integer",
          "parameters": [ "pnNumber:number", "pcWidth:int", "pcDecPlaces:int" ],
-         "returns": "string"
+         "returns": "str"
+      },
+      {
+         "name": "sleep",
+         "description": "Sleep for `${1}` seconds.",
+         "parameters": [ "pnSeconds:int" ],
+         "returns": null
+      },
+      {
+         "name": "type",
+         "description": "Returns the data type of the expression `${1}`.\nIf the expression contains an error or a undefined variable, the function returns `U`.\nPossible returns: N -> Number, C -> String/Character, L -> Boolean/Logic, A -> Array, U -> Undefined, P -> Procedure",
+         "parameters": [ "pcExpr:str" ],
+         "returns": "str"
       }
       
    ]
