@@ -30,21 +30,11 @@ func (n *String) Type() ValueType {
 }
 
 func (n *String) Add(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot add a `%v` to a string", value.Type()))
-	}
-
 	return NewString(n.Value + value.(*String).Value), nil
 
 }
 
 func (n *String) Subtract(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot subtract a `%v` from a string", value.Type()))
-	}
-
 	return NewString(fmt.Sprintf("%s%s", strings.TrimRight(n.Value, " "), value.(*String).Value)), nil
 
 }
@@ -66,10 +56,6 @@ func (n *String) Remainder(value Value) (Value, *shared.Error) {
 }
 
 func (n *String) Equals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", n.Type(), value.Type()))
-	}
 
 	rightString := value.(*String)
 
@@ -102,45 +88,25 @@ func (n *String) Or(value Value) (Value, *shared.Error) {
 
 func (n *String) IsGreater(value Value) (Value, *shared.Error) {
 
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a string", value.Type()))
-	}
-
 	return NewBoolean(n.Value > value.(*String).Value), nil
 }
 
 func (n *String) IsGreaterEquals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a string", value.Type()))
-	}
 
 	return NewBoolean(n.Value >= value.(*String).Value), nil
 }
 
 func (n *String) IsLess(value Value) (Value, *shared.Error) {
 
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a string", value.Type()))
-	}
-
 	return NewBoolean(n.Value < value.(*String).Value), nil
 }
 
 func (n *String) IsLessEquals(value Value) (Value, *shared.Error) {
 
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a string", value.Type()))
-	}
-
 	return NewBoolean(n.Value <= value.(*String).Value), nil
 }
 
 func (n *String) EqualsEquals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_String {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", n.Type(), value.Type()))
-	}
 
 	rightString := value.(*String)
 

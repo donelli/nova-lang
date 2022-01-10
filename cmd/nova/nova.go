@@ -213,7 +213,7 @@ func main() {
 		if len(errors) > 0 {
 
 			for _, err := range errors {
-				fmt.Fprintf(os.Stderr, "%s\n", err.Message)
+				fmt.Fprintf(os.Stderr, "[ERROR] %s\n", err.Message)
 			}
 
 		}

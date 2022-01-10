@@ -565,6 +565,10 @@ func (interpreter *Interpreter) visitBinaryOperationNode(node parser.Node) *Runt
 	var value Value = nil
 	var err *shared.Error = nil
 
+	if leftValue.Type() != rightValue.Type() {
+		return res.Failure(shared.NewRuntimeErrorRange(binOpNode.Range(), fmt.Sprintf("Operands must be same type (got %v and %v)", leftValue.Type(), rightValue.Type())))
+	}
+
 	if binOpNode.OperationToken.Type == lexer.TokenType_Plus {
 		value, err = leftValue.Add(rightValue)
 	} else if binOpNode.OperationToken.Type == lexer.TokenType_Minus {

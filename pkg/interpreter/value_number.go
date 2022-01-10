@@ -36,40 +36,18 @@ func (n *Number) Type() ValueType {
 }
 
 func (n *Number) Add(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot add a `%v` to a number", value.Type()))
-	}
-
 	return NewNumber(n.Value + value.(*Number).Value), nil
-
 }
 
 func (n *Number) Subtract(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot subtract a `%v` from a number", value.Type()))
-	}
-
 	return NewNumber(n.Value - value.(*Number).Value), nil
-
 }
 
 func (n *Number) Multiply(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot multiply a `%v` with a number", value.Type()))
-	}
-
 	return NewNumber(n.Value * value.(*Number).Value), nil
-
 }
 
 func (n *Number) Divide(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot divide a `%v` with a number", value.Type()))
-	}
 
 	if value.(*Number).Value == 0 {
 		return nil, shared.NewRuntimeErrorRange(n.Range, "Cannot divide by zero")
@@ -80,84 +58,42 @@ func (n *Number) Divide(value Value) (Value, *shared.Error) {
 }
 
 func (n *Number) Exponential(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot perform exponentialization with `%v` and a number", value.Type()))
-	}
-
 	return NewNumber(math.Pow(n.Value, value.(*Number).Value)), nil
-
 }
 
 func (n *Number) Remainder(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot perform remainer operation with `%v` and a number", value.Type()))
-	}
-
 	return NewNumber(math.Mod(n.Value, value.(*Number).Value)), nil
-
 }
 
 func (n *Number) Equals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", n.Type(), value.Type()))
-	}
-
 	return NewBoolean(n.Value == value.(*Number).Value), nil
 }
 
 func (n *Number) NotEquals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", n.Type(), value.Type()))
-	}
-
 	return NewBoolean(n.Value != value.(*Number).Value), nil
 }
 
 func (n *Number) And(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot perform 'AND' on: `%v` and `%v`", n.Type(), value.Type()))
+	return nil, shared.NewRuntimeErrorRange(n.Range, "Numbers cannot be used as boolean/logic")
 }
 
 func (n *Number) Or(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot perform 'AND' on: `%v` and `%v`", n.Type(), value.Type()))
+	return nil, shared.NewRuntimeErrorRange(n.Range, "Numbers cannot be used as boolean/logic")
 }
 
 func (n *Number) IsGreater(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a number", value.Type()))
-	}
-
 	return NewBoolean(n.Value > value.(*Number).Value), nil
 }
 
 func (n *Number) IsGreaterEquals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a number", value.Type()))
-	}
-
 	return NewBoolean(n.Value >= value.(*Number).Value), nil
 }
 
 func (n *Number) IsLess(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a number", value.Type()))
-	}
-
 	return NewBoolean(n.Value < value.(*Number).Value), nil
 }
 
 func (n *Number) IsLessEquals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Number {
-		return nil, shared.NewRuntimeErrorRange(n.Range, fmt.Sprintf("Cannot compare `%v` with a number", value.Type()))
-	}
-
 	return NewBoolean(n.Value <= value.(*Number).Value), nil
 }
 
@@ -166,7 +102,7 @@ func (n *Number) EqualsEquals(value Value) (Value, *shared.Error) {
 }
 
 func (n *Number) IsTrue() (bool, *shared.Error) {
-	return false, shared.NewRuntimeErrorRange(n.Range, "Numbers cannot be used as boolean")
+	return false, shared.NewRuntimeErrorRange(n.Range, "Numbers cannot be used as boolean/logic")
 }
 
 func (n *Number) UpdateRange(valueRange *shared.Range) Value {

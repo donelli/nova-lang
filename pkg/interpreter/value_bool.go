@@ -1,7 +1,6 @@
 package interpreter
 
 import (
-	"fmt"
 	"nova-lang/pkg/shared"
 )
 
@@ -32,62 +31,42 @@ func (b *Boolean) Type() ValueType {
 }
 
 func (b *Boolean) Add(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot add a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot add boolean/logic values")
 }
 
 func (b *Boolean) Subtract(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot subtract a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot subtract boolean/logic values")
 }
 
 func (b *Boolean) Multiply(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot multiply a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot multiply boolean/logic values")
 }
 
 func (b *Boolean) Divide(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot divide a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot divide boolean/logic values")
 }
 
 func (b *Boolean) Exponential(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform exponentialization with a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform exponentialization with boolean/logic values")
 }
 
 func (b *Boolean) Remainder(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform remainer operation with a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform remainer operation with boolean/logic values")
 }
 
 func (b *Boolean) Equals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Boolean {
-		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
-	}
-
 	return NewBoolean(b.Value == value.(*Boolean).Value), nil
 }
 
 func (b *Boolean) NotEquals(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Boolean {
-		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
-	}
-
 	return NewBoolean(b.Value != value.(*Boolean).Value), nil
 }
 
 func (b *Boolean) And(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Boolean {
-		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
-	}
-
 	return NewBoolean(b.Value && value.(*Boolean).Value), nil
 }
 
 func (b *Boolean) Or(value Value) (Value, *shared.Error) {
-
-	if value.Type() != ValueType_Boolean {
-		return nil, shared.NewRuntimeErrorRange(b.Range, fmt.Sprintf("Cannot compare `%v` and `%v`", b.Type(), value.Type()))
-	}
-
 	return NewBoolean(b.Value || value.(*Boolean).Value), nil
 }
 
@@ -96,19 +75,19 @@ func (b *Boolean) EqualsEquals(value Value) (Value, *shared.Error) {
 }
 
 func (b *Boolean) IsGreater(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `>` operation with a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform greater operation with boolean/logic values")
 }
 
 func (b *Boolean) IsGreaterEquals(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `>=` operation with a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform greater/equals operation with boolean/logic values")
 }
 
 func (b *Boolean) IsLess(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `<` operation with a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform less operation with boolean/logic values")
 }
 
 func (b *Boolean) IsLessEquals(value Value) (Value, *shared.Error) {
-	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform `<=` operation with a boolean/logic value")
+	return nil, shared.NewRuntimeErrorRange(b.Range, "Cannot perform less/equals operation with boolean/logic values")
 }
 
 func (b *Boolean) IsTrue() (bool, *shared.Error) {
