@@ -298,12 +298,15 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 		// TODO better way to define keywords that also are built-in functions
 
-		if identifierLower == "seek" {
+		if identifierLower == "seek" || identifierLower == "sleep" {
 
-			nextChar, hasNextChar := lexer.PeekNextNonEmptyChar()
+			// nextChar, hasNextChar := lexer.PeekNextNonEmptyChar()
 
-			if hasNextChar && nextChar == '(' {
+			// fmt.Println("  ->  ", identifierLower, " | ", nextChar, " ", lexer.CurrentChar)
+
+			if lexer.CurrentRune == '(' {
 				lexer.addTokenWithPos(TokenType_Identifier, identifier, startPos, *lexer.CurrentPosition)
+				return
 			}
 
 		}
