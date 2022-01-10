@@ -198,7 +198,7 @@ func (lexer *Lexer) makeNumber() {
 	number := ""
 	var dotCount uint8 = 0
 
-	for strings.Contains(shared.DigitsAndDot, lexer.CurrentChar) {
+	for lexer.hasCurrentChar && strings.Contains(shared.DigitsAndDot, lexer.CurrentChar) {
 
 		if lexer.CurrentRune == '.' {
 			dotCount++
@@ -287,7 +287,7 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 	startPos := *lexer.CurrentPosition
 	identifier := ""
 
-	for strings.Contains(shared.VariableChars, lexer.CurrentChar) {
+	for lexer.hasCurrentChar && strings.Contains(shared.VariableChars, lexer.CurrentChar) {
 		identifier += lexer.CurrentChar
 		lexer.Advance()
 	}
@@ -298,11 +298,7 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 		// TODO better way to define keywords that also are built-in functions
 
-		if identifierLower == "seek" || identifierLower == "sleep" {
-
-			// nextChar, hasNextChar := lexer.PeekNextNonEmptyChar()
-
-			// fmt.Println("  ->  ", identifierLower, " | ", nextChar, " ", lexer.CurrentChar)
+		if identifierLower == "seek" || identifierLower == "sleep" || identifierLower == "type" {
 
 			if lexer.CurrentRune == '(' {
 				lexer.addTokenWithPos(TokenType_Identifier, identifier, startPos, *lexer.CurrentPosition)

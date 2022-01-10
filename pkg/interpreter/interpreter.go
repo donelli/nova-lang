@@ -14,6 +14,13 @@ type Interpreter struct {
 
 func (interpreter *Interpreter) Start(node parser.Node, simulationMode bool) *RuntimeResult {
 
+	interpreter.context.SimulationMode = simulationMode
+	interpreter.context.CurrentInterpreter = interpreter
+
+	if len(BuiltInFunctions) == 0 {
+		InitBuiltInFunctions()
+	}
+
 	if node.Type() == parser.Node_List {
 
 		listNode := node.(*parser.ListNode)
@@ -278,9 +285,29 @@ func (interpreter *Interpreter) visitCommandNode(node parser.Node) *RuntimeResul
 		return res.SuccessLoop()
 	} else if commandNode.CommandType == parser.CommandType_Assert {
 		return interpreter.visitAssertNode(commandNode)
+	} else if commandNode.CommandType == parser.CommandType_Store {
+		return interpreter.visitStoreNode(commandNode)
 	}
 
 	panic("command interpretation not implemented yet for " + fmt.Sprint(commandNode.CommandType))
+}
+
+func (interpreter *Interpreter) visitStoreNode(commandNode *parser.CommandNode) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	valueNode := commandNode.Args["value"].(parser.Node)
+
+	value := res.Register(interpreter.visit(valueNode))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	for _, varName := range commandNode.Args["varNames"].([]string) {
+		interpreter.context.AssignValueToVariable(varName, value, commandNode.Range())
+	}
+
+	return res
 }
 
 func (interpreter *Interpreter) visitAssertNode(commandNode *parser.CommandNode) *RuntimeResult {

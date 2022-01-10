@@ -6,11 +6,13 @@ import (
 )
 
 type Context struct {
-	Stack             []parser.Node
-	CurrentLevel      int
-	VariablesPerLevel []map[string]*Variable
-	LoopCountPerLevel []int
-	Functions         map[string]*parser.FunctionNode
+	SimulationMode     bool
+	CurrentInterpreter *Interpreter
+	Stack              []parser.Node
+	CurrentLevel       int
+	VariablesPerLevel  []map[string]*Variable
+	LoopCountPerLevel  []int
+	Functions          map[string]*parser.FunctionNode
 }
 
 func (context *Context) IncreaseLevel(node parser.Node) {

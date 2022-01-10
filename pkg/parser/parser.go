@@ -33,14 +33,16 @@ type Parser struct {
 	LexerResult       *lexer.LexerResult
 	CurrentTokenIndex int
 	CurrentToken      *lexer.LexerToken
+	Embedded          bool
 
 	optToFunctionName map[ParseOption]reflect.Value
 }
 
-func NewParser(lexerResult *lexer.LexerResult) *Parser {
+func NewParser(lexerResult *lexer.LexerResult, embedded bool) *Parser {
 	parser := &Parser{
 		LexerResult:       lexerResult,
 		CurrentTokenIndex: -1,
+		Embedded:          embedded,
 		optToFunctionName: make(map[ParseOption]reflect.Value, 6),
 	}
 	parser.advance()
@@ -87,7 +89,13 @@ func (p *Parser) updateCurrentToken() {
 }
 
 func (p *Parser) Parse() *ParseResult {
-	res := p.parseStatements([]string{})
+
+	var res *ParseResult
+	if p.Embedded {
+		res = p.parseExpression()
+	} else {
+		res = p.parseStatements([]string{})
+	}
 
 	if res.Err == nil && p.CurrentToken.Type != lexer.TokenType_EOF {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Parser finished its work but there are still tokens left. Probably a error with the parser."))

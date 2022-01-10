@@ -102,7 +102,7 @@ func main() {
 
 		if len(res.Errors) == 0 {
 
-			parser := parser.NewParser(res)
+			parser := parser.NewParser(res, false)
 			parseRes = parser.Parse()
 
 			if parseRes.Err != nil {
@@ -182,7 +182,7 @@ func main() {
 
 		if len(errors) == 0 {
 
-			parser := parser.NewParser(res)
+			parser := parser.NewParser(res, false)
 			parseRes = parser.Parse()
 
 			if parseRes.Err != nil {

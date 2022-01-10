@@ -2,6 +2,8 @@ package interpreter
 
 import (
 	"fmt"
+	"nova-lang/pkg/lexer"
+	"nova-lang/pkg/parser"
 	"nova-lang/pkg/shared"
 	"strings"
 	"time"
@@ -26,10 +28,15 @@ func checkParameters(funcCallRange *shared.Range, expectedArgTypes []ValueType, 
 	return nil
 }
 
-var BuiltInFunctions = map[string]func(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult{
-	"alltrim": BuiltIn_Alltrim,
-	"str":     BuiltIn_Str,
-	"sleep":   BuiltIn_Sleep,
+var BuiltInFunctions map[string]func(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult
+
+func InitBuiltInFunctions() {
+	BuiltInFunctions = map[string]func(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult{
+		"alltrim": BuiltIn_Alltrim,
+		"str":     BuiltIn_Str,
+		"sleep":   BuiltIn_Sleep,
+		"type":    BuiltIn_Type,
+	}
 }
 
 // --------------------------------
@@ -100,4 +107,52 @@ func BuiltIn_Sleep(context *Context, funcCallRange *shared.Range, args []Value) 
 	time.Sleep(time.Second * time.Duration(seconds))
 
 	return res.SuccessReturn(NewBoolean(false))
+}
+
+func BuiltIn_Type(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args); err != nil {
+		return res.Failure(err)
+	}
+
+	val := execEmbeddedProgram(context, args[0].(*String).Value)
+
+	return res.SuccessReturn(val)
+}
+
+func execEmbeddedProgram(context *Context, program string) Value {
+
+	// TODO This function takes some times to execute, needs to be optimized
+
+	lex := lexer.NewLexer("embedded", program)
+	lexRes := lex.Parse()
+
+	if len(lexRes.Errors) > 0 {
+		return NewString("U")
+	}
+
+	parser := parser.NewParser(lexRes, true)
+	parseRes := parser.Parse()
+
+	if parseRes.Err != nil {
+		return NewString("U")
+	}
+
+	rtRes := context.CurrentInterpreter.visit(parseRes.Node)
+	if rtRes.Error != nil {
+		return NewString("U")
+	}
+
+	if rtRes.Value.Type() == ValueType_String {
+		return NewString("C")
+	} else if rtRes.Value.Type() == ValueType_Number {
+		return NewString("N")
+	} else if rtRes.Value.Type() == ValueType_Boolean {
+		return NewString("L")
+	}
+
+	return NewString("U")
+
 }
