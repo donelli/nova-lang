@@ -1,0 +1,4 @@
+{
+  "program": ".\\tests\\variables.prg",
+  "output": "1\n4\nHello\nHello world! Hello world!\nL\nL\nC\nN\n"
+}
