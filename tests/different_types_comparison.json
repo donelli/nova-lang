@@ -1,0 +1,4 @@
+{
+  "program": ".\\tests\\different_types_comparison.prg",
+  "output": "[ERROR] Operands must be of the same type (got Number and String)\nError running command: exit status 1 "
+}
