@@ -9,9 +9,10 @@ import (
 
 type Interpreter struct {
 	context *Context
+	screen  Screen
 }
 
-func (interpreter *Interpreter) Start(node parser.Node) *RuntimeResult {
+func (interpreter *Interpreter) Start(node parser.Node, simulationMode bool) *RuntimeResult {
 
 	if node.Type() == parser.Node_List {
 
@@ -30,7 +31,32 @@ func (interpreter *Interpreter) Start(node parser.Node) *RuntimeResult {
 
 	}
 
-	return interpreter.visit(node)
+	interpreter.screen = NewConsoleScreen()
+
+	if simulationMode {
+		interpreter.screen.InitSimulation()
+	} else {
+
+		err := interpreter.screen.Init()
+		if err != nil {
+			panic(err.Error())
+		}
+
+	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			interpreter.screen.Close()
+			fmt.Println("-------- Internal error --------")
+			fmt.Println(err)
+		}
+	}()
+
+	result := interpreter.visit(node)
+
+	interpreter.screen.Close()
+
+	return result
 }
 
 func (interpreter *Interpreter) visit(node parser.Node) *RuntimeResult {
@@ -596,7 +622,11 @@ func (interpreter *Interpreter) visitPrintStdoutNode(node parser.Node) *RuntimeR
 		return res
 	}
 
-	fmt.Println(value.PrintRepresentation())
+	// fmt.Println(value.PrintRepresentation())
+
+	str := value.PrintRepresentation()
+
+	interpreter.screen.Print(str)
 
 	return res.Success(nil)
 }
