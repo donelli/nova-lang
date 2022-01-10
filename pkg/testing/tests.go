@@ -15,15 +15,22 @@ type Test struct {
 	Output  string `json:"output"`
 }
 
-func runTest(programName string) (string, error) {
+func runTest(programName string) string {
 
 	fmt.Printf("[INFO] Running `%s` test program...\n", programName)
 
+	stderrWriter := new(strings.Builder)
 	cmd := exec.Command(os.Args[0], "run", programName, "--simulation")
+	cmd.Stderr = stderrWriter
 
 	stdout, err := cmd.Output()
 
-	return string(stdout), err
+	commandOutput := string(stdout)
+	if err != nil {
+		commandOutput += string(stderrWriter.String()) + fmt.Sprint("Error running command: ", err, " ")
+	}
+
+	return commandOutput
 }
 
 func cmdCreateNewTest(programName string) string {
@@ -34,11 +41,7 @@ func cmdCreateNewTest(programName string) string {
 		return fmt.Sprintf("File '%s' doesn't exist\n", programName)
 	}
 
-	commandOutput, err := runTest(programName)
-
-	if err != nil {
-		return fmt.Sprintln("Error running command: ", err)
-	}
+	commandOutput := runTest(programName)
 
 	programFolder := filepath.Dir(programName)
 	programFileName := strings.TrimSuffix(filepath.Base(programName), ".prg")
@@ -134,11 +137,7 @@ func cmdUpdateTestOutput(testName string) string {
 		return fmt.Sprintln("Error unmarshalling json: ", err)
 	}
 
-	commandOutput, err := runTest(test.Program)
-
-	if err != nil {
-		return fmt.Sprintln("Error running command: ", err)
-	}
+	commandOutput := runTest(test.Program)
 
 	test.Output = commandOutput
 
@@ -182,11 +181,7 @@ func cmdRunTest(testName string) (string, bool) {
 		return fmt.Sprintln("Error unmarshalling json: ", err), false
 	}
 
-	commandOutput, err := runTest(test.Program)
-
-	if err != nil {
-		return fmt.Sprintln("Error running command: ", err), false
-	}
+	commandOutput := runTest(test.Program)
 
 	if commandOutput != test.Output {
 		fmt.Fprintf(os.Stderr, "[ERROR] Test failed: %s\n", test.Program)
