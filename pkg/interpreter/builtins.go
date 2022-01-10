@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"nova-lang/pkg/shared"
 	"strings"
+	"time"
 )
 
 type BuiltInFunction interface {
@@ -28,6 +29,7 @@ func checkParameters(funcCallRange *shared.Range, expectedArgTypes []ValueType, 
 var BuiltInFunctions = map[string]func(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult{
 	"alltrim": BuiltIn_Alltrim,
 	"str":     BuiltIn_Str,
+	"sleep":   BuiltIn_Sleep,
 }
 
 // --------------------------------
@@ -83,4 +85,19 @@ func BuiltIn_Str(context *Context, funcCallRange *shared.Range, args []Value) *R
 
 	return res.SuccessReturn(NewString(str))
 
+}
+
+func BuiltIn_Sleep(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args); err != nil {
+		return res.Failure(err)
+	}
+
+	seconds := int(args[0].(*Number).Value)
+
+	time.Sleep(time.Second * time.Duration(seconds))
+
+	return res.SuccessReturn(NewBoolean(false))
 }
