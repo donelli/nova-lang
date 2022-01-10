@@ -213,13 +213,15 @@ func main() {
 		if len(errors) > 0 {
 
 			for _, err := range errors {
-				fmt.Fprintf(os.Stderr, "[ERROR] %s\n", err.Message)
+				fmt.Fprintf(os.Stderr, "[ERROR] %s\n", err.StringWithProgram(fileName))
 			}
 
 		}
 
 		if len(warnings) > 0 {
-			fmt.Printf("Warnings: %v\n", warnings)
+			for _, warn := range warnings {
+				fmt.Fprintf(os.Stdout, "[WARN] %s\n", warn.Message)
+			}
 		}
 
 		if *showTime {

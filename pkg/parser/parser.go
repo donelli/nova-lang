@@ -599,7 +599,18 @@ func (p *Parser) parseFunction() *ParseResult {
 	params := []string{}
 	var paramNode Node = nil
 
+	var firstNonCommentNode Node = nil
+
 	for i := range statements.Nodes {
+
+		if statements.Nodes[i].Type() == Node_Comment {
+			continue
+		}
+
+		if firstNonCommentNode == nil {
+			firstNonCommentNode = statements.Nodes[i]
+		}
+
 		if statements.Nodes[i].Type() == Node_VarDeclar && statements.Nodes[i].(*VarDeclarationNode).Modifier == "parameters" {
 
 			if paramNode != nil {
@@ -612,7 +623,7 @@ func (p *Parser) parseFunction() *ParseResult {
 	}
 
 	if paramNode != nil {
-		if statements.Nodes[0] != paramNode {
+		if firstNonCommentNode != paramNode {
 			res.Warning(shared.NewWarning(paramNode.StartPos(), paramNode.EndPos(), "Function parameters should be defined in the first line of the function"))
 		}
 	}
