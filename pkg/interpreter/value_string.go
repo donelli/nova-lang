@@ -72,6 +72,11 @@ func (n *String) Equals(value Value) (Value, *shared.Error) {
 	}
 
 	rightString := value.(*String)
+
+	if len(rightString.Value) > len(n.Value) {
+		return NewBoolean(false), nil
+	}
+
 	compareLen := len(rightString.Value)
 
 	return NewBoolean(n.Value[0:compareLen-1] == rightString.Value[0:compareLen-1]), nil
