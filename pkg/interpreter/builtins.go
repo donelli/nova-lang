@@ -13,15 +13,17 @@ type BuiltInFunction interface {
 	Call(context *Context, args []Value) *RuntimeResult
 }
 
-func checkParameters(funcCallRange *shared.Range, expectedArgTypes []ValueType, args []Value) *shared.Error {
+// TODO create a map with the function contract (parameters and types), and check it on the function call on the interpreter
+
+func checkParameters(funcCallRange *shared.Range, expectedArgTypes []ValueType, args []Value, funcName string) *shared.Error {
 
 	if len(args) != len(expectedArgTypes) {
-		return shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected %d arguments, got %d", len(expectedArgTypes), len(args)))
+		return shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected %d arguments in function `%s`, got %d", len(expectedArgTypes), funcName, len(args)))
 	}
 
 	for argIndex, arg := range args {
 		if arg.Type() != expectedArgTypes[argIndex] {
-			return shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected `%v` for argument %d, got `%v`", expectedArgTypes[argIndex], argIndex, arg.Type()))
+			return shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected `%v` for argument %d in function `%s`, got `%v`", expectedArgTypes[argIndex], argIndex, funcName, arg.Type()))
 		}
 	}
 
@@ -48,7 +50,7 @@ func BuiltIn_Alltrim(context *Context, funcCallRange *shared.Range, args []Value
 
 	res := NewRuntimeResult()
 
-	if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args); err != nil {
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args, "alltrim"); err != nil {
 		return res.Failure(err)
 	}
 
@@ -64,12 +66,14 @@ func BuiltIn_Str(context *Context, funcCallRange *shared.Range, args []Value) *R
 	res := NewRuntimeResult()
 	var err *shared.Error
 
-	if len(args) == 2 {
-		err = checkParameters(funcCallRange, []ValueType{ValueType_Number, ValueType_Number}, args)
+	if len(args) == 1 {
+		err = checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "str")
+	} else if len(args) == 2 {
+		err = checkParameters(funcCallRange, []ValueType{ValueType_Number, ValueType_Number}, args, "str")
 	} else if len(args) == 3 {
-		err = checkParameters(funcCallRange, []ValueType{ValueType_Number, ValueType_Number, ValueType_Number}, args)
+		err = checkParameters(funcCallRange, []ValueType{ValueType_Number, ValueType_Number, ValueType_Number}, args, "str")
 	} else {
-		err = shared.NewRuntimeErrorRange(funcCallRange, "Expected 2 or 3 arguments")
+		err = shared.NewRuntimeErrorRange(funcCallRange, "Expected 1-3 arguments for `str` function")
 	}
 
 	if err != nil {
@@ -77,8 +81,12 @@ func BuiltIn_Str(context *Context, funcCallRange *shared.Range, args []Value) *R
 	}
 
 	number := args[0].(*Number).Value
-	width := int(args[1].(*Number).Value)
+	width := 10
 	decimalPlaces := 0
+
+	if len(args) > 1 {
+		width = int(args[1].(*Number).Value)
+	}
 
 	if len(args) == 3 {
 		decimalPlaces = int(args[2].(*Number).Value)
@@ -98,7 +106,7 @@ func BuiltIn_Sleep(context *Context, funcCallRange *shared.Range, args []Value) 
 
 	res := NewRuntimeResult()
 
-	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args); err != nil {
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "sleep"); err != nil {
 		return res.Failure(err)
 	}
 
@@ -113,7 +121,7 @@ func BuiltIn_Type(context *Context, funcCallRange *shared.Range, args []Value) *
 
 	res := NewRuntimeResult()
 
-	if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args); err != nil {
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args, "type"); err != nil {
 		return res.Failure(err)
 	}
 
