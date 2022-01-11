@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Test struct {
@@ -181,6 +182,7 @@ func cmdRunTest(testName string) (string, bool) {
 		return fmt.Sprintln("Error unmarshalling json: ", err), false
 	}
 
+	runProgramStart := time.Now()
 	commandOutput := runTest(test.Program)
 
 	if commandOutput != test.Output {
@@ -193,7 +195,7 @@ func cmdRunTest(testName string) (string, bool) {
 		fmt.Fprintln(os.Stderr, commandOutput)
 		return "", false
 	} else {
-		fmt.Println("[INFO] Test passed: ", test.Program)
+		fmt.Println("[INFO] Test passed:", test.Program, "(time", time.Since(runProgramStart).Milliseconds(), "ms)")
 	}
 
 	return "", true
