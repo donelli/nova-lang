@@ -1,0 +1,4 @@
+{
+  "program": ".\\tests\\if.prg",
+  "output": "true\nless than 10\nless than 100\ngreater than 100\nnegative\n"
+}
