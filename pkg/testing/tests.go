@@ -113,9 +113,7 @@ func cmdRunAllTests() {
 	}
 
 	fmt.Println()
-	fmt.Println("[INFO] Tests run:    ", testsCount)
-	fmt.Println("[INFO] Tests failed: ", totalFailedTests)
-	fmt.Println("[INFO] Tests passed: ", testsCount-totalFailedTests)
+	fmt.Printf("[INFO] Tests results: passed: %d, failed: %d, total: %d\n", testsCount-totalFailedTests, totalFailedTests, testsCount)
 
 }
 
