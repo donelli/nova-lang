@@ -53,6 +53,15 @@ func (context *Context) DeclareFunction(function *parser.FunctionNode) *shared.E
 	return nil
 }
 
+func (context *Context) GetVariableAtCurrentLevel(name string) (*Variable, int) {
+
+	if value, ok := context.VariablesPerLevel[context.CurrentLevel][name]; ok {
+		return value, context.CurrentLevel
+	}
+
+	return nil, -1
+}
+
 func (context *Context) GetVariable(name string) (*Variable, int) {
 	for i := context.CurrentLevel; i >= 0; i-- {
 		if value, ok := context.VariablesPerLevel[i][name]; ok {

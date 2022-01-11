@@ -221,7 +221,7 @@ func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResul
 	}
 
 	if endValue.Type() != ValueType_Number {
-		return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid end value for for loop. Expected number got `%v`", endValue.Type())))
+		return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid end value for `for` loop. Expected number got `%v`", endValue.Type())))
 	}
 
 	var stepValue Value = NewNumber(1)
@@ -233,36 +233,53 @@ func (interpreter *Interpreter) visitForLoopNode(node parser.Node) *RuntimeResul
 		}
 
 		if stepValue.Type() != ValueType_Number {
-			return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid step value for for loop. Expected number got `%v`", stepValue.Type())))
+			return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Invalid step value for `for` loop. Expected number got `%v`", stepValue.Type())))
 		}
+
+		// TODO step cannot be zero
 
 	}
 
+	stepNumber := stepValue.(*Number).Value
+	endValueNumber := endValue.(*Number).Value
+
+	// TODO when static types are implemented, we can declare this variable as a number, and than get rid of the non number value check
 	interpreter.context.AssignValueToVariable(forLoopNode.VarName, startValue, forLoopNode.StartNode.Range())
 
 	interpreter.context.RegisterLoopEnter()
 
 	for {
 
+		variable, _ := interpreter.context.GetVariableAtCurrentLevel(forLoopNode.VarName)
+
+		// TODO in the cases of the two errors below, report the last location of the last places that the variables has changed
+
+		if variable == nil {
+			return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Variable `%s` cannot be released during the loop", forLoopNode.VarName)))
+		}
+
+		if variable.Value.Type() != ValueType_Number {
+			return res.Failure(shared.NewRuntimeErrorRange(forLoopNode.Range(), fmt.Sprintf("Variable `%s` cannot be changed to non number value during the loop", forLoopNode.VarName)))
+		}
+
+		if stepNumber > 0 {
+			if variable.Value.(*Number).Value > endValueNumber {
+				break
+			}
+		} else {
+			if variable.Value.(*Number).Value < endValueNumber {
+				break
+			}
+		}
+
 		res.Register(interpreter.visit(forLoopNode.BodyNode))
 		if res.Error != nil || res.FunctionReturnValue != nil || res.LoopShouldExit {
 			break
 		}
 
-		variable, _ := interpreter.context.GetVariable(forLoopNode.VarName)
 		newValue, _ := variable.Value.Add(stepValue)
 
 		interpreter.context.AssignValueToVariable(forLoopNode.VarName, newValue, forLoopNode.StartNode.Range())
-
-		if stepValue.(*Number).Value > 0 {
-			if newValue.(*Number).Value > endValue.(*Number).Value {
-				break
-			}
-		} else if stepValue.(*Number).Value < 0 {
-			if newValue.(*Number).Value < endValue.(*Number).Value {
-				break
-			}
-		}
 
 	}
 
