@@ -41,6 +41,7 @@ func InitBuiltInFunctions() {
 		"type":    BuiltIn_Type,
 		"val":     BuiltIn_Val,
 		"empty":   BuiltIn_Empty,
+		"space":   BuiltIn_Space,
 	}
 }
 
@@ -209,4 +210,17 @@ func BuiltIn_Empty(context *Context, funcCallRange *shared.Range, args []Value) 
 
 	return res.SuccessReturn(NewBoolean(args[0].IsEmpty()))
 
+}
+
+func BuiltIn_Space(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "val"); err != nil {
+		return res.Failure(err)
+	}
+
+	length := args[0].(*Number).Value
+
+	return res.SuccessReturn(NewString(strings.Repeat(" ", int(length))))
 }

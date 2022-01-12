@@ -33,5 +33,10 @@
 ? empty(.t.)
 ? empty(.f.)
 
+* Generaters a empty string of specified length
+? "." + space(10) + "."
+? "." + space(100) + "."
+? "." + space(0) + "."
+
 return
 

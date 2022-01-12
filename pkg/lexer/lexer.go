@@ -298,7 +298,7 @@ func (lexer *Lexer) makeIdentifierOrKeyword() {
 
 		// TODO better way to define keywords that also are built-in functions
 
-		if identifierLower == "seek" || identifierLower == "sleep" || identifierLower == "type" {
+		if identifierLower == "seek" || identifierLower == "sleep" || identifierLower == "type" || identifierLower == "space" {
 
 			if lexer.CurrentRune == '(' {
 				lexer.addTokenWithPos(TokenType_Identifier, identifier, startPos, *lexer.CurrentPosition)
