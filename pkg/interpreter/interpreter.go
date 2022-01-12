@@ -304,9 +304,55 @@ func (interpreter *Interpreter) visitCommandNode(node parser.Node) *RuntimeResul
 		return interpreter.visitAssertNode(commandNode)
 	} else if commandNode.CommandType == parser.CommandType_Store {
 		return interpreter.visitStoreNode(commandNode)
+	} else if commandNode.CommandType == parser.CommandType_Say {
+		return interpreter.visitSayNode(commandNode)
 	}
 
 	panic("command interpretation not implemented yet for " + fmt.Sprint(commandNode.CommandType))
+}
+
+func (interpreter *Interpreter) visitSayNode(commandNode *parser.CommandNode) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	row := commandNode.Args["row"].(parser.Node)
+	column := commandNode.Args["column"].(parser.Node)
+	value := commandNode.Args["value"].(parser.Node)
+
+	rowValue := res.Register(interpreter.visit(row))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if rowValue.Type() != ValueType_Number {
+		return res.Failure(shared.NewRuntimeErrorRange(row.Range(), fmt.Sprintf("Invalid row value for say command. Expected number got `%v`", rowValue.Type())))
+	}
+
+	columnValue := res.Register(interpreter.visit(column))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if columnValue.Type() != ValueType_Number {
+		return res.Failure(shared.NewRuntimeErrorRange(column.Range(), fmt.Sprintf("Invalid column value for say command. Expected number got `%v`", columnValue.Type())))
+	}
+
+	valueValue := res.Register(interpreter.visit(value))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if valueValue.Type() != ValueType_String {
+		return res.Failure(shared.NewRuntimeErrorRange(value.Range(), fmt.Sprintf("Invalid value for say command. Expected string got `%v`", valueValue.Type())))
+	}
+
+	rowNumber := int(rowValue.(*Number).Value)
+	columnNumber := int(columnValue.(*Number).Value)
+	valueString := valueValue.(*String).Value
+
+	interpreter.screen.WriteAtPos(rowNumber, columnNumber, valueString)
+
+	return res
 }
 
 func (interpreter *Interpreter) visitStoreNode(commandNode *parser.CommandNode) *RuntimeResult {

@@ -26,6 +26,7 @@ const (
 	CommandType_Do
 	CommandType_Erase
 	CommandType_Assert
+	CommandType_Say
 )
 
 //go:generate stringer -type=CommandType -trimprefix=CommandType_

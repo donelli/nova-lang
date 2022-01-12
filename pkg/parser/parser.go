@@ -71,11 +71,22 @@ func (p *Parser) advance() {
 	p.updateCurrentToken()
 }
 
+func (p *Parser) getPreviousToken() (*lexer.LexerToken, bool) {
+
+	index := p.CurrentTokenIndex - 1
+
+	if index >= 0 && index < len(p.LexerResult.Tokens) {
+		return p.LexerResult.Tokens[index], true
+	}
+
+	return nil, false
+}
+
 func (p *Parser) getNextToken() (*lexer.LexerToken, bool) {
 
 	index := p.CurrentTokenIndex + 1
 
-	if index < len(p.LexerResult.Tokens) {
+	if index >= 0 && index < len(p.LexerResult.Tokens) {
 		return p.LexerResult.Tokens[index], true
 	}
 
@@ -1058,6 +1069,86 @@ func (p *Parser) parseReturn() *ParseResult {
 	return res.Success(NewReturnNode(expr, toMaster, token.Range.Start, expr.EndPos()))
 }
 
+func (p *Parser) parseSayOrGetCommand() *ParseResult {
+
+	/*
+		@<row>,<col>
+		@<row>,<col>,<endrow>,<endcol> [BOX <expC>]
+		@<row>,<col> CLEAR
+		@<row>,<col> CLEAR TO <endrow>,<endcol> [REVERSE] [BOLD]
+		@<row>,<col> PROMPT <expC1> [MESSAGE <expC2>]
+		@<row>,<col> SAY <exp1> [PICTURE <expC1>]
+
+		@<row>,<col> GET <memvar/field> ......
+	*/
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected row expression after `@` token"))
+	}
+
+	rowNode := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_Comma) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected `,` after row expression"))
+	}
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected column expression after `,`"))
+	}
+
+	columnNode := res.Register(p.parseExpression())
+	if res.Err != nil {
+		return res
+	}
+
+	if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Incomplete `@` command. Expected something after the column expression"))
+	}
+
+	if p.CurrentToken.Match(lexer.TokenType_Keyword, "say") {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected string expression after `say`"))
+		}
+
+		sayValueNode := res.Register(p.parseExpression())
+		if res.Err != nil {
+			return res
+		}
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token at the end of the command"))
+		}
+
+		args := map[string]interface{}{
+			"value":  sayValueNode,
+			"row":    rowNode,
+			"column": columnNode,
+		}
+
+		return res.Success(NewCommandNode(CommandType_Say, args, startPos, sayValueNode.Range().End))
+
+	} else {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after column expression"))
+	}
+
+}
+
 func (p *Parser) parsePrintStdout() *ParseResult {
 
 	// ? <expr>
@@ -1869,7 +1960,11 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		return res
 	}
 
-	if p.CurrentToken.MatchType(lexer.TokenType_QuestionMark) {
+	if p.CurrentToken.MatchType(lexer.TokenType_AtSign) {
+
+		successNode = res.Register(p.parseSayOrGetCommand())
+
+	} else if p.CurrentToken.MatchType(lexer.TokenType_QuestionMark) {
 
 		successNode = res.Register(p.parsePrintStdout())
 
