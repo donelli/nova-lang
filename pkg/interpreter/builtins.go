@@ -207,8 +207,6 @@ func BuiltIn_Empty(context *Context, funcCallRange *shared.Range, args []Value) 
 		return res.Failure(shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected 1 argument in function `empty`, got %d", len(args))))
 	}
 
-	value := args[0].(Value)
-
-	return res.SuccessReturn(NewBoolean(value.IsEmpty()))
+	return res.SuccessReturn(NewBoolean(args[0].IsEmpty()))
 
 }
