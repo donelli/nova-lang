@@ -94,6 +94,10 @@ func (b *Boolean) IsTrue() (bool, *shared.Error) {
 	return b.Value, nil
 }
 
+func (b *Boolean) IsEmpty() bool {
+	return b.Value == false
+}
+
 func (b *Boolean) UpdateRange(valueRange *shared.Range) Value {
 	b.Range = valueRange
 	return b

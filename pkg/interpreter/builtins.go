@@ -40,6 +40,7 @@ func InitBuiltInFunctions() {
 		"sleep":   BuiltIn_Sleep,
 		"type":    BuiltIn_Type,
 		"val":     BuiltIn_Val,
+		"empty":   BuiltIn_Empty,
 	}
 }
 
@@ -195,5 +196,19 @@ func BuiltIn_Val(context *Context, funcCallRange *shared.Range, args []Value) *R
 	} else {
 		return res.SuccessReturn(NewNumber(convertedVal))
 	}
+
+}
+
+func BuiltIn_Empty(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	if len(args) != 1 {
+		return res.Failure(shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected 1 argument in function `empty`, got %d", len(args))))
+	}
+
+	value := args[0].(Value)
+
+	return res.SuccessReturn(NewBoolean(value.IsEmpty()))
 
 }

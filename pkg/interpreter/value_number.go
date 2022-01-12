@@ -105,6 +105,10 @@ func (n *Number) IsTrue() (bool, *shared.Error) {
 	return false, shared.NewRuntimeErrorRange(n.Range, "Numbers cannot be used as boolean/logic")
 }
 
+func (n *Number) IsEmpty() bool {
+	return n.Value == 0
+}
+
 func (n *Number) UpdateRange(valueRange *shared.Range) Value {
 	n.Range = valueRange
 	return n

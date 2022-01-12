@@ -117,6 +117,10 @@ func (n *String) IsTrue() (bool, *shared.Error) {
 	return false, shared.NewRuntimeErrorRange(n.Range, "Strings cannot be used as boolean")
 }
 
+func (n *String) IsEmpty() bool {
+	return len(n.Value) == 0
+}
+
 func (n *String) UpdateRange(valueRange *shared.Range) Value {
 	n.Range = valueRange
 	return n

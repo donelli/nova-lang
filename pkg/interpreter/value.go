@@ -33,4 +33,5 @@ type Value interface {
 	And(Value) (Value, *shared.Error)
 	Or(Value) (Value, *shared.Error)
 	IsTrue() (bool, *shared.Error)
+	IsEmpty() bool
 }
