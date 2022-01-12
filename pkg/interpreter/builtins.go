@@ -132,6 +132,8 @@ func BuiltIn_Type(context *Context, funcCallRange *shared.Range, args []Value) *
 
 func execEmbeddedProgram(context *Context, program string) Value {
 
+	// TODO dont allow macros inside macros
+
 	// TODO This function takes some times to execute, needs to be optimized
 
 	lex := lexer.NewLexer("embedded", program)

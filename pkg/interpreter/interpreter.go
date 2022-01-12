@@ -438,6 +438,8 @@ func (interpreter *Interpreter) visitStringNode(node parser.Node) *RuntimeResult
 	strNode := node.(*parser.StringNode)
 	res := NewRuntimeResult()
 
+	// TODO parse macros inside strings
+
 	return res.Success(NewString(strNode.Value).UpdateRange(node.Range()))
 }
 
