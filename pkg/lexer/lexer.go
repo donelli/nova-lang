@@ -556,15 +556,70 @@ func (lexer *Lexer) makeCommentOrMacro() {
 
 }
 
+func findMacrosInLine(line string) {
+
+	/*
+		> ? "&(1 + 1)"
+		2
+		> ? "&(2 * 'a')"
+		a
+		> ? "&( 2 + )"
+		2
+		> ? "&str(10)"
+		&str(10)
+		> ? "&(str(10))"
+		        10
+	*/
+
+	// Se `(` eh uma expressao, se nao eh uma variavel
+
+	for char := range line {
+
+		// TODO continue here...
+
+	}
+
+}
+
 func (lexer *Lexer) Parse() *LexerResult {
 
 	result := NewLexerResult()
 	lexer.currentResult = result
 
+	firstTokenOfLine := true
+
 	for {
 
 		if !lexer.hasCurrentChar {
 			break
+		}
+
+		if firstTokenOfLine {
+
+			line := ""
+			currentIndex := int(lexer.CurrentPosition.Index)
+
+			for {
+
+				if currentIndex >= len(lexer.FileContent) {
+					break
+				}
+
+				// TODO consider ; to continue to the next line
+				if lexer.FileContent[currentIndex] == '\n' {
+					break
+				}
+
+				line += string(lexer.FileContent[currentIndex])
+				currentIndex++
+
+			}
+
+			fmt.Printf(" -> '%s'\n", line)
+
+			findMacrosInLine(line)
+
+			firstTokenOfLine = false
 		}
 
 		if strings.Contains(shared.WhitespaceChars, lexer.CurrentChar) {
