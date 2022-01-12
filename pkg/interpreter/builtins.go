@@ -5,6 +5,7 @@ import (
 	"nova-lang/pkg/lexer"
 	"nova-lang/pkg/parser"
 	"nova-lang/pkg/shared"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -38,6 +39,7 @@ func InitBuiltInFunctions() {
 		"str":     BuiltIn_Str,
 		"sleep":   BuiltIn_Sleep,
 		"type":    BuiltIn_Type,
+		"val":     BuiltIn_Val,
 	}
 }
 
@@ -45,7 +47,6 @@ func InitBuiltInFunctions() {
 // Start functions
 // --------------------------------
 
-// The ALLTRIM() function returns a string with all leading and trailing blanks removed.
 func BuiltIn_Alltrim(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
 
 	res := NewRuntimeResult()
@@ -59,8 +60,6 @@ func BuiltIn_Alltrim(context *Context, funcCallRange *shared.Range, args []Value
 	return res.SuccessReturn(NewString(strings.Trim(str.Value, " ")))
 }
 
-// The STR() function converts the numeric expression <expN1> to a character string of width <expN2>
-// with <expN3> decimal places. If <expN3> is not specified then <expN1> is treated as an integer.
 func BuiltIn_Str(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
 
 	res := NewRuntimeResult()
@@ -164,5 +163,37 @@ func execEmbeddedProgram(context *Context, program string) Value {
 	}
 
 	return NewString("U")
+
+}
+
+func BuiltIn_Val(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args, "val"); err != nil {
+		return res.Failure(err)
+	}
+
+	str := args[0].(*String).Value
+
+	strToConvert := ""
+
+	for _, char := range str {
+
+		if !strings.Contains(shared.DigitsAndDot, string(char)) {
+			break
+		}
+
+		strToConvert += string(char)
+
+	}
+
+	convertedVal, err := strconv.ParseFloat(strToConvert, 64)
+
+	if err != nil {
+		return res.SuccessReturn(NewNumber(0))
+	} else {
+		return res.SuccessReturn(NewNumber(convertedVal))
+	}
 
 }

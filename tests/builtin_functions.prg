@@ -18,5 +18,11 @@
 ? type('someFunc(14)')
 ? type('dial box "wasd"')
 
+? val("154.1")
+? val("9745142714571")
+? val("wasd")
+? val("9.14,1")
+? val(".157946")
+
 return
 
