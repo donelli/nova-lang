@@ -38,6 +38,6 @@ func NewPosition() *Position {
 	return &Position{
 		Row:    0,
 		Column: 0,
-		Index:  1,
+		Index:  -1,
 	}
 }
