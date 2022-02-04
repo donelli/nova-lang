@@ -1,4 +1,4 @@
 {
-  "program": ".\\tests\\variables.prg",
-  "output": "1\n4\nHello\nHello world! Hello world!\nL\nL\nC\nN\n"
+  "program": "./tests/variables.prg",
+  "output": "\nSAY 0 0: 1\nSAY 1 0: 4\nSAY 2 0: Hello\nSAY 3 0: Hello world! Hello world!\nSAY 4 0: L\nSAY 5 0: L\nSAY 6 0: C\nSAY 7 0: N"
 }

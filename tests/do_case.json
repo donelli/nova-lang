@@ -1,4 +1,4 @@
 {
-  "program": ".\\tests\\do_case.prg",
-  "output": "true\nless then 10\nmore or equals then 100 and odd\nmore or equals then 100 and even\nnegative\n"
+  "program": "./tests/do_case.prg",
+  "output": "\nSAY 0 0: true\nSAY 1 0: less then 10\nSAY 2 0: more or equals then 100 and odd\nSAY 3 0: more or equals then 100 and even\nSAY 4 0: negative"
 }

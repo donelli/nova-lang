@@ -1,4 +1,4 @@
 {
-  "program": ".\\tests\\if.prg",
-  "output": "true\nless than 10\nless than 100\ngreater than 100\nnegative\n"
+  "program": "./tests/if.prg",
+  "output": "\nSAY 0 0: true\nSAY 1 0: less than 10\nSAY 2 0: less than 100\nSAY 3 0: greater than 100\nSAY 4 0: negative"
 }

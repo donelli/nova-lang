@@ -1,4 +1,4 @@
 {
-  "program": ".\\tests\\bools_comparisons.prg",
-  "output": ".T.\n.F.\n.T.\n-------\n.F.\n.T.\n.T.\n.F.\n.T.\n.T.\n.F.\n.T.\n-------\n.T.\n.F.\n.F.\n.T.\n.T.\n.F.\n-------\n.T.\n.T.\n.F.\n.F.\n"
+  "program": "./tests/bools_comparisons.prg",
+  "output": "\nSAY 0 0: .T.\nSAY 1 0: .F.\nSAY 2 0: .T.\nSAY 3 0: -------\nSAY 4 0: .F.\nSAY 5 0: .T.\nSAY 6 0: .T.\nSAY 7 0: .F.\nSAY 8 0: .T.\nSAY 9 0: .T.\nSAY 10 0: .F.\nSAY 11 0: .T.\nSAY 12 0: -------\nSAY 13 0: .T.\nSAY 14 0: .F.\nSAY 15 0: .F.\nSAY 16 0: .T.\nSAY 17 0: .T.\nSAY 18 0: .F.\nSAY 19 0: -------\nSAY 20 0: .T.\nSAY 21 0: .T.\nSAY 22 0: .F.\nSAY 23 0: .F."
 }

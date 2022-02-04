@@ -1,4 +1,4 @@
 {
-  "program": ".\\tests\\for.prg",
-  "output": "1\n2\n3\n4\n5\n-------------\n-------------\n5\n4\n3\n2\n1\n-------------\n1\n3\n5\n7\n9\n-------------\n1\n2\n3\n4\n-------------\n2\n4\n6\n8\n10\n"
+  "program": "./tests/for.prg",
+  "output": "\nSAY 0 0: 1\nSAY 1 0: 2\nSAY 2 0: 3\nSAY 3 0: 4\nSAY 4 0: 5\nSAY 5 0: -------------\nSAY 6 0: -------------\nSAY 7 0: 5\nSAY 8 0: 4\nSAY 9 0: 3\nSAY 10 0: 2\nSAY 11 0: 1\nSAY 12 0: -------------\nSAY 13 0: 1\nSAY 14 0: 3\nSAY 15 0: 5\nSAY 16 0: 7\nSAY 17 0: 9\nSAY 18 0: -------------\nSAY 19 0: 1\nSAY 20 0: 2\nSAY 21 0: 3\nSAY 22 0: 4\nSAY 23 0: -------------\nSAY 23 13: 2\nSAY 23 14: 4\nSAY 23 15: 6\nSAY 23 16: 8\nSAY 23 17: 10"
 }
