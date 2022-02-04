@@ -1,219 +1,174 @@
 package interpreter
 
 import (
-	"fmt"
-
-	"github.com/gdamore/tcell/v2"
+	"github.com/famz/SetLocale"
+	gnc "github.com/rthornton128/goncurses"
 )
 
 type Screen interface {
 	Init() error
-	WriteAtPos(x int, y int, str []rune)
+	Say(y int, x int, s []rune)
 	Close()
 	Print(str []rune)
+	// Inkey(seconds int)
+	// AddPrompt(y int, x int, value string)
+	// ReadPrompt(defIndex int) (int, string)
+	// SendKeyboard(str string)
+	// Lastkey() int
+	// ClearTypeAhead()
+	// Clear()
+	// ResizeWindow(rows int, cols int)
+	// SaveScreen() string
+	// RestoreScreen(str string)
+	// DialogBox(text string, title string)
 }
 
-// Console screen
+const (
+	KeyCode_Right     = 4
+	KeyCode_Up        = 5
+	KeyCode_Delete    = 7
+	KeyCode_Backspace = 8
+	KeyCode_Down      = 24
+	KeyCode_Left      = 19
+	KeyCode_Enter     = 10
+	KeyCode_Esc       = 27
+)
+
+var keycodesDict = map[gnc.Key]int{
+	1:   KeyCode_Up,
+	259: KeyCode_Up,
+	258: KeyCode_Down,
+	260: KeyCode_Left,
+	261: KeyCode_Right,
+	263: KeyCode_Backspace,
+	330: KeyCode_Delete,
+}
+
+type PromptOption struct {
+	y     int
+	x     int
+	value string
+}
 
 type ConsoleScreen struct {
-	screen         tcell.Screen
-	currentCursorX int
-	currentCursorY int
-	defaultStyle   tcell.Style
-	blinkStyle     tcell.Style
-	boldStyle      tcell.Style
+	rowCount     int
+	columnCount  int
+	lastKey      gnc.Key
+	activePromps []PromptOption
 }
 
 func NewConsoleScreen() *ConsoleScreen {
 	return &ConsoleScreen{
-		screen:         nil,
-		currentCursorX: 0,
-		currentCursorY: 0,
-		defaultStyle: tcell.StyleDefault.
-			Foreground(tcell.ColorWhite).
-			Background(tcell.ColorBlack),
-		blinkStyle: tcell.StyleDefault.
-			Foreground(tcell.ColorYellow).
-			Background(tcell.ColorRed),
-		boldStyle: tcell.StyleDefault.
-			Foreground(tcell.ColorWhite).
-			Background(tcell.ColorDarkBlue),
+		rowCount:    24,
+		columnCount: 80,
 	}
 }
 
-func (cs *ConsoleScreen) Init() error {
-	if s, e := tcell.NewScreen(); e != nil {
-		return e
-	} else if e = s.Init(); e != nil {
-		return e
-	} else {
-		cs.screen = s
-		cs.screen.ShowCursor(0, 0)
-		return nil
-	}
-}
+const (
+	COLOR_BLINK int16 = 1
+	COLOR_BOLD  int16 = 2
+)
 
-func (cs *ConsoleScreen) updateCursorPos(x int, y int) {
+func (c *ConsoleScreen) Init() error {
 
-	cs.currentCursorX = x
-	cs.currentCursorY = y
+	SetLocale.SetLocale(SetLocale.LC_ALL, "")
 
-	cs.screen.ShowCursor(x, y)
+	_, err := gnc.Init()
 
-}
-
-func (cs *ConsoleScreen) Print(str []rune) {
-	cs.WriteAtPos(cs.currentCursorX, cs.currentCursorY, str)
-	cs.updateCursorPos(0, cs.currentCursorY+1)
-}
-
-func (cs *ConsoleScreen) WriteAtPos(x int, y int, str []rune) {
-
-	style := cs.defaultStyle
-
-	for i := 0; i < len(str); i++ {
-
-		char := str[i]
-
-		// 0x09 indicates the end of the formating of a string
-		if char == 0x09 {
-			style = cs.defaultStyle
-			continue
-		}
-
-		// 0x08 indicates the start of the formating of a string
-		if char == 0x08 {
-
-			i++
-
-			char := str[i]
-
-			if char == 'A' { // Default (reversed)
-				style = cs.defaultStyle.Reverse(true)
-			} else if char == 'B' { // Blink
-				style = cs.blinkStyle
-			} else if char == 'C' { // Blink (reversed)
-				style = cs.blinkStyle.Reverse(true)
-			} else if char == 'D' { // Bold
-				style = cs.boldStyle
-			} else if char == 'E' { // Bold (reversed)
-				style = cs.boldStyle.Reverse(true)
-			}
-
-			continue
-		}
-
-		cs.screen.SetContent(x, y, rune(char), nil, style)
-		x++
-
+	if err != nil {
+		return err
 	}
 
-	cs.updateCursorPos(x, y)
+	gnc.Echo(false)
+	gnc.Raw(true)
+	gnc.StartColor()
 
-	cs.screen.Show()
-}
+	gnc.InitPair(COLOR_BLINK, int16(gnc.C_YELLOW), int16(gnc.C_RED))
+	gnc.InitPair(COLOR_BOLD, int16(gnc.C_BLUE), int16(gnc.C_WHITE))
 
-func (cs *ConsoleScreen) Close() {
-	cs.screen.Fini()
-}
+	stdWin := gnc.StdScr()
+	stdWin.Keypad(true)
 
-// Test screen
+	stdWin.Resize(c.rowCount, c.columnCount)
 
-type SimulationScreen struct {
-	screen         tcell.Screen
-	currentCursorX int
-	currentCursorY int
-	defaultStyle   tcell.Style
-	blinkStyle     tcell.Style
-	boldStyle      tcell.Style
-}
-
-func NewSimulationScreen() *SimulationScreen {
-	return &SimulationScreen{
-		screen:         nil,
-		currentCursorX: 0,
-		currentCursorY: 0,
-		defaultStyle: tcell.StyleDefault.
-			Foreground(tcell.ColorWhite).
-			Background(tcell.ColorBlack),
-		blinkStyle: tcell.StyleDefault.
-			Foreground(tcell.ColorYellow).
-			Background(tcell.ColorRed),
-		boldStyle: tcell.StyleDefault.
-			Foreground(tcell.ColorWhite).
-			Background(tcell.ColorDarkBlue),
-	}
-}
-
-func (cs *SimulationScreen) Init() error {
-	cs.screen = tcell.NewSimulationScreen("")
-	cs.screen.ShowCursor(0, 0)
 	return nil
 }
 
-func (cs *SimulationScreen) updateCursorPos(x int, y int) {
-
-	cs.currentCursorX = x
-	cs.currentCursorY = y
-
-	cs.screen.ShowCursor(x, y)
-
+func (c *ConsoleScreen) Close() {
+	gnc.End()
 }
 
-func (cs *SimulationScreen) Print(str []rune) {
+func (c *ConsoleScreen) Say(y int, x int, s []rune) {
 
-	fmt.Println(string(str))
+	for i := range s {
 
-	// cs.WriteAtPos(cs.currentCursorX, cs.currentCursorY, str)
-	// cs.updateCursorPos(0, cs.currentCursorY+1)
-}
+		charCode := int(s[i])
 
-func (cs *SimulationScreen) WriteAtPos(x int, y int, str []rune) {
-
-	style := cs.defaultStyle
-
-	for i := 0; i < len(str); i++ {
-
-		char := str[i]
-
-		// 0x09 indicates the end of the formating of a string
-		if char == 0x09 {
-			style = cs.defaultStyle
-			continue
-		}
-
-		// 0x08 indicates the start of the formating of a string
-		if char == 0x08 {
-
-			i++
-
-			char := str[i]
-
-			if char == 'A' { // Default (reversed)
-				style = cs.defaultStyle.Reverse(true)
-			} else if char == 'B' { // Blink
-				style = cs.blinkStyle
-			} else if char == 'C' { // Blink (reversed)
-				style = cs.blinkStyle.Reverse(true)
-			} else if char == 'D' { // Bold
-				style = cs.boldStyle
-			} else if char == 'E' { // Bold (reversed)
-				style = cs.boldStyle.Reverse(true)
-			}
-
-			continue
-		}
-
-		cs.screen.SetContent(x, y, char, nil, style)
-		x++
+		printCharAt(y, x+i, charCode)
 
 	}
 
-	cs.updateCursorPos(x, y)
+	gnc.StdScr().Move(y, x+len(s))
 
-	cs.screen.Show()
+	gnc.StdScr().Refresh()
+
 }
 
-func (cs *SimulationScreen) Close() {
-	cs.screen.Fini()
+func (c *ConsoleScreen) Print(s []rune) {
+
+	y, x := gnc.StdScr().CursorYX()
+
+	c.Say(y, x, s)
+
+}
+
+func printCharAt(y int, x int, charCode int) {
+
+	// 1000000000000000000000 (BOLD)
+	//  100000000000000000000 (DIM)
+	//   10000000000000000000 (BLINK)
+	//    1000000000000000000 (REVERSE)
+	//     100000000000000000 (UNDERLINE)
+
+	// TODO change this to the following rule:
+	// Last 8 bits are the value, first 8 bits are the attributes
+
+	stdWin := gnc.StdScr()
+
+	if charCode >= int(gnc.A_BOLD) {
+		stdWin.AttrOn(gnc.ColorPair(COLOR_BOLD))
+		charCode = charCode - int(gnc.A_BOLD)
+		defer stdWin.AttrOff(gnc.ColorPair(COLOR_BOLD))
+	}
+
+	if charCode >= int(gnc.A_DIM) {
+		stdWin.AttrOn(gnc.Char(gnc.A_DIM))
+		charCode = charCode - int(gnc.A_DIM)
+		defer stdWin.AttrOff(gnc.Char(gnc.A_DIM))
+	}
+
+	if charCode >= int(gnc.A_BLINK) {
+		stdWin.AttrOn(gnc.ColorPair(COLOR_BLINK))
+		charCode = charCode - int(gnc.A_BLINK)
+		defer stdWin.AttrOff(gnc.ColorPair(COLOR_BLINK))
+	}
+
+	if charCode >= int(gnc.A_REVERSE) {
+		stdWin.AttrOn(gnc.Char(gnc.A_REVERSE))
+		charCode = charCode - int(gnc.A_REVERSE)
+		defer stdWin.AttrOff(gnc.Char(gnc.A_REVERSE))
+	}
+
+	if charCode >= int(gnc.A_UNDERLINE) {
+		stdWin.AttrOn(gnc.Char(gnc.A_UNDERLINE))
+		charCode = charCode - int(gnc.A_UNDERLINE)
+		defer stdWin.AttrOff(gnc.Char(gnc.A_UNDERLINE))
+	}
+
+	// if gncChar, exits := keyboardRuneToChar[charCode]; exits {
+	// 	stdWin.MoveAddChar(y, x, gncChar)
+	// }
+
+	stdWin.MoveAddChar(y, x, gnc.Char(charCode))
+
 }

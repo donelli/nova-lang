@@ -345,7 +345,7 @@ func (interpreter *Interpreter) visitSayNode(commandNode *parser.CommandNode) *R
 	columnNumber := int(columnValue.(*Number).Value)
 	valueString := valueValue.(*String).Value
 
-	interpreter.screen.WriteAtPos(rowNumber, columnNumber, valueString)
+	interpreter.screen.Say(rowNumber, columnNumber, valueString)
 
 	return res
 }
