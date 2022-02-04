@@ -306,9 +306,57 @@ func (interpreter *Interpreter) visitCommandNode(node parser.Node) *RuntimeResul
 		return interpreter.visitStoreNode(commandNode)
 	} else if commandNode.CommandType == parser.CommandType_Say {
 		return interpreter.visitSayNode(commandNode)
+	} else if commandNode.CommandType == parser.CommandType_Get {
+		return interpreter.visitGetNode(commandNode)
 	}
 
 	panic("command interpretation not implemented yet for " + fmt.Sprint(commandNode.CommandType))
+}
+
+func (interpreter *Interpreter) visitGetNode(commandNode *parser.CommandNode) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	row := commandNode.Args["row"].(parser.Node)
+	column := commandNode.Args["column"].(parser.Node)
+	varName := commandNode.Args["varName"].(string)
+
+	rowValue := res.Register(interpreter.visit(row))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if rowValue.Type() != ValueType_Number {
+		return res.Failure(shared.NewRuntimeErrorRange(row.Range(), fmt.Sprintf("Invalid row value for get command. Expected number got `%v`", rowValue.Type())))
+	}
+
+	columnValue := res.Register(interpreter.visit(column))
+	if res.ShouldReturn() {
+		return res
+	}
+
+	if columnValue.Type() != ValueType_Number {
+		return res.Failure(shared.NewRuntimeErrorRange(column.Range(), fmt.Sprintf("Invalid column value for get command. Expected number got `%v`", columnValue.Type())))
+	}
+
+	variable, _ := interpreter.context.GetVariable(varName)
+
+	if variable == nil {
+		return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), "Variable '"+varName+"' is not defined"))
+	}
+
+	// rowNumber := int(rowValue.(*Number).Value)
+	// columnNumber := int(columnValue.(*Number).Value)
+
+	panic("stopped here!")
+
+	// if variable.Value.Type() == ValueType_String {
+	// 	interpreter.context.CurrentInterpreter.screen.SayWithModifier(rowNumber, columnNumber, variable.Value.(*String).Value, screen.Modif_Reverse)
+	// } else {
+	// 	return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), "Variable of type %s cannot be used in a Get command", variable.Value.Type()))
+	// }
+
+	return res
 }
 
 func (interpreter *Interpreter) visitSayNode(commandNode *parser.CommandNode) *RuntimeResult {

@@ -1143,6 +1143,32 @@ func (p *Parser) parseSayOrGetCommand() *ParseResult {
 
 		return res.Success(NewCommandNode(CommandType_Say, args, startPos, sayValueNode.Range().End))
 
+	} else if p.CurrentToken.Match(lexer.TokenType_Keyword, "get") {
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_Identifier) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Expected variable name after `say`"))
+		}
+
+		varNameToken := p.CurrentToken
+
+		res.RegisterAdvancement()
+		p.advance()
+
+		if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+			return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token at the end of the command"))
+		}
+
+		args := map[string]interface{}{
+			"varName": varNameToken.Value,
+			"row":     rowNode,
+			"column":  columnNode,
+		}
+
+		return res.Success(NewCommandNode(CommandType_Get, args, startPos, varNameToken.Range.End))
+
 	} else {
 		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected token after column expression"))
 	}
@@ -1169,6 +1195,22 @@ func (p *Parser) parsePrintStdout() *ParseResult {
 	}
 
 	return res.Success(NewPrintStdoutNode(expr))
+}
+
+func (p *Parser) parseRead() *ParseResult {
+
+	res := NewParseResult()
+	startPos := p.CurrentToken.Range.Start
+	endPos := p.CurrentToken.Range.End
+
+	res.RegisterAdvancement()
+	p.advance()
+
+	if !p.CurrentToken.MatchType(lexer.TokenType_NewLine) {
+		return res.Failure(shared.NewInvalidSyntaxErrorRange(p.CurrentToken.Range, "Unexpected expression at end of `read` command"))
+	}
+
+	return res.Success(NewCommandNode(CommandType_Read, nil, startPos, endPos))
 }
 
 func (p *Parser) parseAssert() *ParseResult {
@@ -2075,6 +2117,10 @@ func (p *Parser) parseStatement(keywordsToIgnore []string) *ParseResult {
 		} else if p.CurrentToken.Value == "assert" {
 
 			successNode = res.Register(p.parseAssert())
+
+		} else if p.CurrentToken.Value == "read" {
+
+			successNode = res.Register(p.parseRead())
 
 		}
 

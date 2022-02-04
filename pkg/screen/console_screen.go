@@ -36,6 +36,18 @@ var keycodesDict = map[gnc.Key]int{
 	330: KeyCode_Delete,
 }
 
+const (
+	COLOR_BLINK int16 = 1
+	COLOR_BOLD  int16 = 2
+)
+const (
+	Modif_Bold      = int64(gnc.A_BOLD)
+	Modif_Dim       = int64(gnc.A_DIM)
+	Modif_Blink     = int64(gnc.A_BLINK)
+	Modif_Reverse   = int64(gnc.A_REVERSE)
+	Modif_Underline = int64(gnc.A_UNDERLINE)
+)
+
 type PromptOption struct {
 	y     int
 	x     int
@@ -60,11 +72,6 @@ func NewConsoleScreen(outputType OutputType) *ConsoleScreen {
 		activePromps: []PromptOption{},
 	}
 }
-
-const (
-	COLOR_BLINK int16 = 1
-	COLOR_BOLD  int16 = 2
-)
 
 func (c *ConsoleScreen) Init() error {
 
@@ -112,6 +119,17 @@ func (c *ConsoleScreen) Close() {
 
 }
 
+func modifyStringRune(str []rune, modifer int64) []rune {
+
+	newStr := make([]rune, len(str))
+
+	for i, b := range str {
+		newStr[i] = b | rune(modifer)
+	}
+
+	return newStr
+}
+
 func (c *ConsoleScreen) writeToTestFile(str string) {
 
 	if c.outputType != OutputType_Test {
@@ -119,6 +137,14 @@ func (c *ConsoleScreen) writeToTestFile(str string) {
 	}
 
 	c.testOutputFile.WriteString(str)
+
+}
+
+func (c *ConsoleScreen) SayWithModifier(y int, x int, s []rune, modifiers int64) {
+
+	modiferStr := modifyStringRune(s, modifiers)
+
+	c.Say(y, x, modiferStr)
 
 }
 
