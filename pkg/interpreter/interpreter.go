@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"nova-lang/pkg/lexer"
 	"nova-lang/pkg/parser"
+	"nova-lang/pkg/screen"
 	"nova-lang/pkg/shared"
 )
 
 type Interpreter struct {
 	context *Context
-	screen  Screen
+	screen  screen.Screen
 }
 
-func (interpreter *Interpreter) Start(node parser.Node) *RuntimeResult {
+func (interpreter *Interpreter) Start(node parser.Node, testMode bool) *RuntimeResult {
 
 	interpreter.context.CurrentInterpreter = interpreter
 
@@ -37,7 +38,11 @@ func (interpreter *Interpreter) Start(node parser.Node) *RuntimeResult {
 
 	}
 
-	interpreter.screen = NewConsoleScreen()
+	if testMode {
+		interpreter.screen = screen.NewConsoleScreen(screen.OutputType_Test)
+	} else {
+		interpreter.screen = screen.NewConsoleScreen(screen.OutputType_Console)
+	}
 
 	err := interpreter.screen.Init()
 	if err != nil {

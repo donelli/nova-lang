@@ -1,27 +1,19 @@
-package interpreter
+package screen
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/famz/SetLocale"
 	gnc "github.com/rthornton128/goncurses"
 )
 
-type Screen interface {
-	Init() error
-	Say(y int, x int, s []rune)
-	Close()
-	Print(str []rune)
-	// Inkey(seconds int)
-	// AddPrompt(y int, x int, value string)
-	// ReadPrompt(defIndex int) (int, string)
-	// SendKeyboard(str string)
-	// Lastkey() int
-	// ClearTypeAhead()
-	// Clear()
-	// ResizeWindow(rows int, cols int)
-	// SaveScreen() string
-	// RestoreScreen(str string)
-	// DialogBox(text string, title string)
-}
+type OutputType int
+
+const (
+	OutputType_Console OutputType = iota + 1
+	OutputType_Test
+)
 
 const (
 	KeyCode_Right     = 4
@@ -51,16 +43,21 @@ type PromptOption struct {
 }
 
 type ConsoleScreen struct {
-	rowCount     int
-	columnCount  int
-	lastKey      gnc.Key
-	activePromps []PromptOption
+	rowCount       int
+	columnCount    int
+	lastKey        gnc.Key
+	activePromps   []PromptOption
+	outputType     OutputType
+	testOutputFile *os.File
 }
 
-func NewConsoleScreen() *ConsoleScreen {
+func NewConsoleScreen(outputType OutputType) *ConsoleScreen {
 	return &ConsoleScreen{
-		rowCount:    24,
-		columnCount: 80,
+		rowCount:     24,
+		columnCount:  80,
+		lastKey:      0,
+		outputType:   outputType,
+		activePromps: []PromptOption{},
 	}
 }
 
@@ -91,20 +88,50 @@ func (c *ConsoleScreen) Init() error {
 
 	stdWin.Resize(c.rowCount, c.columnCount)
 
+	if c.outputType == OutputType_Test {
+
+		c.testOutputFile, err = os.Create("test.txt")
+
+		if err != nil {
+			return err
+		}
+
+	}
+
 	return nil
 }
 
 func (c *ConsoleScreen) Close() {
+
 	gnc.End()
+
+	if c.outputType == OutputType_Test {
+		c.testOutputFile.Close()
+	}
+
+}
+
+func (c *ConsoleScreen) writeToTestFile(str string) {
+
+	if c.outputType != OutputType_Test {
+		return
+	}
+
+	c.testOutputFile.WriteString(str)
+
 }
 
 func (c *ConsoleScreen) Say(y int, x int, s []rune) {
+
+	c.writeToTestFile(fmt.Sprintf("\nSAY %d %d: ", y, x))
 
 	for i := range s {
 
 		charCode := int(s[i])
 
-		printCharAt(y, x+i, charCode)
+		char := printCharAt(y, x+i, charCode)
+
+		c.writeToTestFile(string(char))
 
 	}
 
@@ -122,7 +149,7 @@ func (c *ConsoleScreen) Print(s []rune) {
 
 }
 
-func printCharAt(y int, x int, charCode int) {
+func printCharAt(y int, x int, charCode int) int {
 
 	// 1000000000000000000000 (BOLD)
 	//  100000000000000000000 (DIM)
@@ -165,10 +192,11 @@ func printCharAt(y int, x int, charCode int) {
 		defer stdWin.AttrOff(gnc.Char(gnc.A_UNDERLINE))
 	}
 
-	// if gncChar, exits := keyboardRuneToChar[charCode]; exits {
-	// 	stdWin.MoveAddChar(y, x, gncChar)
-	// }
+	stdWin.MoveAddChar(y, x, intToGncChar(charCode))
 
-	stdWin.MoveAddChar(y, x, gnc.Char(charCode))
+	return charCode
+}
 
+func intToGncChar(charCode int) gnc.Char {
+	return gnc.Char(charCode)
 }

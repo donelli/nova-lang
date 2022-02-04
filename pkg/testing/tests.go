@@ -26,15 +26,24 @@ func runTest(programName string) string {
 	}
 
 	stderrWriter := new(strings.Builder)
-	cmd := exec.Command(novaPath, "run", programName, "--simulation")
+	cmd := exec.Command(novaPath, "run", programName, "--test", ">", "/dev/null")
 	cmd.Stderr = stderrWriter
 
-	stdout, err := cmd.Output()
+	_, err := cmd.Output()
 
-	commandOutput := string(stdout)
+	commandOutput := "" // string(stdout)
 	if err != nil {
 		commandOutput += string(stderrWriter.String()) + fmt.Sprint("Error running command: ", err, " ")
 	}
+
+	dat, err := os.ReadFile("test.txt")
+	if err != nil {
+		commandOutput += fmt.Sprint("Error reading file: ", err, " ")
+	} else {
+		commandOutput += string(dat)
+	}
+
+	os.Remove("test.txt")
 
 	return commandOutput
 }
