@@ -85,6 +85,7 @@ func (c *ConsoleScreen) Init() error {
 
 	stdWin := gnc.StdScr()
 	stdWin.Keypad(true)
+	stdWin.ScrollOk(true)
 
 	stdWin.Resize(c.rowCount, c.columnCount)
 
@@ -143,11 +144,50 @@ func (c *ConsoleScreen) Say(y int, x int, s []rune) {
 
 func (c *ConsoleScreen) Print(s []rune) {
 
-	y, x := gnc.StdScr().CursorYX()
+	y, _ := gnc.StdScr().CursorYX()
 
-	c.Say(y, x, s)
+	if y >= c.rowCount-1 {
+		gnc.StdScr().Scroll(1)
+		gnc.StdScr().Refresh()
+		y = c.rowCount - 1
+	}
 
-	gnc.StdScr().Move(y+1, x)
+	c.Say(y, 0, s)
+
+	gnc.StdScr().Move(y+1, 0)
+	gnc.StdScr().Refresh()
+
+}
+
+func getChar() gnc.Key {
+
+	char := gnc.StdScr().GetChar()
+
+	keycode, found := keycodesDict[char]
+	if found {
+		return gnc.Key(keycode)
+	}
+
+	if char >= 0 && char <= 126 {
+		return char
+	}
+
+	return 0
+}
+
+func (c *ConsoleScreen) Inkey(seconds int) {
+
+	stdWin := gnc.StdScr()
+
+	if seconds > 0 {
+		stdWin.Timeout(seconds * 1000)
+	}
+
+	c.lastKey = getChar()
+
+	if seconds > 0 {
+		stdWin.Timeout(-1)
+	}
 
 }
 

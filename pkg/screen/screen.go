@@ -5,7 +5,7 @@ type Screen interface {
 	Say(y int, x int, s []rune)
 	Close()
 	Print(str []rune)
-	// Inkey(seconds int)
+	Inkey(seconds int)
 	// AddPrompt(y int, x int, value string)
 	// ReadPrompt(defIndex int) (int, string)
 	// SendKeyboard(str string)

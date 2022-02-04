@@ -44,6 +44,7 @@ func InitBuiltInFunctions() {
 		"val":     BuiltIn_Val,
 		"empty":   BuiltIn_Empty,
 		"space":   BuiltIn_Space,
+		"inkey":   BuiltIn_Inkey,
 	}
 }
 
@@ -250,6 +251,19 @@ func BuiltIn_Space(context *Context, funcCallRange *shared.Range, args []Value) 
 	str := strings.Repeat(" ", int(length))
 
 	return res.SuccessReturn(NewString([]rune(str)))
+}
+
+func BuiltIn_Inkey(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "inkey"); err != nil {
+		return res.Failure(err)
+	}
+
+	context.CurrentInterpreter.screen.Inkey(int(args[0].(*Number).Value))
+
+	return res.SuccessReturn(NewBoolean(false))
 }
 
 // func BuiltIn_Fopen(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
