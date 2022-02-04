@@ -486,7 +486,7 @@ func (interpreter *Interpreter) visitStringNode(node parser.Node) *RuntimeResult
 
 	// TODO parse macros inside strings
 
-	return res.Success(NewString(strNode.Value).UpdateRange(node.Range()))
+	return res.Success(NewString([]rune(strNode.Value)).UpdateRange(node.Range()))
 }
 
 func (interpreter *Interpreter) visitIfNode(node parser.Node) *RuntimeResult {
@@ -720,7 +720,7 @@ func (interpreter *Interpreter) visitPrintStdoutNode(node parser.Node) *RuntimeR
 
 	str := value.PrintRepresentation()
 
-	interpreter.screen.Print(str)
+	interpreter.screen.Print([]rune(str))
 
 	return res.Success(nil)
 }

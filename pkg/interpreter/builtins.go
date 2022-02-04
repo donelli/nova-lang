@@ -5,10 +5,8 @@ import (
 	"nova-lang/pkg/lexer"
 	"nova-lang/pkg/parser"
 	"nova-lang/pkg/shared"
-	"os"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -46,9 +44,6 @@ func InitBuiltInFunctions() {
 		"val":     BuiltIn_Val,
 		"empty":   BuiltIn_Empty,
 		"space":   BuiltIn_Space,
-		"fopen":   BuiltIn_Fopen,
-		"fclose":  BuiltIn_Fclose,
-		"fread":   BuiltIn_Fread,
 	}
 }
 
@@ -66,7 +61,30 @@ func BuiltIn_Alltrim(context *Context, funcCallRange *shared.Range, args []Value
 
 	str := args[0].(*String)
 
-	return res.SuccessReturn(NewString(strings.Trim(str.Value, " ")))
+	startPos := 0
+	endPos := len(str.Value) - 1
+
+	for i := 0; i < len(str.Value); i++ {
+		if str.Value[i] != ' ' {
+			break
+		}
+		startPos++
+	}
+
+	for i := len(str.Value) - 1; i >= 0; i-- {
+		if str.Value[i] != ' ' {
+			break
+		}
+		endPos--
+	}
+
+	newStr := make([]rune, endPos-startPos+1)
+
+	for i := startPos; i <= endPos; i++ {
+		newStr[i-startPos] = str.Value[i]
+	}
+
+	return res.SuccessReturn(NewString(newStr))
 }
 
 func BuiltIn_Str(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
@@ -106,7 +124,7 @@ func BuiltIn_Str(context *Context, funcCallRange *shared.Range, args []Value) *R
 	// Format width
 	str = strings.Repeat(" ", width-len(str)) + str
 
-	return res.SuccessReturn(NewString(str))
+	return res.SuccessReturn(NewString([]rune(str)))
 
 }
 
@@ -133,7 +151,7 @@ func BuiltIn_Type(context *Context, funcCallRange *shared.Range, args []Value) *
 		return res.Failure(err)
 	}
 
-	val := execEmbeddedProgram(context, args[0].(*String).Value)
+	val := execEmbeddedProgram(context, string(args[0].(*String).Value))
 
 	return res.SuccessReturn(val)
 }
@@ -148,30 +166,30 @@ func execEmbeddedProgram(context *Context, program string) Value {
 	lexRes := lex.Parse()
 
 	if len(lexRes.Errors) > 0 {
-		return NewString("U")
+		return NewString([]rune{'U'})
 	}
 
 	parser := parser.NewParser(lexRes, true)
 	parseRes := parser.Parse()
 
 	if parseRes.Err != nil {
-		return NewString("U")
+		return NewString([]rune{'U'})
 	}
 
 	rtRes := context.CurrentInterpreter.visit(parseRes.Node)
 	if rtRes.Error != nil {
-		return NewString("U")
+		return NewString([]rune{'U'})
 	}
 
 	if rtRes.Value.Type() == ValueType_String {
-		return NewString("C")
+		return NewString([]rune{'C'})
 	} else if rtRes.Value.Type() == ValueType_Number {
-		return NewString("N")
+		return NewString([]rune{'N'})
 	} else if rtRes.Value.Type() == ValueType_Boolean {
-		return NewString("L")
+		return NewString([]rune{'L'})
 	}
 
-	return NewString("U")
+	return NewString([]rune{'U'})
 
 }
 
@@ -229,119 +247,121 @@ func BuiltIn_Space(context *Context, funcCallRange *shared.Range, args []Value) 
 
 	length := args[0].(*Number).Value
 
-	return res.SuccessReturn(NewString(strings.Repeat(" ", int(length))))
+	str := strings.Repeat(" ", int(length))
+
+	return res.SuccessReturn(NewString([]rune(str)))
 }
 
-func BuiltIn_Fopen(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+// func BuiltIn_Fopen(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
 
-	res := NewRuntimeResult()
+// 	res := NewRuntimeResult()
 
-	if len(args) < 1 || len(args) > 2 {
-		return res.Failure(shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected 1 or 2 argument in function `fopen`, got %d", len(args))))
-	}
+// 	if len(args) < 1 || len(args) > 2 {
+// 		return res.Failure(shared.NewRuntimeErrorRange(funcCallRange, fmt.Sprintf("Expected 1 or 2 argument in function `fopen`, got %d", len(args))))
+// 	}
 
-	// 0 read only
-	// 1 write only
-	// 2 read and write
+// 	// 0 read only
+// 	// 1 write only
+// 	// 2 read and write
 
-	fileMode := 0
+// 	fileMode := 0
 
-	if len(args) == 1 {
-		if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args, "fopen"); err != nil {
-			return res.Failure(err)
-		}
-	} else {
-		if err := checkParameters(funcCallRange, []ValueType{ValueType_String, ValueType_Number}, args, "fopen"); err != nil {
-			return res.Failure(err)
-		}
-		fileMode = int(args[1].(*Number).Value)
-	}
+// 	if len(args) == 1 {
+// 		if err := checkParameters(funcCallRange, []ValueType{ValueType_String}, args, "fopen"); err != nil {
+// 			return res.Failure(err)
+// 		}
+// 	} else {
+// 		if err := checkParameters(funcCallRange, []ValueType{ValueType_String, ValueType_Number}, args, "fopen"); err != nil {
+// 			return res.Failure(err)
+// 		}
+// 		fileMode = int(args[1].(*Number).Value)
+// 	}
 
-	fileName := args[0].(*String).Value
+// 	fileName := string(args[0].(*String).Value)
 
-	flags := -1
+// 	flags := -1
 
-	if fileMode == 0 {
-		flags = os.O_RDONLY
-	} else if fileMode == 1 {
-		flags = os.O_WRONLY
-	} else if fileMode == 2 {
-		flags = os.O_RDWR
-	} else {
-		return res.SuccessReturn(NewNumber(-1))
-	}
+// 	if fileMode == 0 {
+// 		flags = os.O_RDONLY
+// 	} else if fileMode == 1 {
+// 		flags = os.O_WRONLY
+// 	} else if fileMode == 2 {
+// 		flags = os.O_RDWR
+// 	} else {
+// 		return res.SuccessReturn(NewNumber(-1))
+// 	}
 
-	fd, err := syscall.Open(fileName, flags, 0000)
-	if err != nil {
-		fmt.Println(err)
-		return res.SuccessReturn(NewNumber(-1))
-	}
+// 	fd, err := syscall.Open(fileName, flags, 0000)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return res.SuccessReturn(NewNumber(-1))
+// 	}
 
-	return res.SuccessReturn(NewNumber(float64(fd)))
+// 	return res.SuccessReturn(NewNumber(float64(fd)))
 
-}
+// }
 
-func BuiltIn_Fclose(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+// func BuiltIn_Fclose(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
 
-	res := NewRuntimeResult()
+// 	res := NewRuntimeResult()
 
-	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "fclose"); err != nil {
-		return res.Failure(err)
-	}
+// 	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "fclose"); err != nil {
+// 		return res.Failure(err)
+// 	}
 
-	fd := syscall.Handle(args[0].(*Number).Value)
+// 	fd := syscall.Handle(args[0].(*Number).Value)
 
-	err := syscall.Close(fd)
-	if err != nil {
-		return res.SuccessReturn(NewNumber(-1))
-	}
+// 	err := syscall.Close(fd)
+// 	if err != nil {
+// 		return res.SuccessReturn(NewNumber(-1))
+// 	}
 
-	return res.SuccessReturn(NewNumber(0))
-}
+// 	return res.SuccessReturn(NewNumber(0))
+// }
 
-func BuiltIn_Fread(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
+// func BuiltIn_Fread(context *Context, funcCallRange *shared.Range, args []Value) *RuntimeResult {
 
-	res := NewRuntimeResult()
+// 	res := NewRuntimeResult()
 
-	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "fread"); err != nil {
-		return res.Failure(err)
-	}
+// 	if err := checkParameters(funcCallRange, []ValueType{ValueType_Number}, args, "fread"); err != nil {
+// 		return res.Failure(err)
+// 	}
 
-	fd := syscall.Handle(args[0].(*Number).Value)
+// 	fd := syscall.Handle(args[0].(*Number).Value)
 
-	var str strings.Builder
+// 	var str strings.Builder
 
-	buf := make([]byte, 1)
-	for {
+// 	buf := make([]byte, 1)
+// 	for {
 
-		fmt.Println("aqui")
+// 		fmt.Println("aqui")
 
-		// TODO use a buffer and read blocks instead of reading one byte at a time
+// 		// TODO use a buffer and read blocks instead of reading one byte at a time
 
-		n, err := syscall.Read(fd, buf)
+// 		n, err := syscall.Read(fd, buf)
 
-		if err != nil {
-			break
-		}
+// 		if err != nil {
+// 			break
+// 		}
 
-		if n == 0 {
-			textFileEof[fd] = true
-			break
-		}
+// 		if n == 0 {
+// 			textFileEof[fd] = true
+// 			break
+// 		}
 
-		if buf[0] == '\n' {
-			break
-		}
+// 		if buf[0] == '\n' {
+// 			break
+// 		}
 
-		if str.Cap()-str.Len() < n {
-			str.Grow(24)
-		}
-		fmt.Println("write byte", n)
-		str.WriteByte(buf[0])
+// 		if str.Cap()-str.Len() < n {
+// 			str.Grow(24)
+// 		}
+// 		fmt.Println("write byte", n)
+// 		str.WriteByte(buf[0])
 
-	}
+// 	}
 
-	return res.SuccessReturn(NewString(str.String()))
-}
+// 	return res.SuccessReturn(NewString([]rune(str.String())))
+// }
 
-var textFileEof = make(map[syscall.Handle]bool)
+// var textFileEof = make(map[syscall.Handle]bool)

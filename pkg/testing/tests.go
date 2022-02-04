@@ -20,8 +20,13 @@ func runTest(programName string) string {
 
 	fmt.Printf("[INFO] Running `%s` test program...\n", programName)
 
+	novaPath := os.Args[0]
+	if !strings.HasSuffix(novaPath, ".exe") {
+		novaPath += ".exe"
+	}
+
 	stderrWriter := new(strings.Builder)
-	cmd := exec.Command(os.Args[0], "run", programName, "--simulation")
+	cmd := exec.Command(novaPath, "run", programName, "--simulation")
 	cmd.Stderr = stderrWriter
 
 	stdout, err := cmd.Output()

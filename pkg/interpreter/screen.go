@@ -8,9 +8,9 @@ import (
 
 type Screen interface {
 	Init() error
-	WriteAtPos(x int, y int, str string)
+	WriteAtPos(x int, y int, str []rune)
 	Close()
-	Print(string)
+	Print(str []rune)
 }
 
 // Console screen
@@ -62,12 +62,12 @@ func (cs *ConsoleScreen) updateCursorPos(x int, y int) {
 
 }
 
-func (cs *ConsoleScreen) Print(str string) {
+func (cs *ConsoleScreen) Print(str []rune) {
 	cs.WriteAtPos(cs.currentCursorX, cs.currentCursorY, str)
 	cs.updateCursorPos(0, cs.currentCursorY+1)
 }
 
-func (cs *ConsoleScreen) WriteAtPos(x int, y int, str string) {
+func (cs *ConsoleScreen) WriteAtPos(x int, y int, str []rune) {
 
 	style := cs.defaultStyle
 
@@ -160,15 +160,15 @@ func (cs *SimulationScreen) updateCursorPos(x int, y int) {
 
 }
 
-func (cs *SimulationScreen) Print(str string) {
+func (cs *SimulationScreen) Print(str []rune) {
 
-	fmt.Println(str)
+	fmt.Println(string(str))
 
 	// cs.WriteAtPos(cs.currentCursorX, cs.currentCursorY, str)
 	// cs.updateCursorPos(0, cs.currentCursorY+1)
 }
 
-func (cs *SimulationScreen) WriteAtPos(x int, y int, str string) {
+func (cs *SimulationScreen) WriteAtPos(x int, y int, str []rune) {
 
 	style := cs.defaultStyle
 
@@ -204,7 +204,7 @@ func (cs *SimulationScreen) WriteAtPos(x int, y int, str string) {
 			continue
 		}
 
-		cs.screen.SetContent(x, y, rune(char), nil, style)
+		cs.screen.SetContent(x, y, char, nil, style)
 		x++
 
 	}

@@ -3,14 +3,14 @@ package interpreter
 import (
 	"fmt"
 	"nova-lang/pkg/shared"
-	"strings"
 )
 
 // TODO: use string builder to optimize strings
 // https://medium.com/swlh/high-performance-string-building-in-go-golang-3fd99b9ca856
 
+// Strings in Nova are arrays of bytes because of the special modifications that can be aplied to show them (Reverse, Blink, ...)
 type String struct {
-	Value string
+	Value []rune
 	Range *shared.Range
 }
 
@@ -22,7 +22,7 @@ func (n *String) Copy() Value {
 }
 
 func (n *String) PrintRepresentation() string {
-	return n.Value
+	return string(n.Value)
 }
 
 func (n *String) Type() ValueType {
@@ -30,13 +30,51 @@ func (n *String) Type() ValueType {
 }
 
 func (n *String) Add(value Value) (Value, *shared.Error) {
-	return NewString(n.Value + value.(*String).Value), nil
+
+	otherStr := value.(*String)
+	thisLen := len(n.Value)
+
+	newStr := make([]rune, len(n.Value)+len(otherStr.Value))
+
+	for index, r := range n.Value {
+		newStr[index] = r
+	}
+	for index, r := range value.(*String).Value {
+		newStr[thisLen+index] = r
+	}
+
+	return NewString(newStr), nil
 
 }
 
 func (n *String) Subtract(value Value) (Value, *shared.Error) {
-	return NewString(fmt.Sprintf("%s%s", strings.TrimRight(n.Value, " "), value.(*String).Value)), nil
 
+	otherStr := value.(*String)
+	firstCopyStrLen := len(n.Value)
+
+	for i := len(n.Value) - 1; i >= 0; i-- {
+
+		char := n.Value[i]
+
+		if char != ' ' {
+			break
+		}
+
+		firstCopyStrLen--
+
+	}
+
+	newStr := make([]rune, firstCopyStrLen+len(otherStr.Value))
+
+	for i := 0; i < firstCopyStrLen; i++ {
+		newStr[i] = n.Value[i]
+	}
+
+	for i := 0; i < len(otherStr.Value); i++ {
+		newStr[firstCopyStrLen+i] = otherStr.Value[i]
+	}
+
+	return NewString(newStr), nil
 }
 
 func (n *String) Multiply(value Value) (Value, *shared.Error) {
@@ -65,7 +103,13 @@ func (n *String) Equals(value Value) (Value, *shared.Error) {
 
 	compareLen := len(rightString.Value)
 
-	return NewBoolean(n.Value[0:compareLen-1] == rightString.Value[0:compareLen-1]), nil
+	for i := 0; i < compareLen; i++ {
+		if rightString.Value[i] != n.Value[i] {
+			return NewBoolean(false), nil
+		}
+	}
+
+	return NewBoolean(true), nil
 }
 
 func (n *String) NotEquals(value Value) (Value, *shared.Error) {
@@ -88,29 +132,29 @@ func (n *String) Or(value Value) (Value, *shared.Error) {
 
 func (n *String) IsGreater(value Value) (Value, *shared.Error) {
 
-	return NewBoolean(n.Value > value.(*String).Value), nil
+	return NewBoolean(string(n.Value) > string(value.(*String).Value)), nil
 }
 
 func (n *String) IsGreaterEquals(value Value) (Value, *shared.Error) {
 
-	return NewBoolean(n.Value >= value.(*String).Value), nil
+	return NewBoolean(string(n.Value) >= string(value.(*String).Value)), nil
 }
 
 func (n *String) IsLess(value Value) (Value, *shared.Error) {
 
-	return NewBoolean(n.Value < value.(*String).Value), nil
+	return NewBoolean(string(n.Value) < string(value.(*String).Value)), nil
 }
 
 func (n *String) IsLessEquals(value Value) (Value, *shared.Error) {
 
-	return NewBoolean(n.Value <= value.(*String).Value), nil
+	return NewBoolean(string(n.Value) <= string(value.(*String).Value)), nil
 }
 
 func (n *String) EqualsEquals(value Value) (Value, *shared.Error) {
 
 	rightString := value.(*String)
 
-	return NewBoolean(n.Value == rightString.Value), nil
+	return NewBoolean(string(n.Value) == string(rightString.Value)), nil
 }
 
 func (n *String) IsTrue() (bool, *shared.Error) {
@@ -126,7 +170,7 @@ func (n *String) UpdateRange(valueRange *shared.Range) Value {
 	return n
 }
 
-func NewString(value string) *String {
+func NewString(value []rune) *String {
 	return &String{
 		Value: value,
 		Range: nil,
