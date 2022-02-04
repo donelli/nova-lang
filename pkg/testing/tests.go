@@ -120,7 +120,11 @@ func cmdRunAllTests() {
 		testsCount++
 
 		if !testPassed {
-			fmt.Fprintln(os.Stderr, "[ERROR] ", msg)
+
+			if msg != "" {
+				fmt.Fprintln(os.Stderr, "[ERROR] ", msg)
+			}
+
 			totalFailedTests++
 		}
 

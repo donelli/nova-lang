@@ -147,6 +147,8 @@ func (c *ConsoleScreen) Print(s []rune) {
 
 	c.Say(y, x, s)
 
+	gnc.StdScr().Move(y+1, x)
+
 }
 
 func printCharAt(y int, x int, charCode int) int {
