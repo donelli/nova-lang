@@ -31,6 +31,6 @@ func OpenTextFile(fileName string, fileMode int) int {
 		return -1
 	}
 
-	InterpreterOpenedFiles[]
+	return int(f.Fd())
 
 }
