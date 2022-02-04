@@ -39,7 +39,6 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "  run <file> [options]    Run a program")
 	fmt.Fprintln(os.Stderr, "    Options:")
 	fmt.Fprintln(os.Stderr, "      --time              Show time taken to run the program")
-	fmt.Fprintln(os.Stderr, "      --simulation        Run the program in simulation mode (no screen writing)")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintln(os.Stderr, "  parse <file> [options]  Parse a file")
 	fmt.Fprintln(os.Stderr, "    Options:")
@@ -159,7 +158,6 @@ func main() {
 		runFlagSet := flag.NewFlagSet("nova run", flag.ContinueOnError)
 		runFlagSet.SetOutput(buf)
 		showTime := runFlagSet.Bool("time", false, "")
-		simulationMode := runFlagSet.Bool("simulation", false, "")
 
 		flagErr := runFlagSet.Parse(os.Args[3:])
 
@@ -198,7 +196,7 @@ func main() {
 				interpStart := time.Now()
 
 				interp := interpreter.NewInterpreter()
-				res := interp.Start(parseRes.Node, *simulationMode)
+				res := interp.Start(parseRes.Node)
 
 				if res.Error != nil {
 					errors = append(errors, res.Error)

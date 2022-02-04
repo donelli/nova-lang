@@ -12,9 +12,8 @@ type Interpreter struct {
 	screen  Screen
 }
 
-func (interpreter *Interpreter) Start(node parser.Node, simulationMode bool) *RuntimeResult {
+func (interpreter *Interpreter) Start(node parser.Node) *RuntimeResult {
 
-	interpreter.context.SimulationMode = simulationMode
 	interpreter.context.CurrentInterpreter = interpreter
 
 	if len(BuiltInFunctions) == 0 {
@@ -38,11 +37,7 @@ func (interpreter *Interpreter) Start(node parser.Node, simulationMode bool) *Ru
 
 	}
 
-	if simulationMode {
-		interpreter.screen = NewSimulationScreen()
-	} else {
-		interpreter.screen = NewConsoleScreen()
-	}
+	interpreter.screen = NewConsoleScreen()
 
 	err := interpreter.screen.Init()
 	if err != nil {

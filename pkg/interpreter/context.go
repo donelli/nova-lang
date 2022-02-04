@@ -6,7 +6,6 @@ import (
 )
 
 type Context struct {
-	SimulationMode     bool
 	CurrentInterpreter *Interpreter
 	Stack              []parser.Node
 	CurrentLevel       int
