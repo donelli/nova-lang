@@ -265,6 +265,107 @@ func printCharAt(y int, x int, charCode int) int {
 	return charCode
 }
 
+func (c *ConsoleScreen) ReadStr(y int, x int, value []rune) []rune {
+
+	stdWin := gnc.StdScr()
+
+	strLen := len(value)
+	currentChar := 0
+
+	retValue := make([]rune, strLen)
+	for i := range value {
+		retValue[i] = value[i]
+	}
+
+	for {
+
+		c.SayWithModifier(y, x+currentChar, value, Modif_Reverse)
+		stdWin.Move(y, x+currentChar)
+
+		char := getChar()
+		c.lastKey = char
+
+		if char == KeyCode_Esc || char == KeyCode_Up || char == KeyCode_Down {
+
+			if currentChar == 0 {
+				break
+			}
+
+			continue
+		}
+
+		if char == KeyCode_Enter {
+			break
+		}
+
+		if char == KeyCode_Left {
+
+			if currentChar > 0 {
+				currentChar--
+			}
+
+			continue
+		}
+
+		if char == KeyCode_Right {
+
+			currentChar++
+
+			if currentChar == strLen {
+				break
+			}
+
+			continue
+		}
+
+		if char == KeyCode_Backspace {
+
+			if currentChar > 0 {
+				currentChar--
+
+				for i := currentChar; i < strLen-1; i++ {
+					retValue[i] = retValue[i+1]
+					c.SayWithModifier(y, x+i, []rune{retValue[i]}, Modif_Reverse)
+				}
+
+				retValue[strLen-1] = rune(' ')
+
+			}
+
+			continue
+		}
+
+		if char == KeyCode_Delete {
+
+			// TODO delete character
+
+			continue
+
+		}
+
+		if isPrintableChar(int(char)) {
+
+			retValue[currentChar] = rune(char)
+
+			c.SayWithModifier(y, x+currentChar, []rune{retValue[currentChar]}, Modif_Reverse)
+
+			currentChar++
+
+			if currentChar == strLen {
+				break
+			}
+
+		}
+
+	}
+
+	return retValue
+}
+
+func isPrintableChar(char int) bool {
+	return char >= 32 && char <= 126
+}
+
 func intToGncChar(charCode int) gnc.Char {
 	return gnc.Char(charCode)
 }

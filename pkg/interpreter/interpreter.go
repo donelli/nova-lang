@@ -308,9 +308,50 @@ func (interpreter *Interpreter) visitCommandNode(node parser.Node) *RuntimeResul
 		return interpreter.visitSayNode(commandNode)
 	} else if commandNode.CommandType == parser.CommandType_Get {
 		return interpreter.visitGetNode(commandNode)
+	} else if commandNode.CommandType == parser.CommandType_Read {
+		return interpreter.visitReadNode(commandNode)
 	}
 
 	panic("command interpretation not implemented yet for " + fmt.Sprint(commandNode.CommandType))
+}
+
+func (interpreter *Interpreter) visitReadNode(commandNode *parser.CommandNode) *RuntimeResult {
+
+	res := NewRuntimeResult()
+
+	if len(interpreter.context.ActiveGets) == 0 {
+		return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), "No gets"))
+	}
+
+	getIndex := 0
+
+	for {
+
+		getArgs := interpreter.context.ActiveGets[getIndex]
+
+		variable, _ := interpreter.context.GetVariable(getArgs.VarName)
+
+		if variable == nil {
+			return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), "Variable '"+getArgs.VarName+"' is not defined anymore"))
+		}
+
+		value := []rune{}
+
+		if variable.Value.Type() == ValueType_String {
+			value = variable.Value.(*String).Value
+		} else {
+			return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), fmt.Sprintf("Variable of type %s cannot be used in a Read command", variable.Value.Type())))
+		}
+
+		interpreter.screen.SayWithModifier(getArgs.Row, getArgs.Column, value, screen.Modif_Reverse)
+
+		interpreter.screen.ReadStr(getArgs.Row, getArgs.Column, value)
+
+		panic("stopped here")
+
+	}
+
+	return res
 }
 
 func (interpreter *Interpreter) visitGetNode(commandNode *parser.CommandNode) *RuntimeResult {
@@ -345,16 +386,19 @@ func (interpreter *Interpreter) visitGetNode(commandNode *parser.CommandNode) *R
 		return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), "Variable '"+varName+"' is not defined"))
 	}
 
-	// rowNumber := int(rowValue.(*Number).Value)
-	// columnNumber := int(columnValue.(*Number).Value)
+	rowNumber := int(rowValue.(*Number).Value)
+	columnNumber := int(columnValue.(*Number).Value)
 
-	panic("stopped here!")
-
-	// if variable.Value.Type() == ValueType_String {
-	// 	interpreter.context.CurrentInterpreter.screen.SayWithModifier(rowNumber, columnNumber, variable.Value.(*String).Value, screen.Modif_Reverse)
-	// } else {
-	// 	return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), "Variable of type %s cannot be used in a Get command", variable.Value.Type()))
-	// }
+	if variable.Value.Type() == ValueType_String {
+		interpreter.screen.SayWithModifier(rowNumber, columnNumber, variable.Value.(*String).Value, screen.Modif_Reverse)
+		interpreter.context.ActiveGets = append(interpreter.context.ActiveGets, Get{
+			Row:     rowNumber,
+			Column:  columnNumber,
+			VarName: varName,
+		})
+	} else {
+		return res.Failure(shared.NewRuntimeErrorRange(commandNode.Range(), fmt.Sprintf("Variable of type %s cannot be used in a Get command", variable.Value.Type())))
+	}
 
 	return res
 }

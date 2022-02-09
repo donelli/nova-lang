@@ -5,6 +5,12 @@ import (
 	"nova-lang/pkg/shared"
 )
 
+type Get struct {
+	Row     int
+	Column  int
+	VarName string
+}
+
 type Context struct {
 	CurrentInterpreter *Interpreter
 	Stack              []parser.Node
@@ -12,6 +18,7 @@ type Context struct {
 	VariablesPerLevel  []map[string]*Variable
 	LoopCountPerLevel  []int
 	Functions          map[string]*parser.FunctionNode
+	ActiveGets         []Get
 }
 
 func (context *Context) IncreaseLevel(node parser.Node) {
@@ -146,6 +153,7 @@ func NewContext() *Context {
 		VariablesPerLevel: []map[string]*Variable{},
 		LoopCountPerLevel: []int{0, 0},
 		Functions:         map[string]*parser.FunctionNode{},
+		ActiveGets:        []Get{},
 	}
 
 	// context.VariablesPerLevel[0] = Public variables
